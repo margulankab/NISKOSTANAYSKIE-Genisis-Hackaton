@@ -1,41 +1,92 @@
-# Memory Worlds — пакет планирования
+# Memory Worlds — researched planning package
 
-Этот каталог — **план разработки проекта Memory Worlds**, а не реализация игры. Он собран по материалам MEMORY_WORLDS_MASTER_PLAN.md. Игровой прототип и состояние будущего репозитория не проверялись; все пути, API, роли и архитектурные решения здесь помечены как планируемые.
+**Verified — 2026-11-20:** this checkout contains project documentation, not a playable game. The initial seven files all had existing edits; the audit preserves their full original content below active amendments. No application build, tests, deployed prototype or generated day examples are claimed. The source of case requirements is the supplied [case brief](reference/document_en.md); its independent organizer authenticity is unverified.
 
-## С чего начать
+**Verified — audit reconciliation:** `docs/game_development_plan.md` now exists with the schedule and AT-01–16 definitions. Concurrent organization moved three supporting documents into `docs/planning/`; those moves and the milestone-testing gate are preserved. Historical text below retains its original paths.
 
-1. Прочитай PROJECT_PLAN.md — цель, MVP, сроки и разделение ролей.
-2. Открой TASKS_BY_FILE.md — что создавать по этапам и в каких файлах.
-3. Используй PROGRESS.md как рабочий список задач и журнал сессий.
-4. Перед началом кодирования адаптируй ARCHITECTURE.md к реальному репозиторию.
-5. AGENTS.md задаёт правила работы над проектом.
-6. IDEAS.md хранит идеи, которые нельзя незаметно добавлять в MVP.
+## Start here
 
-## Файлы пакета
+1. [Case checklist and traceability](docs/00_case_requirements.md).
+2. [Two-developer development plan, schedule, budget, demo and jury tests](docs/game_development_plan.md).
+3. [Architecture and contracts](ARCHITECTURE.md), [file/owner map](docs/planning/TASKS_BY_FILE.md).
+4. [Current progress](PROGRESS.md), [scope cuts and resource research](docs/planning/IDEAS.md), [working rules](AGENTS.md).
+5. [Sequential audit changelog](docs/CHANGELOG.md). The [older project plan](docs/planning/PROJECT_PLAN.md) is retained with an explicit supersession notice.
 
-- PROJECT_PLAN.md — продукт, обязательные результаты, этапы 19–22 ноября 2026 года, роли и риски.
-- TASKS_BY_FILE.md — целевое дерево репозитория, задачи по файлам и критерии готовности.
-- PROGRESS.md — начальный статус и дорожная карта MW-001—MW-012.
-- ARCHITECTURE.md — предложенная система, данные, API и границы доверия.
-- AGENTS.md — рабочий контракт для участников и AI-кодировщиков.
-- IDEAS.md — идеи с приоритетами, оценкой сложности и причиной отложения.
+**Assumed product:** a web 3D diary game, 60–90 seconds per day: text/photo/authorized audio → input-driven diorama → two reveals → ending → named saved folder → archive. One system supports park/room/city and five example days. Vite/React/TypeScript/R3F, a constrained Gemini function, and private browser storage with ZIP backups are the selected target. See MIN-01–08 and USR-01–06 in the checklist.
 
-## Ключевая идея
+## Research findings
 
-Memory Worlds превращает текст, фотографии и музыку реального дня в короткую интерактивную 3D-диораму. LLM трактует смысл и возвращает ограниченные данные; детерминированный движок строит сцену из заранее утверждённых окружений и объектов. Сохранённая сцена открывается из архива без повторной генерации.
+- **Assumed capture comparison:** select OBS for recording the actual app; browser MediaRecorder [S2] would add capture/mixing/export work to the product; an existing OS recorder is a fallback only if its captured audio is tested. **Verified [S1]:** OBS is free/open-source recording software. Recording-tool licensing does not grant music or photo rights.
+- **Verified [S3]:** publishing source without a license does not grant general open-source reuse rights. **Assumed:** disclose dependencies' licenses and make the repository accessible to judges; do not silently assign a license to the team's existing work. Repository publication permissions and final source URL remain unverified.
+- **Verified [S4]:** Google does not claim ownership of generated content, but output may not be unique and users remain responsible for use. **Assumed:** retain provenance and review output; no claim that AI content is automatically copyright-cleared.
 
-## Принятые в исходном плане решения
+## Costs
 
-- Веб-приложение: Next.js, TypeScript, React Three Fiber и Drei.
-- Сервер: FastAPI и Pydantic; мультимодальный анализ — Gemini.
-- Данные и медиа: Supabase Postgres и Storage.
-- MVP-окружения: парк, комната, город.
-- MVP-взаимодействие: исследовать сцену, открыть два артефакта памяти, увидеть завершение.
-- Приоритет: законченный вертикальный путь и надёжный архив, а не бесконечный генератор миров.
+- **Verified [S1]:** OBS costs $0. **Assumed:** expected model usage $1.11; new prepaid Gemini account cash budget $5, or $10 including optional Workers upgrade, before tax. See sourced calculation in the current plan; subscriptions already owned by the team are excluded and unverified.
+- **Assumed:** no extra software purchase for docs, video or assets. Exact installed library versions and their notices will be added when implementation exists.
 
-## Статус и границы
+## Implementation notes
 
-На момент создания пакета подготовлены только плановые документы. Это **не подтверждает**, что проектный код, база, API, тесты или развёртывание уже существуют. Перед отметкой любого пункта как готового проверь соответствующий код и критерий приёмки.
+- **Verified:** there are no runnable application commands yet. Do not copy proposed scaffold commands as tested project instructions. After MW-001, record the actual install/dev/build/test commands and versions in this active README section.
+- **Assumed limitations to disclose:** same-browser archive, no cloud sync/encryption guarantee; backups required for portability; adult/eligible-region model use; text and derived features sent to paid AI with consent; media retained locally except explicitly public examples. A rule-based fallback is labeled and is not AI-title evidence.
+- **Assumed submission:** working link, ≤3-minute video, five titled results, ≤1-page description, techniques table, source repository and complete tools/resources list. The final plan contains the three-day script and jury verification steps. Record real artifacts/URLs in `docs/submission.md` during MW-010; do not manufacture links.
+- **Verified tools used for this documentation audit:** OpenAI Codex assistant, web research, PowerShell, Git inspection, and patch/file editing. **Unverified:** exact underlying model name and subscription cost. **Planned, not yet used by the game:** Gemini, Vite/React/TypeScript/R3F/Three/Drei/Zod/fflate, Cloudflare, Inter, Vitest/Playwright and OBS. Distinguish this list from actual dependencies at submission.
 
-Источник: MEMORY_WORLDS_MASTER_PLAN.md, приложенный пользователем. Официальные требования конкурса и рекомендованные технические решения в исходном документе разделены; это различие сохранено в планах ниже.
+## Risks
 
+- **Unverified:** favorite-day photos/music, account access, submission channel, public prototype/video/repository URLs and all runtime checks. These are release tasks, not evidence of documentation incompleteness.
+- **Assumed:** a local memory URL cannot be opened from another browser unless its bundle is imported; the five public example routes must work in a fresh browser. Preserve this distinction in the video and instructions.
+- **Not applicable:** selecting another engine, database or voice provider here; see the dedicated reviewed documents.
+
+## Sources
+
+Accessed **2026-11-20**:
+
+- S1: [OBS help and licensing](https://obsproject.com/help/).
+- S2: [MediaRecorder](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder).
+- S3: [GitHub repository licensing](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository).
+- S4: [Gemini generated-content terms](https://aistudio.google.com/docs/terms).
+- Local: complete root-file inventory and Git status inspected on 2026-11-20; [case brief](reference/document_en.md).
+
+## Historical content — preserved verbatim; conflicting decisions superseded above
+
+# Memory Worlds — Planning Package
+
+This directory is a **development plan for Memory Worlds**, not a game implementation. It was compiled from MEMORY_WORLDS_MASTER_PLAN.md. The game prototype and the state of the future repository were not checked; all paths, APIs, roles, and architectural decisions here are marked as planned.
+
+## Getting Started
+
+1. Read PROJECT_PLAN.md for the goal, MVP, schedule, and role allocation.
+2. Open TASKS_BY_FILE.md to see what to create at each stage and in which files.
+3. Use PROGRESS.md as the working task list and session log.
+4. Before coding, adapt ARCHITECTURE.md to the actual repository.
+5. AGENTS.md defines the project's working rules.
+6. IDEAS.md holds ideas that must not be silently added to the MVP.
+
+## Package Files
+
+- PROJECT_PLAN.md — product, required deliverables, stages for November 19–22, 2026, roles, and risks.
+- TASKS_BY_FILE.md — target repository tree, tasks by file, and completion criteria.
+- PROGRESS.md — initial status and roadmap MW-001–MW-012.
+- ARCHITECTURE.md — proposed system, data, API, and trust boundaries.
+- AGENTS.md — working agreement for contributors and AI coding agents.
+- IDEAS.md — ideas with priorities, complexity estimates, and reasons for deferral.
+
+## Core Idea
+
+Memory Worlds turns the text, photographs, and music of a real day into a short interactive 3D diorama. The LLM interprets meaning and returns constrained data; a deterministic engine builds the scene from preapproved environments and objects. The saved scene opens from the archive without regeneration.
+
+## Decisions Adopted from the Original Plan
+
+- Web application: Next.js, TypeScript, React Three Fiber, and Drei.
+- Server: FastAPI and Pydantic; multimodal analysis: Gemini.
+- Data and media: Supabase Postgres and Storage.
+- MVP environments: park, room, city.
+- MVP interaction: explore the scene, open two memory artifacts, see an ending.
+- Priority: a complete vertical flow and a reliable archive, rather than an endless world generator.
+
+## Status and Scope
+
+At the time this package was created, only planning documents had been prepared. This **does not confirm** that project code, a database, APIs, tests, or a deployment already exist. Before marking any item complete, check the relevant code and acceptance criterion.
+
+Source: MEMORY_WORLDS_MASTER_PLAN.md, supplied by the user. The original document distinguishes official competition requirements from recommended technical decisions; the plans preserve that distinction.
