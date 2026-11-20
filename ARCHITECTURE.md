@@ -1,5 +1,7 @@
 # Memory Worlds — архитектура
 
+> **Фактически реализовано (2026-11-20):** клиентский прототип Vite + React + TypeScript + three.js без бэкенда. `src/lib` — данные и правила (`presets.ts`, `mood.ts`, `spotify.ts`, `storage.ts`, `types.ts`); `src/game` — детерминированный движок сцены (`world.ts`, `props.ts`), читающий только `MoodConfig`; `src/components` — экраны. Манифест `MoodConfig` (schemaVersion 1, seed, палитра, декор, фрагменты) хранится в `localStorage` ключ `memory-worlds:v1`. Gemini/FastAPI/Supabase ниже — по-прежнему план.
+
 > **Статус: предложенная архитектура.** Кодовую базу не проверяли. Пути, маршруты, endpoints и таблицы ниже — target design, не утверждение, что они уже существуют. После инициализации заменять описания фактически проверенными.
 
 ## 1. Система и поток данных

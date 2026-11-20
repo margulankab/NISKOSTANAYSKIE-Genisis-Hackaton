@@ -1,4 +1,30 @@
-# Memory Worlds — пакет планирования
+# Memory Worlds
+
+## Playable prototype (client-only vertical slice)
+
+Stack: Vite + React + TypeScript + three.js. No backend, no API keys.
+
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run build    # type-check + production build
+npm test         # deterministic mood/Spotify-parser tests
+```
+
+Flow: write the day → optional photo/video + Spotify link → "Imagine this day" → review mood → walk the house (WASD/arrows, E to interact; touch joystick on phones), collect fragments, place them in the memory box, close it → the house transforms → explore and read memory objects → world auto-saves; reopen from *Saved worlds*.
+
+| Feature | Status |
+|---|---|
+| Mood interpretation | **Local fallback**: keyword rules + 6 hand-made presets (`src/lib/presets.ts`). No AI model runs; the UI says so. |
+| Spotify | Official embed player for a pasted link/URI only; loads only on click. No search/auth, no scraping. |
+| Photo / video | Local only; downscaled still (video → one frame) stored in `localStorage`. |
+| Persistence | `localStorage` (`src/lib/storage.ts`); quota/corruption errors are shown. |
+| Visual tokens | `:root` in `src/styles.css` (UI) and `src/lib/presets.ts` (worlds). |
+
+Limitations: video isn't played in-world (still frame only); single house layout; English UI; mood rules are keyword-based (English + some Russian); the genesis-exe.com reference could not be fetched from the build sandbox, so the look is an original design assumption. Release/deploy and the Next.js/FastAPI/Supabase plan below remain future work.
+
+---
+# Пакет планирования
 
 Этот каталог — **план разработки проекта Memory Worlds**, а не реализация игры. Он собран по материалам MEMORY_WORLDS_MASTER_PLAN.md. Игровой прототип и состояние будущего репозитория не проверялись; все пути, API, роли и архитектурные решения здесь помечены как планируемые.
 

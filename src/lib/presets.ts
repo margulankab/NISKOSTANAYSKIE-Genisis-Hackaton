@@ -1,0 +1,66 @@
+import type { MoodId, MoodPreset } from './types';
+
+// All colours and look-and-feel values live here. Add a preset = add an entry.
+export const PRESETS: Record<MoodId, MoodPreset> = {
+  radiant: {
+    id: 'radiant', label: 'Radiant', glyph: '☀', environment: 'Sunlit garden room',
+    blurb: 'Bright, open and a little giddy.',
+    palette: { sky: '#9ad7ff', fog: '#d9f0ff', wall: '#fff1c9', floor: '#e8c98f', trim: '#ffb454', accent: '#ff7a59', glow: '#ffe08a', sun: '#fff3c4', ambient: '#fff8e6', sunIntensity: 2.2, ambientIntensity: 0.9 },
+    particles: { kind: 'petals', color: '#ffb3c7', speed: 0.5, rise: false, size: 0.16 },
+    decor: ['plant', 'balloon', 'cushion'],
+    titles: ['The Day That Felt Like {m}', 'Sunlight Over {m}', 'A Bright Afternoon of {m}'],
+    defaultMotifs: ['sunlight', 'laughter', 'open windows'],
+    keywords: ['happy','great','joy','fun','sun','sunny','laugh','laughed','friends','party','celebrate','win','won','love','wonderful','excited','amazing','good','успех','счастлив','радость','весело','солнце','друзья','отлично','здорово','смех','праздник','победа'],
+  },
+  tender: {
+    id: 'tender', label: 'Tender', glyph: '♡', environment: 'Lamplit cosy home',
+    blurb: 'Warm, close and softly glowing.',
+    palette: { sky: '#3a2338', fog: '#5a3548', wall: '#f2cfae', floor: '#b87a56', trim: '#8a4b3c', accent: '#ff9a76', glow: '#ffc27a', sun: '#ffb27a', ambient: '#ffd9b8', sunIntensity: 1.1, ambientIntensity: 0.75 },
+    particles: { kind: 'motes', color: '#ffd9a0', speed: 0.18, rise: true, size: 0.12 },
+    decor: ['lamp', 'cushion', 'candle', 'plant'],
+    titles: ['A Warm Evening with {m}', 'Soft Light Around {m}', 'Held Close by {m}'],
+    defaultMotifs: ['warm lamps', 'home', 'quiet company'],
+    keywords: ['family','mom','dad','mother','father','hug','cozy','cosy','home','dinner','tea','warm','kind','care','grandma','grandpa','sister','brother','cook','cooked','baked','soup','семья','мама','папа','дом','уют','чай','ужин','тепло','бабушка','дедушка','обнял','забота','готовил'],
+  },
+  calm: {
+    id: 'calm', label: 'Calm', glyph: '≈', environment: 'Blue-hour stillness',
+    blurb: 'Slow, spacious and quietly clear.',
+    palette: { sky: '#294a74', fog: '#3d6a8f', wall: '#cfe3ec', floor: '#8aa7b4', trim: '#4f7d93', accent: '#7fd1c7', glow: '#aef0e4', sun: '#a8c8ff', ambient: '#c8dcff', sunIntensity: 1.0, ambientIntensity: 0.8 },
+    particles: { kind: 'bubbles', color: '#bff3ff', speed: 0.22, rise: true, size: 0.14 },
+    decor: ['candle', 'orb', 'plant', 'cushion'],
+    titles: ['The Still Hours of {m}', 'Slow Water, Soft {m}', 'A Quiet Room for {m}'],
+    defaultMotifs: ['stillness', 'slow breath', 'blue evening'],
+    keywords: ['calm','quiet','peace','peaceful','relax','relaxed','walk','walked','slow','read','reading','sleep','rest','rested','lake','sea','river','meditate','nap','спокойно','тихо','покой','отдых','прогулка','море','озеро','книга','читал','медленно','сон','расслабился'],
+  },
+  melancholy: {
+    id: 'melancholy', label: 'Wistful', glyph: '☂', environment: 'Rain-streaked evening',
+    blurb: 'Soft, rainy and gently heavy.',
+    palette: { sky: '#1d2740', fog: '#2c3a58', wall: '#aab6cc', floor: '#5e6b86', trim: '#3a4766', accent: '#8aa4ff', glow: '#9fb6ff', sun: '#7f93c9', ambient: '#8da0c8', sunIntensity: 0.7, ambientIntensity: 0.6 },
+    particles: { kind: 'rain', color: '#a9bff5', speed: 7, rise: false, size: 0.05 },
+    decor: ['boat', 'lamp', 'orb', 'candle'],
+    titles: ['Rain Against the Glass of {m}', 'The Grey Pull of {m}', 'A Wistful Hour with {m}'],
+    defaultMotifs: ['rain', 'missing someone', 'grey light'],
+    keywords: ['sad','miss','missed','lonely','alone','cry','cried','rain','rainy','tired','lost','grief','goodbye','hurt','empty','disappointed','regret','грустно','скучаю','один','одиноко','плакал','дождь','устал','потерял','прощание','пусто','тоска','печаль'],
+  },
+  restless: {
+    id: 'restless', label: 'Restless', glyph: '⚡', environment: 'Charged storm-light',
+    blurb: 'Fast, tilted and buzzing with energy.',
+    palette: { sky: '#2b1b3d', fog: '#4a2a5c', wall: '#d9c2e8', floor: '#6d4b86', trim: '#ff4f7b', accent: '#ffd23f', glow: '#ff7ad9', sun: '#ff5fa2', ambient: '#c9a8ff', sunIntensity: 1.4, ambientIntensity: 0.55 },
+    particles: { kind: 'embers', color: '#ffd23f', speed: 1.4, rise: true, size: 0.1 },
+    decor: ['shard', 'orb', 'lamp'],
+    titles: ['Static Over {m}', 'Too Much Lightning, Too Much {m}', 'The Buzzing Hours of {m}'],
+    defaultMotifs: ['deadlines', 'racing thoughts', 'noise'],
+    keywords: ['stress','stressed','anxious','nervous','deadline','rush','rushed','busy','late','angry','argue','argued','exam','pressure','worried','chaos','panic','overwhelmed','стресс','тревога','нервничал','дедлайн','спешил','занят','опоздал','злой','ссора','экзамен','паника','хаос','работа'],
+  },
+  wonder: {
+    id: 'wonder', label: 'Wonder', glyph: '✦', environment: 'Floating starlit dream',
+    blurb: 'Curious, strange and shimmering.',
+    palette: { sky: '#120f3a', fog: '#2a2370', wall: '#d8d2ff', floor: '#5a4fb0', trim: '#7b6cff', accent: '#6df2ff', glow: '#c9a8ff', sun: '#9d8cff', ambient: '#b9b0ff', sunIntensity: 1.2, ambientIntensity: 0.65 },
+    particles: { kind: 'stars', color: '#fff6c9', speed: 0.12, rise: true, size: 0.14 },
+    decor: ['balloon', 'orb', 'shard', 'candle'],
+    titles: ['Somewhere Inside {m}', 'The Strange Glow of {m}', 'Stars Above {m}'],
+    defaultMotifs: ['stars', 'a new idea', 'something unexpected'],
+    keywords: ['new','discover','discovered','idea','dream','dreamed','night','stars','star','travel','trip','music','concert','museum','curious','learn','learned','magic','surprise','art','нов','открыл','идея','мечта','ночь','звезды','звёзды','поездка','музыка','концерт','музей','учился','магия','сюрприз','искусство'],
+  },
+};
+export const MOOD_ORDER: MoodId[] = ['radiant', 'tender', 'calm', 'melancholy', 'restless', 'wonder'];
