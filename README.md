@@ -19,6 +19,10 @@ Outdoor worlds are about four times larger than before: the walk starts on the a
 
 **Song of the day.** In **From a prompt** and **Create a memory**, paste a link from Spotify, Apple Music, YouTube Music, Yandex Music, SoundCloud, Deezer, TIDAL, Bandcamp or VK. You can add the artist, song, style and year, or press **Tap the beat** while the song plays in your music app. The world picks its cleared in-game score from those details, and lanterns pulse at the song's tempo. **Open in …** takes you back to your app. The link is stored without its sharing code, and nothing is sent to the music service.
 
+**Entering a world.** **Enter world** carries your words into a short transition and switches to full screen. The world's soundtrack then starts by itself. Press **Exit full screen** or Esc to return to the window; Esc in full screen also pauses the game. Turn either behaviour off in **Settings → Entering a world**. Songs from music apps are only linked: the game plays its cleared score, an authorized upload or your day's own audio.
+
+**Language.** Switch between English and Russian with **EN / RU** in the header or in **Settings**. Russian descriptions such as «Ночной парк у пруда» also set the time of day and weather.
+
 **Atmospheres.** Use **◐ View** in the header, or **Settings**, to choose GENESIS, Nebula, Daylight or Fog. With **Auto**, the interface follows the time of day and weather of the world you are in. The pixel filter renders 3D worlds at half resolution for the retro look, and it is also lighter on older devices.
 
 Choose **World preview** to orbit the foggy cove or covered night market and try the local soundtracks. Use the landmark buttons to inspect the route and **Overview** to reset the camera. Track choices and mute carry through world switches until you leave the page. These curated examples preview content for the planned prompt-generated game.

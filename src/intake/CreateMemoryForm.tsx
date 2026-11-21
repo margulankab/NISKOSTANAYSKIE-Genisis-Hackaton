@@ -9,7 +9,10 @@ import type { MemoryViewerProps } from '../shared/memory-viewer';
 import { generateMemory } from './generate-memory';
 import { SongOfTheDay } from '../music/SongOfTheDay';
 import type { Song } from '../music/song';
+import { songLabel } from '../music/song';
 import { validateDayDraft } from './validate-day-draft';
+import { enterWorld } from '../chrome/immersive';
+import { useT } from '../i18n/i18n';
 import type { DayDraftInput, DraftErrors, ValidatedDayDraft } from './validate-day-draft';
 
 function localDate() {
@@ -31,12 +34,17 @@ export function CreateMemoryForm() {
   const [generationFailed, setGenerationFailed] = useState(false);
   const [preview, setPreview] = useState<{ bundle: DayBundle; viewer: MemoryViewerProps }>();
   const [song, setSong] = useState<Song | null>(null);
+  const [entered, setEntered] = useState(false);
+  const entry = useRef<HTMLTextAreaElement>(null);
+  const viewer = useRef<HTMLDivElement>(null);
+  const t = useT();
   useEffect(() => {
     if (!pending && Object.values(errors).some(Boolean)) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
   }, [errors, pending]);
 
   function clearPreview() {
     setPreview(undefined);
+    setEntered(false);
     setGenerationFailed(false);
   }
 
@@ -102,7 +110,7 @@ export function CreateMemoryForm() {
           {errors.date && <p id="date-error" role="alert">{errors.date}</p>}
 
           <label htmlFor="entry-text">What happened that day?</label>
-          <textarea id="entry-text" name="entryText" rows={6} minLength={20} maxLength={6000} required
+          <textarea ref={entry} id="entry-text" name="entryText" rows={6} minLength={20} maxLength={6000} required
             aria-invalid={Boolean(errors.entryText)}
             aria-describedby={errors.entryText ? 'entry-help entry-error' : 'entry-help'}
             onChange={() => update('entryText')} />
@@ -156,7 +164,27 @@ export function CreateMemoryForm() {
         <div className="generated-memory">
           <p role="status">{preview.bundle.manifest.generation.fallbackReason === 'no-keyword-match'
             ? 'Local draft with neutral mood and setting.' : 'Memory preview ready.'}</p>
-          <MemoryViewer {...preview.viewer} game={{ save: (progress) => saveDayProgress(preview.bundle, progress) }} />
+          {!entered && (
+            <div className="prompt-actions">
+              <button type="button" className="enter-world" onClick={() => {
+                const { manifest } = preview.bundle;
+                enterWorld({
+                  words: preview.viewer.entryText, title: manifest.title, from: entry.current,
+                  lines: [
+                    t('reading your words'),
+                    t('placing {count} objects', { count: manifest.artifacts.length + manifest.photos.length }),
+                    t('tuning soundtrack: {track}', { track: preview.bundle.song ? songLabel(preview.bundle.song) : manifest.date }),
+                    t('opening the world'),
+                  ],
+                });
+                setEntered(true);
+                requestAnimationFrame(() => viewer.current?.scrollIntoView({ block: 'start' }));
+              }}>{t('Enter world')}</button>
+            </div>
+          )}
+          <div ref={viewer} className="entered-viewer">
+            <MemoryViewer {...preview.viewer} entered={entered} game={{ save: (progress) => saveDayProgress(preview.bundle, progress) }} />
+          </div>
           <MemoryActions bundle={preview.bundle} />
         </div>
       )}

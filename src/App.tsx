@@ -10,6 +10,8 @@ import { TitleMenu } from './menus/TitleMenu';
 import { installVolumeSetting } from './menus/settings';
 import { StatusBar } from './chrome/StatusBar';
 import { ViewSwitch } from './chrome/ViewSwitch';
+import { WorldWarp } from './chrome/WorldWarp';
+import { useT } from './i18n/i18n';
 import { NewPromptGame } from './world/NewPromptGame';
 import { SavedGame } from './world/SavedGame';
 import { MemoryViewer } from './scene/MemoryViewer';
@@ -25,6 +27,7 @@ const store = createInMemoryStore();
 installVolumeSetting();
 
 export function App() {
+  const t = useT();
   const path = window.location.pathname.replace(/\/$/, '') || '/';
   const memoryPath = path.match(/^\/memory\/([^/]+)$/);
   const playPath = path.match(/^\/play\/([^/]+)$/);
@@ -47,11 +50,11 @@ export function App() {
       <header className="masthead">
         <span className="wordmark">Memory_Worlds<b>.exe</b></span>
         <nav className="site-nav" aria-label="Main">
-          <a href="/" aria-current={path === '/' ? 'page' : undefined}>Main menu</a>
-          <a href="/examples" aria-current={path === '/examples' ? 'page' : undefined}>Examples</a>
-          <a href="/world-preview" aria-current={path === '/world-preview' ? 'page' : undefined}>World preview</a>
-          <a href="/create" aria-current={path === '/create' ? 'page' : undefined}>Create a memory</a>
-          <a href="/archive" aria-current={path === '/archive' ? 'page' : undefined}>Archive</a>
+          <a href="/" aria-current={path === '/' ? 'page' : undefined}>{t('Main menu')}</a>
+          <a href="/examples" aria-current={path === '/examples' ? 'page' : undefined}>{t('Examples')}</a>
+          <a href="/world-preview" aria-current={path === '/world-preview' ? 'page' : undefined}>{t('World preview')}</a>
+          <a href="/create" aria-current={path === '/create' ? 'page' : undefined}>{t('Create a memory')}</a>
+          <a href="/archive" aria-current={path === '/archive' ? 'page' : undefined}>{t('Archive')}</a>
         </nav>
         <ViewSwitch />
       </header>
@@ -59,6 +62,7 @@ export function App() {
         : playPath ? <SavedGame key={playPath[1]} id={playPath[1]} />
         : examplePath ? <FixtureLibrary slug={examplePath[1]} />
         : (pages[path] ?? pages['/'])()}
+      <WorldWarp />
     </main>
   );
 }

@@ -27,7 +27,8 @@ async function revealInStaticPreview(page: Page) {
 }
 
 test('a private memory can be walked, saved in the conversation, and reopened with the selected reply', async ({ page }, testInfo) => {
-  test.setTimeout(60_000);
+  // Larger outdoor worlds (2026-11-21): this walk alone takes close to a minute under software rendering.
+  test.setTimeout(120_000);
   const storyRequests: string[] = [];
   page.on('request', (request) => {
     if (request.url().endsWith('/api/scene-plan')) storyRequests.push(request.url());

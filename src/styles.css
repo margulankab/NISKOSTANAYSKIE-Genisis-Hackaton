@@ -665,3 +665,88 @@ button:disabled, .pb[aria-disabled="true"] { opacity: .45; cursor: not-allowed; 
   }
   .example-contact-sheet li { scroll-snap-align: start; }
 }
+
+/* ---------- Language switch ---------- */
+.view-switch { display: flex; gap: 6px; align-items: center; }
+.view-switch .view-panel { top: calc(100% + 10px); }
+.lang-switch { display: flex; }
+.lang-switch button {
+  min-width: 40px; padding: 9px 8px; border: 0; cursor: pointer; background: transparent; color: var(--txt);
+  font-family: var(--pxf); font-size: 12px; letter-spacing: 1.5px;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--txt) 25%, transparent);
+}
+.lang-switch button + button { margin-left: -2px; }
+.lang-switch button[aria-pressed="true"] { background: var(--acc); color: var(--on-acc); box-shadow: none; }
+
+/* ---------- Entering a world: immersive layout and full screen ---------- */
+.game-header-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.fullscreen-button span { font-family: var(--mono); }
+.enter-world { min-width: 12rem; }
+[data-immersive="on"] .shell { width: min(100% - 24px, 1680px); }
+[data-immersive="on"] .stage-viewport { max-height: calc(100dvh - 9rem); }
+:root:fullscreen[data-immersive="on"] { overflow-y: auto; background: var(--bg); }
+:root:fullscreen[data-immersive="on"] .statusbar { display: none; }
+/* The main navigation stays available in full screen (it asks before leaving an unsaved world), just smaller. */
+:root:fullscreen[data-immersive="on"] .masthead { padding: 6px 0 6px; margin-bottom: 6px; border-bottom-width: 2px; }
+:root:fullscreen[data-immersive="on"] .wordmark { font-size: 1rem; }
+:root:fullscreen[data-immersive="on"] .site-nav a,
+:root:fullscreen[data-immersive="on"] .view-button,
+:root:fullscreen[data-immersive="on"] .lang-switch button { padding: 6px 9px; font-size: 11px; }
+:root:fullscreen[data-immersive="on"] .shell { width: calc(100% - 24px); padding-top: 4px; }
+:root:fullscreen[data-immersive="on"] .game-header,
+:root:fullscreen[data-immersive="on"] .preview > header { margin: 4px 0 8px; }
+:root:fullscreen[data-immersive="on"] .game-header h2,
+:root:fullscreen[data-immersive="on"] .preview > header h2 { font-size: clamp(1.2rem, 2.6vw, 2rem); }
+:root:fullscreen[data-immersive="on"] .stage-viewport {
+  aspect-ratio: auto; height: max(320px, calc(100dvh - 10.5rem)); max-height: none; box-shadow: inset 0 0 0 3px var(--edge);
+}
+
+/* Entry transition: words lift out of the text box, the build log types, an iris opens on the world. */
+.warp {
+  position: fixed; inset: 0; z-index: 200; pointer-events: none;
+  display: grid; place-items: center; padding: 24px;
+  background:
+    repeating-linear-gradient(transparent 0 2px, rgba(0, 0, 0, .18) 2px 3px),
+    radial-gradient(ellipse at center, color-mix(in srgb, var(--vio) 22%, var(--bg)) 0%, var(--bg) 70%);
+  clip-path: circle(150% at 50% 50%);
+  animation: warp-in 260ms ease-out both;
+}
+.warp.is-open { clip-path: circle(0% at 50% 50%); transition: clip-path var(--iris) cubic-bezier(.7, 0, .3, 1); }
+.warp-inner { width: min(100%, 760px); display: grid; gap: 14px; }
+.warp-words {
+  margin: 0; font-size: clamp(1rem, 2.2vw, 1.35rem); line-height: 1.45; color: var(--txt);
+  display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
+  padding: 14px 16px; background: var(--win); box-shadow: inset 0 0 0 3px var(--acc), 8px 8px 0 var(--shadow);
+}
+.warp-title {
+  margin: 0; font-family: var(--display); font-weight: 900; text-transform: uppercase; line-height: 1;
+  font-size: clamp(1.6rem, 5vw, 3.4rem); color: var(--acc);
+  text-shadow: .05em .06em 0 var(--title-drop);
+  opacity: 0; transform: translateY(8px); transition: opacity 240ms ease, transform 240ms ease;
+}
+.warp.is-log .warp-title, .warp.is-open .warp-title, .warp-reduced .warp-title { opacity: 1; transform: none; }
+.warp-log { margin: 0; padding: 0; list-style: none; font-family: var(--pxf); font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--acc2); }
+.warp-log li { padding: 2px 0; }
+.warp-log li span { color: var(--acc); }
+.warp-cur { display: inline-block; width: .6em; height: 1em; margin-left: 4px; vertical-align: -2px; background: var(--acc); animation: blink 1s steps(1) infinite; }
+.warp.is-open .warp-inner { transform: scale(1.08); opacity: 0; transition: transform var(--iris) ease-in, opacity var(--iris) ease-in; }
+.warp.warp-reduced { animation: none; clip-path: none; transition: opacity 240ms linear; }
+.warp.warp-reduced.is-open { opacity: 0; clip-path: none; }
+.warp-reduced.warp.is-open .warp-inner { transform: none; }
+@keyframes warp-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Examples on wide screens: the day list becomes a sidebar so the world opens above the fold. */
+@media (min-width: 1100px) {
+  .example-library { grid-template-columns: 300px minmax(0, 1fr); align-items: start; column-gap: 28px; }
+  .example-library > .memory-index { grid-column: 1; grid-row: 1 / span 3; position: sticky; top: 12px; padding-bottom: 14px; }
+  .example-library > :not(.memory-index) { grid-column: 2; }
+  .example-library > p { margin: 0; }
+  .example-library .memory-index h1 { font-size: 1.7rem; }
+  .example-library .memory-index ul.example-contact-sheet { grid-template-columns: 1fr; gap: 10px; margin: 12px 0 0; }
+  .example-library .example-contact-sheet button {
+    grid-template-columns: 84px minmax(0, 1fr); column-gap: 12px; row-gap: 2px; padding: 8px; font-size: 12px;
+  }
+  .example-library .example-contact-sheet .day-card-image { grid-row: 1 / span 3; width: 84px; }
+  .example-library .example-contact-sheet button > span:last-child { font-size: 13px; }
+  .example-library .preview > header { margin-top: 0; }
+}

@@ -14,7 +14,8 @@ test('world preview renders resolved geometry and responds to gesture-started ca
   await expect(page.getByText('Matched cues: cove.')).toBeVisible();
   await expect(page.getByText(/cleared for in-game playback, portable export/i)).toBeVisible();
   await expect.poll(() => audio.evaluate((player: HTMLAudioElement) => player.paused)).toBe(true);
-  await expect.poll(() => canvas.evaluate((element: HTMLCanvasElement) => element.height)).toBeGreaterThan(250);
+  // On-screen size; the pixel filter deliberately renders fewer pixels and scales them up.
+  await expect.poll(() => canvas.evaluate((element: HTMLCanvasElement) => element.clientHeight)).toBeGreaterThan(250);
   await canvas.screenshot({ path: testInfo.outputPath('foggy-cove.png') });
 
   await page.getByLabel('Soundtrack', { exact: true }).selectOption('lantern-market');
@@ -48,7 +49,7 @@ test('world preview renders resolved geometry and responds to gesture-started ca
   await expect.poll(() => audio.evaluate((player: HTMLAudioElement) => [player.paused, player.muted])).toEqual([true, true]);
   expect(await covePlayer?.evaluate((player: HTMLAudioElement) => player.paused)).toBe(true);
   const market = page.getByRole('region', { name: 'Covered night market' }).locator('canvas');
-  await expect.poll(() => market.evaluate((element: HTMLCanvasElement) => element.height)).toBeGreaterThan(250);
+  await expect.poll(() => market.evaluate((element: HTMLCanvasElement) => element.clientHeight)).toBeGreaterThan(250);
   await market.screenshot({ path: testInfo.outputPath('covered-night-market.png') });
   await page.getByRole('checkbox', { name: 'Mute soundtrack' }).uncheck();
 

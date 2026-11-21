@@ -22,6 +22,7 @@ import { routeTo } from './route';
 import { StoryCharacter } from './StoryCharacter';
 import { WorldPhotoFrame } from './WorldPhotoFrame';
 import { useStageDpr } from '../chrome/use-pixel';
+import { useT } from '../i18n/i18n';
 import { placementById, toWalkLayout } from './world-schema';
 import type { PromptWorld } from './world-schema';
 
@@ -254,6 +255,33 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
           <icosahedronGeometry args={[0.17, 0]} />
           <meshStandardMaterial color="#f1dcb8" flatShading />
         </mesh>
+        {/* Walker details: knitted cap, scarf, a small backpack (toward the camera) and two boots. */}
+        <mesh position={[0, 1.1, 0]}>
+          <coneGeometry args={[0.16, 0.2, 7]} />
+          <meshStandardMaterial color="#c2453a" flatShading roughness={0.9} />
+        </mesh>
+        <mesh position={[0, 1.21, 0]}>
+          <icosahedronGeometry args={[0.045, 0]} />
+          <meshStandardMaterial color="#f3ead6" flatShading />
+        </mesh>
+        <mesh position={[0, 0.8, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.15, 0.045, 5, 10]} />
+          <meshStandardMaterial color="#2f6f73" flatShading roughness={0.9} />
+        </mesh>
+        <mesh position={[0, 0.55, 0.2]}>
+          <boxGeometry args={[0.28, 0.32, 0.14]} />
+          <meshStandardMaterial color="#5b4a8a" flatShading roughness={0.85} />
+        </mesh>
+        <mesh position={[0, 0.6, 0.275]}>
+          <boxGeometry args={[0.2, 0.1, 0.02]} />
+          <meshStandardMaterial color="#9be14b" flatShading />
+        </mesh>
+        {[-0.09, 0.09].map((x) => (
+          <mesh key={x} position={[x, 0.05, -0.03]}>
+            <boxGeometry args={[0.12, 0.1, 0.2]} />
+            <meshStandardMaterial color="#3b2f26" flatShading />
+          </mesh>
+        ))}
       </group>
     </>
   );
@@ -301,6 +329,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
   onFinish: () => void;
   onUnavailable: () => void;
 }) {
+  const t = useT();
   const [layout] = useState(() => {
     const walk = toWalkLayout(world.layout);
     if (!world.story || world.layout.approaches) return walk;
@@ -400,11 +429,11 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
             {pad('right', 'Walk right', '▶', { x: 1, z: 0 })}
             {pad('down', 'Walk back', '▼', { x: 0, z: 1 })}
           </div>
-          <button type="button" className="walk-interact" disabled={!canInteract || paused} onClick={interact}>Interact</button>
+          <button type="button" className="walk-interact" disabled={!canInteract || paused} onClick={interact}>{t('Interact')}</button>
         </div>
         <div className="stage-toolbar">
-          <span>WASD or arrow keys to walk, Shift to run, E to interact, Esc to pause</span>
-          <button type="button" disabled={paused} onClick={() => { position.current = layout.spawn; }}>Reset position</button>
+          <span>{t('WASD or arrow keys to walk, Shift to run, E to interact, Esc to pause')}</span>
+          <button type="button" disabled={paused} onClick={() => { position.current = layout.spawn; }}>{t('Reset position')}</button>
         </div>
       </StageBoundary>
     </section>

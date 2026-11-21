@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { bpmFromTaps, buildSong, musicServices, parseSongLink, songCues, songGenres, songLabel, songLinks } from './song';
 import type { Song, SongLink } from './song';
+import { useT } from '../i18n/i18n';
 
 /** Song-of-the-day fields: a music-app link, a short description, and an optional tapped tempo. */
 export function SongOfTheDay({ value, onChange, legend = 'Song of the day' }: {
@@ -20,6 +21,7 @@ export function SongOfTheDay({ value, onChange, legend = 'Song of the day' }: {
   const taps = useRef<number[]>([]);
   const [tapCount, setTapCount] = useState(0);
   const reported = useRef<string>(JSON.stringify(value));
+  const t = useT();
 
   useEffect(() => {
     const song = buildSong({ link, artist, title, genre, year, bpm });
@@ -50,40 +52,40 @@ export function SongOfTheDay({ value, onChange, legend = 'Song of the day' }: {
   const cues = songCues(song);
   return (
     <fieldset className="song-of-day">
-      <legend>{legend}</legend>
-      <p className="field-hint">Optional. Your song keeps playing in your own music app; the world takes its tempo and mood from it.</p>
-      <label htmlFor={`${id}-link`}>Link from your music app</label>
+      <legend>{t(legend)}</legend>
+      <p className="field-hint">{t('Optional. Your song keeps playing in your own music app; the world takes its tempo and mood from it.')}</p>
+      <label htmlFor={`${id}-link`}>{t('Link from your music app')}</label>
       <input id={`${id}-link`} type="url" inputMode="url" autoComplete="off" spellCheck={false} value={linkText}
         placeholder="https://open.spotify.com/track/…" aria-describedby={`${id}-link-hint`}
         onChange={event => readLink(event.target.value)} aria-invalid={Boolean(linkError)} />
       <p className="field-hint" id={`${id}-link-hint`} role={linkError ? 'alert' : undefined}>
         {linkError ?? (link
-          ? `Recognized: ${musicServices[link.service].name} ${link.kind === 'other' ? 'link' : link.kind}. Sharing codes are removed before saving.`
-          : 'Spotify, Apple Music, YouTube Music, Yandex Music, SoundCloud, Deezer, TIDAL, Bandcamp or VK.')}
+          ? t('Recognized: {service} {kind}. Sharing codes are removed before saving.', { service: musicServices[link.service].name, kind: link.kind === 'other' ? 'link' : link.kind })
+          : t('Spotify, Apple Music, YouTube Music, Yandex Music, SoundCloud, Deezer, TIDAL, Bandcamp or VK.'))}
       </p>
       <div className="song-fields">
-        <label>Artist<input value={artist} maxLength={80} onChange={event => setArtist(event.target.value)} autoComplete="off" /></label>
-        <label>Song<input value={title} maxLength={120} onChange={event => setTitle(event.target.value)} autoComplete="off" /></label>
-        <label>Style
+        <label>{t('Artist')}<input value={artist} maxLength={80} onChange={event => setArtist(event.target.value)} autoComplete="off" /></label>
+        <label>{t('Song')}<input value={title} maxLength={120} onChange={event => setTitle(event.target.value)} autoComplete="off" /></label>
+        <label>{t('Style')}
           <select value={genre} onChange={event => setGenre(event.target.value)}>
-            <option value="">Not sure</option>
+            <option value="">{t('Not sure')}</option>
             {Object.entries(songGenres).map(([key, name]) => <option key={key} value={key}>{name}</option>)}
           </select>
         </label>
-        <label>Year<input value={year} inputMode="numeric" maxLength={4} pattern="\d{4}" onChange={event => setYear(event.target.value.replace(/\D/g, ''))} /></label>
+        <label>{t('Year')}<input value={year} inputMode="numeric" maxLength={4} pattern="\d{4}" onChange={event => setYear(event.target.value.replace(/\D/g, ''))} /></label>
       </div>
       <div className="tap-tempo">
         <button type="button" className="tap-button" onClick={event => tap(event.timeStamp)}
-          aria-describedby={`${id}-tap`}>Tap the beat</button>
+          aria-describedby={`${id}-tap`}>{t('Tap the beat')}</button>
         <p id={`${id}-tap`} aria-live="polite">
-          {bpm ? `${bpm} BPM` : tapCount ? `Keep tapping… ${tapCount}` : 'Play the song in your app and tap along four or more times.'}
+          {bpm ? `${bpm} BPM` : tapCount ? t('Keep tapping… {count}', { count: tapCount }) : t('Play the song in your app and tap along four or more times.')}
         </p>
-        {bpm && <button type="button" className="link-button" onClick={() => { taps.current = []; setTapCount(0); setBpm(null); }}>Clear tempo</button>}
+        {bpm && <button type="button" className="link-button" onClick={() => { taps.current = []; setTapCount(0); setBpm(null); }}>{t('Clear tempo')}</button>}
       </div>
       {song && (cues.reasons.length > 0 || songLinks(song).length > 0) && (
         <div className="song-summary">
           {cues.reasons.length > 0 && (
-            <ul aria-label="How the song shapes the world">{cues.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>
+            <ul aria-label={t('How the song shapes the world')}>{cues.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>
           )}
           <SongLinks song={song} />
         </div>
@@ -109,11 +111,12 @@ export function SongLinks({ song }: { song: Song }) {
 /** Compact card shown while playing: what the song is and where to play it. */
 export function SongCard({ song }: { song: Song }) {
   const cues = songCues(song);
+  const t = useT();
   return (
-    <aside className="song-card" aria-label="Song of the day">
+    <aside className="song-card" aria-label={t('Song of the day')}>
       <p className="song-card-title">{songLabel(song)}</p>
       <p className="song-card-meta">
-        {[song.genre && songGenres[song.genre], song.year, song.bpm && `${song.bpm} BPM`].filter(Boolean).join(', ') || 'Shapes this world'}
+        {[song.genre && songGenres[song.genre], song.year, song.bpm && `${song.bpm} BPM`].filter(Boolean).join(', ') || t('Shapes this world')}
         {cues.reasons.length > 0 && <span className="visually-hidden">. {cues.reasons.join('. ')}</span>}
       </p>
       <SongLinks song={song} />

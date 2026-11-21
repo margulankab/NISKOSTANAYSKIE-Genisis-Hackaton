@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { SongCard } from '../music/SongOfTheDay';
 import { songCues } from '../music/song';
-import { atmosphereFor, setWorldAtmosphere } from '../menus/settings';
+import { atmosphereFor, readSettings, setWorldAtmosphere } from '../menus/settings';
+import { FullscreenButton, ImmersiveSession } from '../chrome/ImmersiveControls';
 import type { MemoryScene } from '../shared/memory-schema';
 import type { MemoryViewerProps } from '../shared/memory-viewer';
 import { createWalkLayout } from '../gameplay/layout';
@@ -41,27 +42,30 @@ function ArtifactPhoto({ photo, resolveAsset }: { photo: MemoryScene['photos'][n
   return <p role="alert">This artifact’s photo could not be opened.</p>;
 }
 
-function MemoryAudio({ id, resolveAsset, onActiveAudio, paused }: {
+function MemoryAudio({ id, resolveAsset, onActiveAudio, paused, autoPlay = false }: {
   paused: boolean;
+  autoPlay?: boolean;
   id: string;
   resolveAsset: ResolveAsset;
   onActiveAudio: (player: HTMLAudioElement | null) => void;
 }) {
   const media = useAssetUrl(id, resolveAsset);
-  if (media.status === 'ready') return <AudioPlayer key={media.url} url={media.url} onActiveAudio={onActiveAudio} paused={paused} />;
+  if (media.status === 'ready') return <AudioPlayer key={media.url} url={media.url} onActiveAudio={onActiveAudio} paused={paused} autoPlay={autoPlay} />;
   if (media.status === 'error') return <p role="alert">The memory audio could not be opened.</p>;
   return <button type="button" className="play" disabled>Play soundtrack</button>;
 }
 
 type ViewerProps = MemoryViewerProps & {
   game?: { initial?: GameState; save(state: GameState): Promise<void> };
+  /** Set when the player pressed Enter world: start the day's audio and use the immersive layout. */
+  entered?: boolean;
 };
 
 export function MemoryViewer(props: ViewerProps) {
   return <MemoryOpening key={props.manifest.id} {...props} />;
 }
 
-function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onComplete, game }: ViewerProps) {
+function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onComplete, game, entered = false }: ViewerProps) {
   const songTempo = song ? songCues(song) : null;
   useEffect(() => {
     setWorldAtmosphere(atmosphereFor({ timeOfDay: manifest.context.timeOfDay }));
@@ -113,6 +117,8 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
         <header>
           <time dateTime={manifest.date}>{manifest.date}</time>
           <h2 id={headingId}>{manifest.title}</h2>
+          {entered && <ImmersiveSession pause={pause.open} />}
+          {entered && <FullscreenButton />}
           {game && <button type="button" ref={pause.pauseButton} onClick={pause.open}>Pause</button>}
         </header>
         {song && <SongCard song={song} />}
@@ -139,7 +145,7 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
         <SceneExplanation manifest={manifest} style={style} generated={Boolean(world)} />
         <div className="memory-actions">
           <p role="status">{revealed.size} of {manifest.artifacts.length} artifacts revealed</p>
-          <MemoryAudio id={manifest.source.audioId} resolveAsset={resolveAsset} onActiveAudio={setActiveAudio} paused={paused} />
+          <MemoryAudio id={manifest.source.audioId} resolveAsset={resolveAsset} onActiveAudio={setActiveAudio} paused={paused} autoPlay={entered && readSettings().autoplay} />
         </div>
         <div className="artifact-grid">
           {manifest.artifacts.map(({ id, kind, photoId, excerpt }, index) => {

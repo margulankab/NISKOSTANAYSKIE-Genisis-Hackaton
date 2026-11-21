@@ -1,5 +1,25 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Language, entering a world, music on entry and sky detail — 2026-11-21
+
+Implemented on `claude/keen-bell-fkqitv` after `b72d30c`. Settings gained three defaulted fields, so earlier saved settings still parse: `lang` (`en` | `ru`, default `en`), `autoplay` (default on) and `fullscreen` (default on).
+
+**Interface language.** [`src/i18n/i18n.ts`](src/i18n/i18n.ts) keys translations by the English phrase, with `{name}` variables. `useT()` re-renders when the language changes, and `applyAppearance` sets `<html lang>`. Missing phrases fall back to English, and player-written text is never translated. A unit test parses every `t('…')` literal in `src/` and requires a Russian entry. The masthead (EN/RU) and Settings both switch the language. The prompt reader also recognizes Russian time-of-day and weather cues by word stem (ночь, вечером, туман, снег …), so a Russian description sets the world's sky and atmosphere.
+
+**Entering a world** ([`src/chrome/immersive.ts`](src/chrome/immersive.ts), [`WorldWarp`](src/chrome/WorldWarp.tsx)). The click on **Enter world** is the user gesture browsers require for full screen and sound, so it runs `enterWorld` synchronously:
+
+1. It records the text box's position and the player's own words, the world title and four build lines.
+2. It sets `data-immersive="on"` and scrolls to the top.
+3. It requests full screen on `<html>` (not the canvas), so the masthead, HUD, pause dialog and soundtrack controls stay inside it.
+
+A decorative overlay (`aria-hidden`, `pointer-events: none`) lifts the typed words from the text box (FLIP), types the build log and opens an iris onto the world, which has already mounted underneath. With reduced motion, a still card fades out. While a world is open, `useImmersiveSession` keeps the immersive layout: the stage fills the screen height and the masthead compacts. When the browser leaves full screen (Esc belongs to the browser there), the game pauses, unless the player used the in-game **Exit full screen** button. Leaving the world exits full screen. The day-memory flow gets the same entry on its new **Enter world** button after **Generate memory**.
+
+**Music on entry.** `AudioPlayer` takes `autoPlay`. `GameSession` passes it for the first track only, right after Enter world. Choosing another track, restoring a save or opening an example never autoplays. Autoplay also resumes after the pause menu, until the player presses the soundtrack button themselves. If a browser still refuses (`NotAllowedError`, common on phones), the hint says music starts with the first step, and the next key or tap in the world starts it. Only the cleared catalog score, an authorized upload or the day's own authorized audio plays. Songs in Spotify and other music apps are still only linked.
+
+**Sky and walker detail.** [`SkyDome`](src/scene/SkyDome.tsx) adds a vertex-coloured dome from the fog colour to a per-atmosphere zenith. It also adds 34 seeded low-poly hills on the horizon, a sun or moon in front of the camera, and seeded stars at dusk and night. A hemisphere light adds a soft sky fill. The walker gained a cap, a scarf, a backpack and boots. All of it is static and deterministic, so the screenshot-equality checks for a scene at rest still hold.
+
+**Examples layout.** At 1,100 px and wider, the fixture list becomes a sticky sidebar, so the 3D world opens above the fold.
+
 ## Song of the day, larger worlds and interface atmospheres — 2026-11-21
 
 Implemented on `claude/keen-bell-fkqitv` over `dedf7ad`. Saved worlds and day bundles from earlier builds stay valid, because every new field is optional or defaulted.

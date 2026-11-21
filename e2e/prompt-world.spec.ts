@@ -191,7 +191,8 @@ for (const [name, prompt, track] of [
   ['mixed world', 'A quiet kitchen with a wooden table, then a garden with two oak trees and a carousel beyond the house.', 'still-rooms'],
 ]) {
   test(`AT-23/24: walks both discoveries and the ending in a ${name}`, async ({ page }, testInfo) => {
-    test.setTimeout(60_000);
+    // Outdoor worlds are larger since 2026-11-21, so the full walk takes longer under software rendering.
+    test.setTimeout(120_000);
     await startPromptGame(page, prompt);
     await expect(page.getByLabel('Soundtrack', { exact: true })).toHaveValue(track);
     await captureScene(page.getByRole('region', { name: 'Prompt world' }).locator('canvas'), testInfo.outputPath('generated-world.png'));

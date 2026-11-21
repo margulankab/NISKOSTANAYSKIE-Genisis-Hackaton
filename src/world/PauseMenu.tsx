@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
+import { useT } from '../i18n/i18n';
 
 export type SaveStatus = { status: 'idle' | 'saving' } | { status: 'saved' | 'error'; message: string };
 
@@ -17,6 +18,7 @@ export function PauseMenu({ save, confirmLeave, onResume, onSave, onSaveAndQuit,
   const first = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
   const busy = save.status === 'saving';
+  const t = useT();
 
   useEffect(() => { first.current?.focus(); }, [confirmLeave]);
 
@@ -35,22 +37,22 @@ export function PauseMenu({ save, confirmLeave, onResume, onSave, onSaveAndQuit,
       <div className="pause-menu" role="dialog" aria-modal="true" aria-labelledby={headingId} ref={dialog} onKeyDown={trap}>
         {confirmLeave ? (
           <>
-            <h3 id={headingId}>Leave without saving?</h3>
-            <p>Your latest progress in this world has not been saved.</p>
-            <button type="button" ref={first} disabled={busy} onClick={onSaveAndQuit}>Save and leave</button>
-            <button type="button" disabled={busy} onClick={onLeaveWithoutSaving}>Leave without saving</button>
-            <button type="button" disabled={busy} onClick={onCancelLeave}>Keep playing</button>
+            <h3 id={headingId}>{t('Leave without saving?')}</h3>
+            <p>{t('Your latest progress in this world has not been saved.')}</p>
+            <button type="button" ref={first} disabled={busy} onClick={onSaveAndQuit}>{t('Save and leave')}</button>
+            <button type="button" disabled={busy} onClick={onLeaveWithoutSaving}>{t('Leave without saving')}</button>
+            <button type="button" disabled={busy} onClick={onCancelLeave}>{t('Keep playing')}</button>
           </>
         ) : (
           <>
-            <h3 id={headingId}>Paused</h3>
-            <button type="button" ref={first} disabled={busy} onClick={onResume}>Resume</button>
-            <button type="button" disabled={busy} onClick={onSave}>Save Game</button>
-            <button type="button" disabled={busy} onClick={onSaveAndQuit}>Save &amp; Quit</button>
-            <button type="button" disabled={busy} onClick={onMainMenu}>Return to Main Menu</button>
+            <h3 id={headingId}>{t('Paused')}</h3>
+            <button type="button" ref={first} disabled={busy} onClick={onResume}>{t('Resume')}</button>
+            <button type="button" disabled={busy} onClick={onSave}>{t('Save Game')}</button>
+            <button type="button" disabled={busy} onClick={onSaveAndQuit}>{t('Save & Quit')}</button>
+            <button type="button" disabled={busy} onClick={onMainMenu}>{t('Return to Main Menu')}</button>
           </>
         )}
-        {busy && <p role="status">Saving…</p>}
+        {busy && <p role="status">{t('Saving…')}</p>}
         {save.status === 'saved' && <p role="status">{save.message}</p>}
         {save.status === 'error' && <p role="alert">{save.message}</p>}
       </div>

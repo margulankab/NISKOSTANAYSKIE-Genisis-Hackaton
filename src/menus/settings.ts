@@ -18,9 +18,14 @@ const settingsSchema = z.strictObject({
   // Added later: defaults keep settings saved by earlier versions valid.
   theme: z.enum(['auto', ...atmosphereIds]).default('auto'),
   pixel: z.boolean().default(true),
+  lang: z.enum(['en', 'ru']).default('en'),
+  /** Start the world's cleared soundtrack when the player enters a world. */
+  autoplay: z.boolean().default(true),
+  /** Switch the page to full screen when the player enters a world. */
+  fullscreen: z.boolean().default(true),
 });
 export type Settings = z.infer<typeof settingsSchema>;
-const defaults: Settings = { volume: 0.8, reducedMotion: 'system', theme: 'auto', pixel: true };
+const defaults: Settings = { volume: 0.8, reducedMotion: 'system', theme: 'auto', pixel: true, lang: 'en', autoplay: true, fullscreen: true };
 const listeners = new Set<() => void>();
 
 export function readSettings(): Settings {
@@ -77,6 +82,7 @@ export function applyAppearance() {
   root.dataset.ui = effectiveAtmosphere(settings);
   root.dataset.motion = settings.reducedMotion === 'on' ? 'off' : settings.reducedMotion === 'off' ? 'on' : 'system';
   root.dataset.pixel = settings.pixel ? 'on' : 'off';
+  root.lang = settings.lang;
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', getComputedStyle(root).getPropertyValue('--bg').trim() || '#070a07');
 }

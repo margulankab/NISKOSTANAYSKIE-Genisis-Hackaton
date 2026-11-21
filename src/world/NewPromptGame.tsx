@@ -12,6 +12,9 @@ import { recipes } from './recipes';
 import type { PromptWorld } from './world-schema';
 import { SongOfTheDay } from '../music/SongOfTheDay';
 import type { Song } from '../music/song';
+import { useT } from '../i18n/i18n';
+import { enterWorld } from '../chrome/immersive';
+import { readSettings } from '../menus/settings';
 
 const ignoreAudio = () => {};
 const EXAMPLE = 'At dusk I met Mira by a lighthouse in a foggy cove. A red rowboat was beside the pier and a lantern was on the shore.';
@@ -28,9 +31,26 @@ export function NewPromptGame() {
   const [phase, setPhase] = useState<'planning' | 'building' | null>(null);
   const [failed, setFailed] = useState<{ story: boolean; reason: string } | null>(null);
   const [song, setSong] = useState<Song | null>(null);
+  const [autoStart, setAutoStart] = useState(false);
+  const t = useT();
   useEffect(() => () => active.current?.abort(), []);
 
-  if (playing && soundtrack) return <GameSession world={playing} initial={null} initialSoundtrack={soundtrack} />;
+  if (playing && soundtrack) return <GameSession world={playing} initial={null} initialSoundtrack={soundtrack} autoStart={autoStart} />;
+
+  function enter(world: PromptWorld, track: SoundtrackChoice) {
+    const music = track.record.kind === 'silent' ? null : track.record;
+    enterWorld({
+      words: world.prompt, title: world.title, from: input.current,
+      lines: [
+        t('reading your words'),
+        t('placing {count} objects', { count: world.layout.placements.length }),
+        music ? t('tuning soundtrack: {track}', { track: music.title }) : t('silence, by choice'),
+        t('opening the world'),
+      ],
+    });
+    setAutoStart(readSettings().autoplay && !track.muted);
+    setPlaying(world);
+  }
 
   function clear() {
     active.current?.abort();
@@ -97,18 +117,18 @@ export function NewPromptGame() {
   const features = result?.ok ? [...new Set(result.world.layout.placements.map(({ recipe }) => recipes[recipe].label))] : [];
   return (
     <section className="intake prompt-game" data-win="prompt_world.exe">
-      <h1>New game from a prompt</h1>
-      <p>Describe a place to explore. Build a memory to meet a fictional character after two discoveries, or build a world to end your walk at a landmark.</p>
+      <h1>{t('New game from a prompt')}</h1>
+      <p>{t('Describe a place to explore. Build a memory to meet a fictional character after two discoveries, or build a world to end your walk at a landmark.')}</p>
       <form onSubmit={event => {
         event.preventDefault();
         const submitter = (event.nativeEvent as SubmitEvent).submitter;
         if (!phase) void generate(!(submitter instanceof HTMLButtonElement && submitter.value === 'world'), fictional);
       }}>
-        <label htmlFor={inputId}>Describe the world</label>
+        <label htmlFor={inputId}>{t('Describe the world')}</label>
         <textarea ref={input} id={inputId} value={prompt} rows={4} placeholder={EXAMPLE}
           onChange={event => edit(event.target.value)} aria-describedby="prompt-hint" />
-        <p className="field-hint" id="prompt-hint">{promptLength(prompt)} / {PROMPT_MAX} · A place name is enough. Add objects, weather, or where things belong to shape the visit.</p>
-        <div className="prompt-actions" aria-label="Fill with an example">
+        <p className="field-hint" id="prompt-hint">{promptLength(prompt)} / {PROMPT_MAX} · {t('A place name is enough. Add objects, weather, or where things belong to shape the visit.')}</p>
+        <div className="prompt-actions" aria-label={t('Fill with an example')}>
           {['park', 'water park'].map(example => <button key={example} type="button" onClick={() => { edit(example); input.current?.focus(); }}>{example}</button>)}
         </div>
         {import.meta.env.DEV && (
@@ -118,18 +138,18 @@ export function NewPromptGame() {
           </label>
         )}
         <SongOfTheDay value={song} onChange={value => { clear(); setSong(value); }} />
-        <p className="field-hint">Processing · {fictional ? 'Gemini scene planner' : 'Private on this device'}</p>
+        <p className="field-hint">{t('Processing')} · {fictional ? 'Gemini scene planner' : t('Private on this device')}</p>
         <div className="prompt-actions">
-          <button type="submit" disabled={Boolean(phase)}>Build memory</button>
-          <button type="submit" value="world" disabled={Boolean(phase)}>Build world</button>
+          <button type="submit" disabled={Boolean(phase)}>{t('Build memory')}</button>
+          <button type="submit" value="world" disabled={Boolean(phase)}>{t('Build world')}</button>
         </div>
       </form>
-      {phase && <p role="status">{phase === 'planning' ? 'Planning the scene with Gemini…' : 'Building the scene and checking the route…'}</p>}
+      {phase && <p role="status">{phase === 'planning' ? 'Planning the scene with Gemini…' : t('Building the scene and checking the route…')}</p>}
       {failed && (
         <div className="prompt-result">
           <p role="alert">{failed.reason}</p>
           <div className="prompt-actions">
-            <button type="button" onClick={() => void generate(failed.story, fictional)}>Try again</button>
+            <button type="button" onClick={() => void generate(failed.story, fictional)}>{t('Try again')}</button>
             {fictional && <button type="button" onClick={() => { setFictional(false); void generate(failed.story, false); }}>Build privately</button>}
           </div>
         </div>
@@ -143,9 +163,9 @@ export function NewPromptGame() {
       {result?.ok && soundtrack && (
         <div className="prompt-result">
           <h2>{result.world.title}</h2>
-          <p role="status">{scene?.processing === 'gemini' ? 'Planned with Gemini' : 'Built privately'}</p>
+          <p role="status">{scene?.processing === 'gemini' ? 'Planned with Gemini' : t('Built privately')}</p>
           {result.world.story && <p>{result.world.story.place} · {result.world.story.mood} · Written locally</p>}
-          <p><strong>In the scene</strong> {features.join(', ')}</p>
+          <p><strong>{t('In the scene')}</strong> {features.join(', ')}</p>
           {scene && scene.coverage.some(item => item.status !== 'placed') && (
             <ul aria-label="Substitutions and missing features">
               {scene.coverage.filter(item => item.status !== 'placed').map(item =>
@@ -155,15 +175,15 @@ export function NewPromptGame() {
           {result.world.interpretation.relations.some(relation => relation.status === 'unsupported') && (
             <p>Some requested positions could not be matched. Try changing the relationship or naming additional space around the object.</p>
           )}
-          <details><summary>World interpretation</summary>
+          <details><summary>{t('World interpretation')}</summary>
             <InterpretationPanel prompt={result.world.prompt} interpretation={result.world.interpretation} />
           </details>
           <WorldSoundtrack value={soundtrack} onActiveAudio={ignoreAudio}
             onChange={choice => setSoundtrack({ ...choice, muted: soundtrack.muted })}
             mute={{ value: soundtrack.muted, onChange: muted => setSoundtrack({ ...soundtrack, muted }) }} />
           <div className="prompt-actions">
-            <button type="button" onClick={() => setPlaying(result.world)}>Enter world</button>
-            <button type="button" onClick={() => { clear(); input.current?.focus(); }}>Revise prompt</button>
+            <button type="button" className="enter-world" onClick={() => enter(result.world, soundtrack)}>{t('Enter world')}</button>
+            <button type="button" onClick={() => { clear(); input.current?.focus(); }}>{t('Revise prompt')}</button>
           </div>
         </div>
       )}

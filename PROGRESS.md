@@ -1,5 +1,26 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-21 — Music apps, GENESIS atmospheres, language, music on entry and full-screen worlds
+
+Branch `claude/keen-bell-fkqitv`. This covers commit `b72d30c` and the follow-up commit. `b72d30c` added the song of the day with music-app links, larger outdoor worlds with run and compass, and the GENESIS-style interface with four atmospheres and the pixel filter. The follow-up adds an EN/RU interface language, the typed-words-to-world transition with full screen, the soundtrack starting on Enter world, a sky dome and walker detail, Russian time and weather cues, and an examples sidebar. [Architecture](ARCHITECTURE.md#language-entering-a-world-music-on-entry-and-sky-detail--2026-11-21) · [Design](docs/design_system.md).
+
+**Checks run (Linux container, Chromium 1.65 headless with SwiftShader, so rendering is software-only):**
+
+- `npm run typecheck` passed. `npm test` passed **159** unit tests, including new `tests/i18n.test.ts` (8), `tests/song.test.ts` and `tests/extend-world.test.ts`. The i18n test requires a Russian entry for every `t('…')` phrase in `src/`.
+- `npm run build` passed with the existing bundle-size warning.
+- `npx playwright test --workers=2` with a scratch config pointing at the container's Chromium: **51 of 52** passed in each of the last two full runs.
+  - The single failures were walking tests that hit their 60 s limit: the covered market, then the private memory story. Each passed alone (market 2/2; memory story 4/4 with autoplay on, 3/4 with autoplay off). Their limits are now 120 s, because the larger outdoor worlds lengthen the walk.
+  - Earlier failures were caused by this work and fixed:
+    - the soundtrack test's canvas fell below the fold on Examples (now a sidebar);
+    - the preview test measured the drawing-buffer height that the pixel filter halves (now the on-screen height);
+    - the "no external requests" check counted local `blob:` audio;
+    - hiding the main navigation in full screen broke the unsaved-exit confirmation (now compacted, not hidden).
+- New browser specs:
+  - `e2e/song-and-atmosphere.spec.ts` (3): song link, cues and soundtrack, save and load, no external requests, settings persistence and the View panel syncing with Settings.
+  - `e2e/immersive.spec.ts` (3): Russian switch and persistence, a Russian night prompt, the transition, full screen, autoplay, pause stopping and resuming music, leaving full screen, and autoplay/full screen turned off.
+
+**Not verified here:** real-device full screen and autoplay on iOS Safari and Android Chrome, though the code falls back to starting music on the first step. Microsoft Edge runs, frame-time measurements and a Russian-language review by a native speaker are also still to do. The Russian prompt reader covers time and weather only; objects are still matched from the existing catalog words.
+
 ## 2026-11-21 — Held-out gameplay and atmosphere review
 
 Created four new fictional prompt worlds and one journal day in fresh Edge profiles. All four worlds passed the sampled AT-17–20 and AT-23 walking, discovery, and ending flows. The cavern completed in reverse discovery order. AT-24 gesture-started playback advanced for every tested track. AT-25 Continue restored the completed prompt visits and their positions. For AT-06/07, the journal reopened and refreshed from the saved URL, and a fresh-profile ZIP import started at spawn. The export preserved both input media files byte for byte. The unsupported planetarium preserved the prompt and offered revision. Private runs recorded zero external HTTP requests and zero page errors. The [playtest report](docs/playtests/2026-11-21/PLAYTEST.md) includes 51 browser screenshots, a contact sheet, and the importable fictional diary.
