@@ -8,6 +8,7 @@ import { layoutKey, toWalkLayout } from './world-schema';
 import type { PromptWorld } from './world-schema';
 import { storyStepSchema } from './memory-story-schema';
 import type { StoryStep } from './memory-story-schema';
+import { reachableCells } from './route';
 
 export const CHECKPOINT_VERSION = 1;
 
@@ -82,6 +83,9 @@ export function restoreCheckpoint(source: PromptWorld | CheckpointTarget, stored
   if (x < minX + radius || x > maxX - radius || z < minZ + radius || z > maxZ - radius
       || blocked(checkpoint.position, layout)) {
     return { ok: false, reason: 'The saved position is outside the walkable area.' };
+  }
+  if (layout.checkSight && !reachableCells(layout).some(cell => Math.hypot(cell.x - x, cell.z - z) <= .33)) {
+    return { ok: false, reason: 'The saved position is disconnected from the world’s route.' };
   }
   const revealed = new Set(checkpoint.revealed);
   if (revealed.size !== checkpoint.revealed.length || checkpoint.revealed.some((id) => !discoveries.includes(id))) {

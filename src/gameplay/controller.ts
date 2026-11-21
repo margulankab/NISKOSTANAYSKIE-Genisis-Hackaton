@@ -51,15 +51,29 @@ export type Target =
 
 const near = (a: Point, b: Point, reach: number) => Math.hypot(a.x - b.x, a.z - b.z) <= reach;
 
+function visible(from: Point, to: Point, layout: WalkLayout) {
+  if (!layout.checkSight) return true;
+  const steps = Math.ceil(Math.hypot(to.x - from.x, to.z - from.z) / .11);
+  for (let i = 1; i < steps; i++) {
+    const p = { x: from.x + (to.x - from.x) * i / steps, z: from.z + (to.z - from.z) * i / steps };
+    if (layout.solids.some(solid => overlaps(p, .035, solid) && !overlaps(to, .06, solid))) return false;
+  }
+  return true;
+}
+
 /** What E / the Interact button would act on right now, if anything. */
-export function targetAt(position: Point, layout: WalkLayout, revealedCount: number): Target | null {
-  let best: { index: 0 | 1; distance: number } | null = null;
+export function targetAt(position: Point, layout: WalkLayout, revealedCount: number, revealed: readonly boolean[] = []): Target | null {
+  let best: { index: 0 | 1; distance: number; found: boolean } | null = null;
   for (const index of [0, 1] as const) {
     const a = layout.artifacts[index];
     const distance = Math.hypot(position.x - a.x, position.z - a.z);
-    if (distance <= layout.reach && (!best || distance < best.distance)) best = { index, distance };
+    const found = Boolean(revealed[index]);
+    if (distance <= layout.reach && (!best || Number(found) < Number(best.found) || found === best.found && distance < best.distance)
+      && visible(position, a, layout)) best = { index, distance, found };
   }
+  if (best && !best.found) return { kind: 'artifact', index: best.index };
+  if (near(position, layout.landmark, layout.reach) && visible(position, layout.landmark, layout) &&
+      (revealedCount >= 2 || !best)) return { kind: 'ending', ready: revealedCount >= 2 };
   if (best) return { kind: 'artifact', index: best.index };
-  if (near(position, layout.landmark, layout.reach)) return { kind: 'ending', ready: revealedCount >= 2 };
   return null;
 }

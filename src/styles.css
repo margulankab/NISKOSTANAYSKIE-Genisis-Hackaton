@@ -389,3 +389,35 @@ a.menu-item:hover, a.menu-item:focus-visible { border-color: #ddb987; background
 .pause-menu h3 { margin: 0 0 6px; font: 1.6rem Georgia, serif; }
 .pause-menu p { margin: 4px 0; }
 .pause-menu [role="alert"] { color: #ffc0ab; }
+
+.example-library { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; margin: 2rem auto; max-width: 68rem; }
+.example-library .memory-index { min-width: 0; }
+.example-library .memory-index ul.example-contact-sheet, .archive-list {
+  display: grid; gap: .8rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+}
+.example-contact-sheet button, .archive-list a.day-card {
+  display: grid; gap: .35rem; height: 100%; padding: .65rem; text-align: left; align-content: start;
+}
+.day-card-image {
+  display: block; overflow: hidden; width: 100%; aspect-ratio: 8 / 5; border-radius: .25rem;
+  background-color: #5c6452; background-position: center; background-size: cover;
+}
+.day-card-image img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.day-card-caption { display: grid; gap: .35rem; }
+.photo-gallery { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
+.photo-gallery figure { margin: 0; }
+.example-library > p { margin: 0; }
+
+@media (max-width: 520px) {
+  .game-session .walk-viewport { min-height: 320px; }
+  .game-session .walk-prompt { left: 8px; right: 8px; top: 8px; padding: 6px 9px; }
+  .game-session .story-conversation { padding: .8rem; }
+}
+
+@media (max-width: 520px) {
+  .example-library .memory-index ul.example-contact-sheet {
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 8.7rem;
+    overflow-x: auto; padding-bottom: .5rem; scroll-snap-type: x proximity;
+  }
+  .example-contact-sheet li { scroll-snap-align: start; }
+}

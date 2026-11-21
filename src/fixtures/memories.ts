@@ -1,6 +1,8 @@
 import nostalgicParkImage from './media/nostalgic-park.png?inline';
 import tenseRoomImage from './media/tense-room.png?inline';
 import calmCityImage from './media/calm-city.png?inline';
+import joyfulReunionImage from './media/joyful-reunion.png?inline';
+import rainyKitchenImage from './media/rainy-kitchen.png?inline';
 import { dayBundleSchema, resolvePresentation } from '../shared/memory-schema';
 import type { DayBundle, MemoryScene } from '../shared/memory-schema';
 import { createTestTone } from './test-tone';
@@ -66,6 +68,36 @@ export const fixtures = [
     lightness: 0.363614,
     frequency: 180,
     amplitude: 0.06,
+  },
+  {
+    slug: 'joyful-reunion',
+    seed: 404,
+    date: '2026-10-24',
+    title: 'Laughing by the gazebo',
+    entryText: 'We laughed by the gazebo when everyone finally reached the park. Afternoon light caught the flowers beside the bench.',
+    context: { environment: 'park', timeOfDay: 'day' },
+    mood: { primary: 'joyful', warmth: .85, energy: .75, tension: .2, valence: .9 },
+    image: joyfulReunionImage,
+    caption: 'Afternoon light on a park gazebo and flower beds.',
+    palette: [[94, 124, 103], [208, 165, 125], [230, 189, 126]],
+    lightness: .49,
+    frequency: 264,
+    amplitude: .17,
+  },
+  {
+    slug: 'rainy-kitchen',
+    seed: 505,
+    date: '2026-11-02',
+    title: 'Rain beyond the kitchen window',
+    entryText: 'I remembered the quiet kitchen as rain reached the garden. A cup of tea warmed the table beneath the window.',
+    context: { environment: 'room', timeOfDay: 'day' },
+    mood: { primary: 'nostalgic', warmth: .8, energy: .25, tension: .1, valence: .7 },
+    image: rainyKitchenImage,
+    caption: 'A cup on a kitchen sill overlooking the rainy garden.',
+    palette: [[152, 120, 100], [92, 120, 109], [187, 176, 148]],
+    lightness: .48,
+    frequency: 196,
+    amplitude: .07,
   },
 ] satisfies Fixture[];
 

@@ -26,6 +26,7 @@ export function App() {
   const path = window.location.pathname.replace(/\/$/, '') || '/';
   const memoryPath = path.match(/^\/memory\/([^/]+)$/);
   const playPath = path.match(/^\/play\/([^/]+)$/);
+  const examplePath = path.match(/^\/examples\/([a-z-]+)$/);
   const pages: Record<string, () => React.JSX.Element> = {
     '/': () => <TitleMenu />,
     '/examples': () => <FixtureLibrary />,
@@ -52,23 +53,26 @@ export function App() {
       </header>
       {memoryPath ? <SavedMemory key={memoryPath[1]} id={memoryPath[1]} />
         : playPath ? <SavedGame key={playPath[1]} id={playPath[1]} />
+        : examplePath ? <FixtureLibrary slug={examplePath[1]} />
         : (pages[path] ?? pages['/'])()}
     </main>
   );
 }
 
-function FixtureLibrary() {
-  const [selected, setSelected] = useState(fixtures[0]);
+function FixtureLibrary({ slug }: { slug?: string }) {
+  const [selected, setSelected] = useState(() => fixtures.find(item => item.slug === slug) ?? fixtures[0]);
 
   return (
-    <div className="layout">
+    <div className="example-library">
       <nav aria-label="Test memories" className="memory-index">
         <h1>Fixture library</h1>
         <p className="collection">Fictional test memories</p>
-        <ul>
+        <ul className="example-contact-sheet">
           {fixtures.map((fixture) => (
             <li key={fixture.slug}>
               <button type="button" aria-pressed={fixture === selected} onClick={() => setSelected(fixture)}>
+                <span className="day-card-image" aria-hidden="true" style={{ backgroundImage: `url("${fixture.image}")` }} />
+                <time dateTime={fixture.date}>{fixture.date}</time>
                 <span className="memory-context">{fixture.mood.primary} · {fixture.context.environment}</span>
                 <span>{fixture.title}</span>
               </button>
@@ -76,6 +80,7 @@ function FixtureLibrary() {
           ))}
         </ul>
       </nav>
+      <p><a href={`/examples/${selected.slug}`}>Link to this example</a></p>
       <FixturePanel key={selected.slug} fixture={selected} />
     </div>
   );

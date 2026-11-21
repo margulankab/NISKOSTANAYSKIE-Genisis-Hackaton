@@ -1,5 +1,17 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Composed scene layouts and catalog
+
+Both prompt actions preserve the exact source and use [the scene composer](src/world/compose-scene-template.ts). The private path generates intent from local evidence and selects compatible catalog entries. The optional fictional loopback endpoint asks Gemini for an intent and then a template from a shortlist of up to 48 asset IDs. The gateway and the browser check references, source evidence, supported surfaces, exclusions, meaningful anchors and an actual walking route. One corrective template request shares the 20-second model budget. Story text is authored locally around the resulting discoveries and landmark.
+
+Layout and catalog version 3 stores the accepted intent and template, actual coverage, seed, resolved placements, safe approaches and path polylines. The park compiler reserves an entrance lane, a walkable approach to the gazebo and recognizable park features. The water park compiler reserves a dry circuit around the pool. The shared generic composer handles coastlines, bridge passages, interiors and mixed indoor/outdoor places. The renderer draws the resolved layout on reopen. The v1/v2 prompt layouts, v1 story records and v1 diary ZIP reader remain supported.
+
+The [catalog](src/world/catalog.ts) indexes 108 new original models plus 19 previous builders. Original models share low-poly primitive batches and palette slots. The v3 stage adds controller-backed sight checks, camera clearance, route dressing and decoration instancing. A composed diary uses a local image texture bounded to 1,024 px and a separate 384 px archive thumbnail. Its original photo and associated song remain in the diary bundle and ZIP. [Resource ledger](docs/resource_ledger.md).
+
+## Planning baseline for model-led worlds
+
+The next prompt-world release plans a pipeline from original text to structured intent, catalog retrieval, a validated scene template, and deterministic placement in the shared renderer. Both prompt actions use the same planner. The planned release requires at least 100 eligible models and successful park and water-park benchmarks. Diary and private processing stay local. Planned contracts and provider deployment gates are in the [implementation plan](docs/memory_worlds_implementation_plan.md#generation-and-saved-scene-contracts). The sections below describe the existing implementation and earlier design.
+
 ## Short prompt memory experience
 
 **Build memory** adds a story to the prompt-world flow. The player explores two existing discovery objects, then approaches a locally constructed character near the closing landmark. The scene fades in on arrival, the camera frames the character during the conversation, and the view dims after the player chooses a reply. Reduced motion disables interpolation and fades. The original prompt world and the journal/photo/song flow use their existing gameplay paths.

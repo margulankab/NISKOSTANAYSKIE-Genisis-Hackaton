@@ -1,0 +1,550 @@
+{
+  "entry": "At dusk in the rain I waited with my sister at the train station. At the ticket kiosk she folded her last ticket into my coat pocket and asked me to keep it until she came home. The street clock kept ticking after the lights went out. I pressed the damp paper flat when I got home, and the apartment felt too quiet.",
+  "external": [],
+  "serverPlans": [],
+  "errors": [],
+  "title": "Remembering dusk in the rain",
+  "audio": {
+    "duration": 9,
+    "time": 0.705767,
+    "muted": false,
+    "readyState": 4
+  },
+  "approach1": {
+    "x": 2.86,
+    "z": -5.25
+  },
+  "discovery1": "1\nLamp\nRevealed",
+  "approach2": {
+    "x": -3.76,
+    "z": -4.67
+  },
+  "discovery2": "2\nNote\nRevealed\nAt dusk in the rain I waited with my sister at the train station.",
+  "landmark": {
+    "x": -0.19,
+    "z": -5.5
+  },
+  "ending": "Memory complete\n\nRemembering dusk in the rain\n\nAt dusk in the rain I waited with my sister at the train station.\nReplay visit",
+  "manifest": {
+    "mood": {
+      "primary": "calm",
+      "warmth": 0.5,
+      "energy": 0.2,
+      "tension": 0.1,
+      "valence": 0.6
+    },
+    "title": "Remembering dusk in the rain",
+    "music": {
+      "durationSec": 9,
+      "sampleStepSec": 0.1,
+      "energyEnvelope": [
+        0.2261746175229726,
+        0.38721033621843387,
+        0.42917979085211133,
+        0.4182388720332641,
+        0.34848975062227944,
+        0.3234087250919915,
+        0.2781100220957173,
+        0.24131632775557266,
+        0.2059480546091597,
+        0.18562188480995243,
+        0.16465558111332051,
+        0.14160829603043512,
+        0.12413032843479611,
+        0.10537809002030593,
+        0.09679221086376817,
+        0.08461839666242141,
+        0.07418332568763618,
+        0.06090206322963289,
+        0.20812172384334657,
+        0.3224308998487967,
+        0.3619719444148719,
+        0.3596993274305025,
+        0.302491558397317,
+        0.27148023426695267,
+        0.23401698339354401,
+        0.20264024060362845,
+        0.18169153201330895,
+        0.1534671358279193,
+        0.13863871706046427,
+        0.11857158095130263,
+        0.10321390180916706,
+        0.0929836848341821,
+        0.08145926562751638,
+        0.07002367030171533,
+        0.06305150247181136,
+        0.05318818909461547,
+        0.1871828100096863,
+        0.2776826576870028,
+        0.3176369903955331,
+        0.29292924973018,
+        0.266289417797035,
+        0.23546604415955485,
+        0.20142983911757376,
+        0.17551049393862492,
+        0.15023483709057608,
+        0.13540116184148968,
+        0.12104436889619272,
+        0.10248914971085081,
+        0.0890484556345575,
+        0.0790566514688345,
+        0.07065618536318578,
+        0.061213969022105824,
+        0.05276622789276372,
+        0.04727530291124763,
+        0.041201171785298425,
+        0.03680767145335004,
+        0.13027883321046843,
+        0.23523263521397475,
+        0.26702420074446315,
+        0.262259372981843,
+        0.21597188696644812,
+        0.2035487630776288,
+        0.1719322866995812,
+        0.15135367024673524,
+        0.1283887873287947,
+        0.11498884935454519,
+        0.10226929029692167,
+        0.0890238906757565,
+        0.07662363793162656,
+        0.06623334909674096,
+        0.06048754655300418,
+        0.05213489347377079,
+        0.046952533132478026,
+        0.038232434221173034,
+        0.0355890035812883,
+        0.0310991466821805,
+        0.027367498683776522,
+        0.023343486219498666,
+        0.020702892191398217,
+        0.0184459083624814,
+        0.01647601059711443,
+        0.014394158892697632,
+        0.011852450932640994,
+        0.009695759644578321,
+        0.007195851739702709,
+        0.005216631105641739,
+        0.0033589778519082696,
+        0.002198389251515446,
+        0.0011879060134755944,
+        0.0003861994882875432
+      ],
+      "meanEnergy": 0.14219865060216133,
+      "bpm": null,
+      "key": null,
+      "provenance": "measured"
+    }
+  },
+  "layout": {
+    "layout": {
+      "geometryVersion": 3,
+      "profile": "city",
+      "paths": [
+        [
+          {
+            "x": -0.09999999999999964,
+            "z": 5.600000000000001
+          },
+          {
+            "x": 2.700000000000001,
+            "z": 5.600000000000001
+          },
+          {
+            "x": 2.700000000000001,
+            "z": -5.399999999999999
+          }
+        ],
+        [
+          {
+            "x": 2.700000000000001,
+            "z": -5.399999999999999
+          },
+          {
+            "x": -3.499999999999999,
+            "z": -5.399999999999999
+          },
+          {
+            "x": -3.499999999999999,
+            "z": -4.999999999999999
+          },
+          {
+            "x": -3.6999999999999993,
+            "z": -4.999999999999999
+          }
+        ],
+        [
+          {
+            "x": -3.6999999999999993,
+            "z": -4.999999999999999
+          },
+          {
+            "x": -0.09999999999999964,
+            "z": -4.999999999999999
+          },
+          {
+            "x": -0.09999999999999964,
+            "z": -5.399999999999999
+          }
+        ]
+      ],
+      "approaches": [
+        {
+          "x": 3.54,
+          "z": -6.4
+        },
+        {
+          "x": -4.96,
+          "z": -4.59
+        },
+        {
+          "x": 0.45,
+          "z": -6.59
+        }
+      ],
+      "bounds": {
+        "minX": -8.4,
+        "maxX": 8.4,
+        "minZ": -10.5,
+        "maxZ": 7
+      },
+      "spawn": {
+        "x": 0,
+        "z": 5.6
+      },
+      "playerRadius": 0.3,
+      "reach": 1.7,
+      "water": null,
+      "indoor": null,
+      "placements": [
+        {
+          "id": "station-facade-1",
+          "recipe": "station-facade",
+          "x": 0.45,
+          "z": -8.1,
+          "y": 0,
+          "rotation": -0.15,
+          "scale": 1,
+          "color": null,
+          "term": 0
+        },
+        {
+          "id": "kiosk-1",
+          "recipe": "kiosk",
+          "x": 3.54,
+          "z": -7.36,
+          "y": 0,
+          "rotation": -0.03,
+          "scale": 1,
+          "color": null,
+          "term": 1
+        },
+        {
+          "id": "house-1",
+          "recipe": "house",
+          "x": -4.96,
+          "z": -6.15,
+          "y": 0,
+          "rotation": 0.09,
+          "scale": 1,
+          "color": null,
+          "term": 2
+        },
+        {
+          "id": "street-clock-1",
+          "recipe": "street-clock",
+          "x": -4.3,
+          "z": 1.98,
+          "y": 0,
+          "rotation": -1.24,
+          "scale": 1,
+          "color": null,
+          "term": 3
+        },
+        {
+          "id": "house-2",
+          "recipe": "house",
+          "x": -4.56,
+          "z": -0.08,
+          "y": 0,
+          "rotation": 0.09,
+          "scale": 1,
+          "color": null,
+          "term": 4
+        },
+        {
+          "id": "apartment-1",
+          "recipe": "apartment",
+          "x": 5.83,
+          "z": -2.56,
+          "y": 0,
+          "rotation": 0.08,
+          "scale": 1,
+          "color": null,
+          "term": 5
+        },
+        {
+          "id": "storefront-1",
+          "recipe": "storefront",
+          "x": -0.43,
+          "z": -0.25,
+          "y": 0,
+          "rotation": -0.17,
+          "scale": 1,
+          "color": null,
+          "term": 6
+        },
+        {
+          "id": "storefront-2",
+          "recipe": "storefront",
+          "x": -0.23,
+          "z": 2.27,
+          "y": 0,
+          "rotation": -0.07,
+          "scale": 1,
+          "color": null,
+          "term": 6
+        },
+        {
+          "id": "bus-stop-1",
+          "recipe": "bus-stop",
+          "x": 4.91,
+          "z": 0.4,
+          "y": 0,
+          "rotation": -1.62,
+          "scale": 1,
+          "color": null,
+          "term": 7
+        },
+        {
+          "id": "lamp-1",
+          "recipe": "lamp",
+          "x": 4.27,
+          "z": -3.58,
+          "y": 0,
+          "rotation": -0.6,
+          "scale": 1,
+          "color": null,
+          "term": 8
+        },
+        {
+          "id": "lamp-2",
+          "recipe": "lamp",
+          "x": 4.03,
+          "z": -1.88,
+          "y": 0,
+          "rotation": 0.03,
+          "scale": 1,
+          "color": null,
+          "term": 8
+        },
+        {
+          "id": "lamp-3",
+          "recipe": "lamp",
+          "x": 5.14,
+          "z": -5.22,
+          "y": 0,
+          "rotation": -1.53,
+          "scale": 1,
+          "color": null,
+          "term": 8
+        },
+        {
+          "id": "mailbox-1",
+          "recipe": "mailbox",
+          "x": -1.93,
+          "z": 0.44,
+          "y": 0,
+          "rotation": 1.52,
+          "scale": 1,
+          "color": null,
+          "term": 9
+        }
+      ],
+      "solids": [],
+      "discoveries": [
+        {
+          "placementId": "kiosk-1",
+          "excerpt": {
+            "start": 66,
+            "end": 132
+          }
+        },
+        {
+          "placementId": "house-1",
+          "excerpt": {
+            "start": 137,
+            "end": 176
+          }
+        }
+      ],
+      "landmark": {
+        "placementId": "station-facade-1"
+      }
+    },
+    "interpretation": {
+      "terms": [
+        {
+          "text": "train station",
+          "span": {
+            "start": 51,
+            "end": 64
+          },
+          "kind": "object",
+          "recipe": "station-facade",
+          "zone": null,
+          "status": "rendered",
+          "note": null,
+          "count": 1,
+          "color": null
+        },
+        {
+          "text": "ticket kiosk",
+          "span": {
+            "start": 73,
+            "end": 85
+          },
+          "kind": "object",
+          "recipe": "kiosk",
+          "zone": null,
+          "status": "rendered",
+          "note": null,
+          "count": 1,
+          "color": null
+        },
+        {
+          "text": "home",
+          "span": {
+            "start": 172,
+            "end": 176
+          },
+          "kind": "object",
+          "recipe": "house",
+          "zone": null,
+          "status": "rendered",
+          "note": null,
+          "count": 1,
+          "color": null
+        },
+        {
+          "text": "street clock",
+          "span": {
+            "start": 182,
+            "end": 194
+          },
+          "kind": "object",
+          "recipe": "street-clock",
+          "zone": null,
+          "status": "rendered",
+          "note": null,
+          "count": 1,
+          "color": null
+        },
+        {
+          "text": "home",
+          "span": {
+            "start": 172,
+            "end": 176
+          },
+          "kind": "object",
+          "recipe": "house",
+          "zone": null,
+          "status": "rendered",
+          "note": null,
+          "count": 1,
+          "color": null
+        },
+        {
+          "text": "apartment",
+          "span": {
+            "start": 290,
+            "end": 299
+          },
+          "kind": "object",
+          "recipe": "apartment",
+          "zone": null,
+          "status": "rendered",
+          "note": null,
+          "count": 1,
+          "color": null
+        },
+        {
+          "text": "Shopfront",
+          "span": {
+            "start": 0,
+            "end": 28
+          },
+          "kind": "object",
+          "recipe": "storefront",
+          "zone": null,
+          "status": "rendered",
+          "note": "Setting detail",
+          "count": 2,
+          "color": null
+        },
+        {
+          "text": "Bus stop",
+          "span": {
+            "start": 0,
+            "end": 28
+          },
+          "kind": "object",
+          "recipe": "bus-stop",
+          "zone": null,
+          "status": "rendered",
+          "note": "Setting detail",
+          "count": 1,
+          "color": null
+        },
+        {
+          "text": "Street lamp",
+          "span": {
+            "start": 0,
+            "end": 28
+          },
+          "kind": "object",
+          "recipe": "lamp",
+          "zone": null,
+          "status": "rendered",
+          "note": "Setting detail",
+          "count": 3,
+          "color": null
+        },
+        {
+          "text": "Mailbox",
+          "span": {
+            "start": 0,
+            "end": 28
+          },
+          "kind": "object",
+          "recipe": "mailbox",
+          "zone": null,
+          "status": "rendered",
+          "note": "Setting detail",
+          "count": 1,
+          "color": null
+        },
+        {
+          "text": "station",
+          "span": {
+            "start": 57,
+            "end": 64
+          },
+          "kind": "zone",
+          "recipe": null,
+          "zone": "paved",
+          "status": "rendered",
+          "note": null,
+          "count": 1,
+          "color": null
+        }
+      ],
+      "relations": [],
+      "timeOfDay": "dusk",
+      "weather": "rain",
+      "setting": "outdoor"
+    }
+  },
+  "archiveNavigationPrompt": "Leave without saving?\n\nYour latest progress in this world has not been saved.\n\nSave and leave\nLeave without saving\nKeep playing",
+  "importReopenedFromSpawn": true,
+  "completed": true
+}

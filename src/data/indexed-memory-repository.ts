@@ -126,9 +126,15 @@ export const localMemories: MemoryRepository = {
   save: saveDay,
   load,
   async list() {
-    const stored: StoredDay[] = await transact([days], 'readonly', (tx) => resultOf(tx.objectStore(days).getAll()));
-    return stored.map(({ manifest: { id, title, date } }) => ({ id, title, date }))
-      .sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
+    return transact([days, media], 'readonly', async tx => {
+      const stored: StoredDay[] = await resultOf(tx.objectStore(days).getAll());
+      const summaries = await Promise.all(stored.map(async ({ manifest }) => {
+        const { id, title, date } = manifest;
+        const assets: StoredMedia | undefined = await resultOf(tx.objectStore(media).get(id));
+        return { id, title, date, palette: manifest.photos?.[0]?.palette, thumbnail: assets?.thumbnail };
+      }));
+      return summaries.sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
+    });
   },
   async delete(id) {
     await transact([days, media, checkpointsStore], 'readwrite', (tx) => Promise.all([

@@ -1,6 +1,6 @@
 import { Color } from 'three';
 import { gatePostX, starterBoxes, starterRadii } from './recipes';
-import type { RecipeId } from './recipes';
+import type { LegacyRecipeId } from './recipes';
 
 /**
  * Starter low-poly geometry for each recipe ID. C owns these shapes and can replace them freely;
@@ -39,7 +39,7 @@ const wood = '#6d5139';
 const stone = '#8d8a83';
 const paper = '#e7d9bd';
 
-export const builders: Record<Exclude<RecipeId, 'canopy'>, (props: BuilderProps) => React.JSX.Element> = {
+export const builders: Record<Exclude<LegacyRecipeId, 'canopy'>, (props: BuilderProps) => React.JSX.Element> = {
   lighthouse: ({ main, accent, lit }) => (
     <group>
       <Cylinder at={[0, 1.6, 0]} top={0.45} bottom={0.75} height={3.2} color={main} />
@@ -172,7 +172,7 @@ export const builders: Record<Exclude<RecipeId, 'canopy'>, (props: BuilderProps)
 };
 
 /** Default colors per recipe when the prompt names none. */
-export const defaultColors: Record<Exclude<RecipeId, 'canopy'>, string> = {
+export const defaultColors: Record<Exclude<LegacyRecipeId, 'canopy'>, string> = {
   lighthouse: '#efe9dc', tower: '#9c968b', house: '#d9c7a4', stall: '#b8573f', bridge: '#7d756c', pier: '#8a6a4a',
   hill: '#6f8a57', gate: '#5d5a52', boat: '#c9b48c', tree: '#4f7a47', lantern: '#f2b45a', lamp: '#ffe2a3', bench: '#8a6a4a',
   rock: '#8d8a83', crate: '#9a7550', table: '#8a6a4a', flower: '#d77a8f', marker: '#a9a397',

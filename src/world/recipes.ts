@@ -5,14 +5,18 @@
 import { getWorldFootprints, getWorldRecipe } from '../scene/world-recipes';
 import type { WorldPlacement, WorldRecipeId } from '../scene/world-recipes';
 import type { Solid } from '../gameplay/layout';
+import { originalModel, originalModelIds } from './original-models';
+import type { OriginalModelId } from './original-models';
 
 export const RECIPE_CATALOG_VERSION = 2;
 
-export const recipeIds = [
+const legacyRecipeIds = [
   'lighthouse', 'tower', 'house', 'stall', 'bridge', 'pier', 'hill', 'gate',
   'boat', 'tree', 'lantern', 'lamp', 'bench', 'rock', 'crate', 'table', 'flower', 'marker', 'canopy',
 ] as const;
+export const recipeIds = [...legacyRecipeIds, ...originalModelIds] as const;
 export type RecipeId = (typeof recipeIds)[number];
+export type LegacyRecipeId = (typeof legacyRecipeIds)[number];
 
 export interface Recipe {
   label: string;
@@ -28,7 +32,7 @@ export interface Recipe {
   maxCount: number;
 }
 
-export const recipes: Record<RecipeId, Recipe> = {
+const legacyRecipes: Record<LegacyRecipeId, Recipe> = {
   lighthouse: { label: 'Lighthouse', role: 'structure', radius: 0.8, landmarkRank: 10, maxCount: 1 },
   tower: { label: 'Tower', role: 'structure', radius: 0.9, landmarkRank: 8, maxCount: 2 },
   bridge: { label: 'Bridge', role: 'structure', radius: 0, landmarkRank: 7, maxCount: 1 },
@@ -49,6 +53,11 @@ export const recipes: Record<RecipeId, Recipe> = {
   flower: { label: 'Flowers', role: 'prop', radius: 0, landmarkRank: 0, maxCount: 8 },
   marker: { label: 'Memory stone', role: 'prop', radius: 0.3, landmarkRank: 0, maxCount: 2 },
 };
+const expandedRecipes = Object.fromEntries(originalModelIds.map(id => {
+  const { label, role, radius } = originalModel(id)!;
+  return [id, { label, role, radius, landmarkRank: role === 'structure' ? 5 : 0, maxCount: 8 }];
+})) as Record<OriginalModelId, Recipe>;
+export const recipes: Record<RecipeId, Recipe> = { ...legacyRecipes, ...expandedRecipes };
 
 // Shared with the JSX builders so fallback collision follows the visible models.
 export const starterBoxes = {
@@ -80,12 +89,33 @@ export function sceneryPlacement(p: RecipePlacement): WorldPlacement | undefined
 }
 
 export function placementHeight(recipe: RecipeId) {
+  const original = originalModel(recipe);
+  if (original) return Math.max(...original.parts.map(({ at, size }) => at[1] + size[1] / 2));
   const scenery = sceneryRecipes[recipe];
   return scenery ? Math.max(...getWorldRecipe(scenery).parts.map(({ at, size }) => at[1] + size[1] / 2)) : undefined;
 }
 
 export function placementSolids(p: RecipePlacement): Solid[] {
   if (p.y > 0) return [];
+  const original = originalModel(p.recipe);
+  if (original) {
+    if (p.recipe === 'entry-arch' || p.recipe === 'park-gate' || p.recipe === 'airlock' || p.recipe === 'doorway') {
+      return original.parts.slice(0, 2).map(({ at: [x, , z], size }) => ({
+        shape: 'circle',
+        x: p.x + (Math.cos(p.rotation) * x + Math.sin(p.rotation) * z) * p.scale,
+        z: p.z + (-Math.sin(p.rotation) * x + Math.cos(p.rotation) * z) * p.scale,
+        radius: size[0] * p.scale / 2,
+      }));
+    }
+    if (p.recipe === 'tube-slide' || p.recipe === 'open-flume') {
+      return [
+        { shape: 'circle', x: p.x, z: p.z, radius: original.radius * p.scale },
+        { shape: 'circle', x: p.x + Math.sin(p.rotation) * 1.4 * p.scale,
+          z: p.z + Math.cos(p.rotation) * 1.4 * p.scale, radius: .58 * p.scale },
+      ];
+    }
+    return original.radius ? [{ shape: 'circle', x: p.x, z: p.z, radius: original.radius * p.scale }] : [];
+  }
   const scenery = sceneryPlacement(p);
   if (scenery) return getWorldFootprints(scenery).map(({ minX, maxX, minZ, maxZ }) => ({
     shape: 'box', x: (minX + maxX) / 2, z: (minZ + maxZ) / 2,

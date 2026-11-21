@@ -57,14 +57,17 @@ export async function walkToGoal(page: Page, goal: Target) {
     return walkTo(page, goal.kind === 'artifact' ? layout.artifacts[goal.index] : layout.landmark);
   }
   let lastError: unknown;
+  const matchTarget = (position: Pt) => JSON.stringify(targetAt(position, layout, 2,
+    goal.kind === 'ending' ? [true, true] : goal.index === 0 ? [false, true] : [true, false])) === JSON.stringify(goal);
   for (const clearance of [0.16, 0.1, 0.05, 0]) {
     const position = await playerAt(page);
-    if (JSON.stringify(targetAt(position, layout, 2)) === JSON.stringify(goal)) return;
+    if (matchTarget(position)) return;
     const route = routeTo({ ...layout, playerRadius: layout.playerRadius + clearance }, goal, position);
     if (!route) continue;
     try {
       for (const waypoint of route) await goTo(page, waypoint, 0.09);
-      return;
+      if (matchTarget(await playerAt(page))) return;
+      lastError = new Error('The last waypoint did not offer a clear interaction.');
     } catch (error) {
       // Replan from the observed position if the browser rounds a movement at a corner.
       lastError = error;

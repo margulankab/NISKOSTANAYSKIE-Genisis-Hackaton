@@ -5,16 +5,21 @@ import { placementSolids, recipeIds, sceneryPlacement } from './recipes';
 import { routeProblems } from './route';
 
 export const PROMPT_MAX = 600;
-export const promptSchema = z.string().max(PROMPT_MAX, `Keep the prompt under ${PROMPT_MAX} characters.`)
-  .refine((text) => text.trim().length >= 10, 'Describe the place in at least 10 characters.');
+export const PROMPT_PAYLOAD_MAX = 4096;
+const graphemes = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+export const promptLength = (text: string) => [...graphemes.segment(text)].length;
+export const promptSchema = z.string().max(PROMPT_PAYLOAD_MAX)
+  .refine((text) => /[^\p{White_Space}\p{C}]/u.test(text), 'Describe the place to continue.')
+  .refine((text) => new TextEncoder().encode(text).length <= PROMPT_PAYLOAD_MAX, 'This description uses too much encoded text.')
+  .refine((text) => promptLength(text) <= PROMPT_MAX, `Use up to ${PROMPT_MAX} characters.`);
 
 const coordinate = z.number().min(-50).max(50);
 const point = z.strictObject({ x: coordinate, z: coordinate });
-const span = z.strictObject({ start: z.int().min(0).max(PROMPT_MAX - 1), end: z.int().min(1).max(PROMPT_MAX) })
+const span = z.strictObject({ start: z.int().min(0).max(PROMPT_PAYLOAD_MAX - 1), end: z.int().min(1).max(PROMPT_PAYLOAD_MAX) })
   .refine(({ start, end }) => start < end, 'Span must be nonempty.');
 const rgb = z.tuple([z.int().min(0).max(255), z.int().min(0).max(255), z.int().min(0).max(255)]);
 export const colorNames = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'white', 'black', 'brown', 'grey'] as const;
-export const relationKinds = ['beside', 'beyond', 'above', 'under', 'front'] as const;
+export const relationKinds = ['beside', 'beyond', 'above', 'under', 'front', 'inside'] as const;
 
 const termSchema = z.strictObject({
   text: z.string().min(1).max(40),
@@ -53,7 +58,7 @@ const rect = z.strictObject({ minX: coordinate, maxX: coordinate, minZ: coordina
   .refine(({ minX, maxX, minZ, maxZ }) => minX < maxX && minZ < maxZ, 'Empty area.');
 
 const placementSchema = z.strictObject({
-  id: z.string().regex(/^[a-z]+-\d{1,2}$/),
+  id: z.string().regex(/^[a-z][a-z-]*-\d{1,2}$/),
   recipe: z.enum(recipeIds),
   x: coordinate,
   z: coordinate,
@@ -68,7 +73,11 @@ const placementSchema = z.strictObject({
 export type Placement = z.infer<typeof placementSchema>;
 
 export const worldLayoutSchema = z.strictObject({
-  geometryVersion: z.literal(2).optional(),
+  geometryVersion: z.union([z.literal(2), z.literal(3)]).optional(),
+  profile: z.enum(['park', 'water-park', 'coast', 'market', 'interior', 'woodland', 'city', 'rural', 'fantasy', 'station']).optional(),
+  drySurfaces: z.array(rect).min(1).max(16).optional(),
+  paths: z.array(z.array(point).min(2).max(80)).max(4).optional(),
+  approaches: z.tuple([point, point, point]).optional(),
   bounds: rect,
   spawn: point,
   playerRadius: z.number().min(0.1).max(1),
@@ -93,7 +102,7 @@ export function placementById(layout: WorldLayout, id: string) {
 
 /** Adapter to A's gameplay contract: the controller never sees prompt text. */
 export function toWalkLayout(layout: WorldLayout): WalkLayout {
-  const geometry = layout.geometryVersion === 2;
+  const geometry = layout.geometryVersion !== undefined;
   const at = (id: string) => {
     const { x, y, z } = placementById(layout, id);
     // A lighthouse on a bluff is approached from the foot of the hill.
@@ -102,18 +111,19 @@ export function toWalkLayout(layout: WorldLayout): WalkLayout {
     const approach = scenery && getWorldApproach(scenery);
     return approach ? { x: approach[0], z: approach[1] } : { x, z };
   };
-  const surfaces = geometry && layout.water
+  const surfaces = layout.drySurfaces ?? (geometry && layout.water
     ? [groundBounds(layout), ...layout.placements.flatMap((p) => {
       const scenery = sceneryPlacement(p);
       return scenery && p.y === 0 ? getWorldWalkableSurfaces(scenery) : [];
-    })] : undefined;
+    })] : undefined);
   return {
     spawn: layout.spawn,
     bounds: layout.bounds,
     solids: geometry ? [...layout.solids, ...layout.placements.flatMap(placementSolids)] : layout.solids,
     walkable: surfaces,
-    artifacts: [at(layout.discoveries[0].placementId), at(layout.discoveries[1].placementId)],
-    landmark: at(layout.landmark.placementId),
+    ...(layout.geometryVersion === 3 && { checkSight: true }),
+    artifacts: layout.approaches ? [layout.approaches[0], layout.approaches[1]] : [at(layout.discoveries[0].placementId), at(layout.discoveries[1].placementId)],
+    landmark: layout.approaches?.[2] ?? at(layout.landmark.placementId),
     playerRadius: layout.playerRadius,
     reach: layout.reach,
   };
@@ -143,6 +153,15 @@ export function checkWorldLayout(prompt: string, interpretation: Interpretation,
   if (ids.size !== layout.placements.length) issue('Placement IDs must be unique.', ['layout', 'placements']);
   if (layout.placements.some(({ term }) => term !== null && term >= interpretation.terms.length)) {
     issue('Placement references a missing term.', ['layout', 'placements']);
+  }
+  if (layout.geometryVersion === 3) {
+    const { minX, maxX, minZ, maxZ } = layout.bounds;
+    const within = ({ x, z }: { x: number; z: number }) => x >= minX && x <= maxX && z >= minZ && z <= maxZ;
+    if (!layout.profile || !layout.paths || !layout.approaches ||
+      [...layout.placements, ...layout.approaches, ...layout.paths.flat()].some(point => !within(point)) ||
+      layout.drySurfaces?.some(rect => !within({ x: rect.minX, z: rect.minZ }) || !within({ x: rect.maxX, z: rect.maxZ }))) {
+      issue('The composed scene is missing geometry or contains positions outside its bounds.', ['layout']);
+    }
   }
   const [first, second] = layout.discoveries;
   if (first.placementId === second.placementId || [first, second, layout.landmark].some(({ placementId }) => !ids.has(placementId))

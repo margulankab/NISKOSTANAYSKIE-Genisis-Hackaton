@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { interpretationSchema, promptSchema } from './layout-schema';
+import { promptSchema } from './layout-schema';
 
 const line = (limit: number) => z.string().trim().min(1).max(limit);
 const reply = z.strictObject({ choice: line(80), answer: line(240) });
@@ -16,13 +16,6 @@ const storyWriting = z.strictObject({
   secondReply: reply,
   closing: line(240),
 });
-
-export const geminiStorySchema = storyWriting.extend({
-  scene: promptSchema,
-  timeOfDay: interpretationSchema.shape.timeOfDay,
-  weather: interpretationSchema.shape.weather,
-});
-export type GeminiStory = z.infer<typeof geminiStorySchema>;
 
 export const memoryStorySchema = storyWriting.extend({
   version: z.literal(1),

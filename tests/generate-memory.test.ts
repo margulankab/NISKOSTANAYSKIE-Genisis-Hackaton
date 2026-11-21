@@ -7,7 +7,10 @@ import { analyzePhoto } from '../src/media/photo-analysis';
 import { dayBundleSchema, memoryTitleSchema } from '../src/shared/memory-schema';
 import { createViewerProps } from '../src/shared/memory-viewer';
 
-vi.mock('../src/media/photo-analysis', () => ({ analyzePhoto: vi.fn() }));
+vi.mock('../src/media/photo-analysis', () => ({
+  analyzePhoto: vi.fn(),
+  photoThumbnail: vi.fn().mockResolvedValue(undefined),
+}));
 
 function makeDraft(): ValidatedDayDraft {
   const photoId = '9a65a38e-7d16-4b4d-88c9-227983d45f46';

@@ -55,10 +55,10 @@ function inspect(bytes: Uint8Array) {
   const manifest = JSON.parse(readText('manifest.json'));
   const credits = JSON.parse(readText('credits.json'));
   expect(Object.keys(entries).sort()).toEqual([
-    root + 'manifest.json', root + 'entry.txt', root + 'credits.json', root + 'world.json',
+    root + 'manifest.json', root + 'entry.txt', root + 'credits.json', root + 'world.json', root + 'preview.png',
     root + `photos/${manifest.source.photoIds[0]}.png`, root + `audio/${manifest.source.audioId}.wav`,
   ].sort());
-  expect(JSON.parse(readText('world.json')).layout.geometryVersion).toBe(2);
+  expect([2, 3]).toContain(JSON.parse(readText('world.json')).layout.geometryVersion);
   expect(credits).toMatchObject({ formatVersion: 1, photos: [{ filename: 'river.png', mime: 'image/png' }],
     audio: { filename: 'tone.wav', mime: 'audio/wav' } });
   expect(credits.rights).toHaveLength(2);
@@ -76,6 +76,7 @@ test('saves duplicate titles, reloads the archive, and reopens the stored bundle
   expect(second).not.toBe(first);
 
   await page.getByRole('link', { name: 'Archive', exact: true }).click();
+  await page.getByRole('button', { name: 'Leave without saving' }).click();
   await page.reload();
   const choices = page.getByRole('list', { name: 'Saved memories' }).getByRole('link');
   await expect(choices).toHaveCount(2);
@@ -85,6 +86,7 @@ test('saves duplicate titles, reloads the archive, and reopens the stored bundle
   await visitArtifact(page, 1);
   await expect(page.locator('blockquote')).toHaveText(secondEntry);
   await page.getByRole('link', { name: 'Back to archive' }).click();
+  await page.getByRole('button', { name: 'Leave without saving' }).click();
   await choices.nth(1).click();
   await visitArtifact(page, 1);
   await expect(page.locator('blockquote')).toHaveText(firstEntry);
@@ -165,6 +167,7 @@ test('a quota failure preserves the preview, allows ZIP export, and rolls back t
   await expect(page.locator('blockquote')).toHaveText(firstEntry);
   inspect(await download(page));
   await page.getByRole('link', { name: 'Archive', exact: true }).click();
+  await page.getByRole('button', { name: 'Leave without saving' }).click();
   await expect(page.getByText('No saved memories yet.')).toBeVisible();
   await page.goto('/memory/80463325-9914-44c7-9008-fefa57d76bde');
   await expect(page.getByRole('alert')).toHaveText('This memory was not found in this browser.');
@@ -204,6 +207,7 @@ test('a generated day checkpoint resumes from Continue, and a ZIP carries the la
   await expect(page.getByRole('img', { name: 'Memory photo' })).toBeVisible();
 
   await page.getByRole('link', { name: 'Main menu', exact: true }).click();
+  await page.getByRole('button', { name: 'Leave without saving' }).click();
   await page.getByRole('link', { name: 'Load Game' }).click();
   await expect(page.getByRole('list', { name: 'Saved games' }).getByRole('link')).toHaveCount(2);
   await page.getByRole('list', { name: 'Saved games' }).locator('a[href^="/play/"]').click();

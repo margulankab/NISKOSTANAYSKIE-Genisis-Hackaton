@@ -66,7 +66,8 @@ function findRoute(layout: WalkLayout, goal: Target, from: Point, margin: number
   for (let head = 0; head < queue.length; head += 1) {
     const cell = queue[head];
     const point = toPoint(cell);
-    if (same(targetAt(point, layout, 2), goal) && Math.hypot(point.x - anchor.x, point.z - anchor.z) <= layout.reach - margin) {
+    if (same(targetAt(point, layout, 2), goal)
+      && Math.hypot(point.x - anchor.x, point.z - anchor.z) <= layout.reach - margin) {
       const cells: number[] = [];
       for (let at = cell; at !== -1; at = parent[at]) cells.unshift(at);
       // Keep only the corners of the route.

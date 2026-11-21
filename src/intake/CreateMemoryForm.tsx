@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { saveDayProgress } from '../data/indexed-memory-repository';
 import { MemoryActions } from '../data/MemoryActions';
@@ -21,12 +21,16 @@ function isSelectedFile(value: FormDataEntryValue | null): value is File {
 }
 
 export function CreateMemoryForm() {
+  const form = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<DraftErrors>({});
   const [draft, setDraft] = useState<ValidatedDayDraft>();
   const [pending, setPending] = useState<'validation' | 'generation'>();
   const [failure, setFailure] = useState(false);
   const [generationFailed, setGenerationFailed] = useState(false);
   const [preview, setPreview] = useState<{ bundle: DayBundle; viewer: MemoryViewerProps }>();
+  useEffect(() => {
+    if (!pending && Object.values(errors).some(Boolean)) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  }, [errors, pending]);
 
   function clearPreview() {
     setPreview(undefined);
@@ -85,7 +89,7 @@ export function CreateMemoryForm() {
     <section className="intake">
       <h1>Create a memory</h1>
       <p>Your entry and files stay in this browser. This draft lasts while the page is open.</p>
-      <form onSubmit={submit} noValidate aria-busy={Boolean(pending)}>
+      <form ref={form} onSubmit={submit} noValidate aria-busy={Boolean(pending)}>
         <fieldset disabled={Boolean(pending)} aria-label="Memory details">
           <label htmlFor="date">Date</label>
           <input id="date" name="date" type="date" defaultValue={localDate()} required

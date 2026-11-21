@@ -1,7 +1,10 @@
 import { dayBundleSchema } from '../shared/memory-schema';
 import type { DayBundle } from '../shared/memory-schema';
 
-export type DaySummary = Pick<DayBundle['manifest'], 'id' | 'title' | 'date'>;
+export type DaySummary = Pick<DayBundle['manifest'], 'id' | 'title' | 'date'> & {
+  thumbnail?: Blob;
+  palette?: DayBundle['manifest']['photos'][number]['palette'];
+};
 
 export interface MemoryRepository {
   save(bundle: DayBundle): Promise<void>;

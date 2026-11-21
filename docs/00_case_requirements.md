@@ -1,5 +1,14 @@
 # Memory Worlds — case requirements
 
+## Open-ended prompt worlds — 2026-11-21
+
+The user's product direction adds semantic planning and an asset coverage gate. These requirements apply to the prompt-world release. The case diary and original organizer deadline remain governed by MIN-01–08 and SUB-01–07. [Full implementation plan](memory_worlds_implementation_plan.md).
+
+| ID | User requirement | Owner and verification |
+|---|---|---|
+| USR-11 | Both prompt actions interpret open-ended descriptions through an LLM and populate a validated, composable scene template using known assets. Private generation remains available. | B with A · AT-27/29 |
+| USR-12 | Release with at least 100 distinct, eligible 3D models and recognizable detail across settings. Bare `park` and `water park` prompts are mandatory benchmark cases. Users can see meaningful substitutions and missing features. | C with A and B · AT-28/29 |
+
 ## Prompt-game and menu requirements — 2026-11-21
 
 **Original case brief.** MIN-01–05 require the day entry, photo and associated song, an input-built memory with musical influence, a titled day folder and an archive that reopens past days. The brief specifies that save/archive outcome. The title and pause menus, prompt-only entry, automatic soundtrack selection, and gameplay checkpoints come from the expanded product request and its implementation plan. Test the two entry flows separately. [Case brief](../reference/document_en.md).

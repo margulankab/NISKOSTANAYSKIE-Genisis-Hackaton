@@ -1,7 +1,7 @@
 import type { RecipeId } from './recipes';
 import { recipes } from './recipes';
-import { colorNames, relationKinds } from './world-schema';
-import type { Interpretation, Term } from './world-schema';
+import { colorNames, relationKinds } from './layout-schema';
+import type { Interpretation, Term } from './layout-schema';
 
 type Noun = { recipe: RecipeId; note?: string; count?: number } | { zone: NonNullable<Term['zone']>; note?: string };
 
@@ -68,7 +68,7 @@ const colorWords: Record<string, Term['color']> = {
 };
 /** Multi-word relation cues are matched before single words. */
 const relationCues: [string[], (typeof relationKinds)[number]][] = [
-  [['next', 'to'], 'beside'], [['in', 'front', 'of'], 'front'], [['on', 'top', 'of'], 'above'],
+  [['next', 'to'], 'beside'], [['in', 'front', 'of'], 'front'], [['on', 'top', 'of'], 'above'], [['inside'], 'inside'],
   [['beside'], 'beside'], [['alongside'], 'beside'], [['near'], 'beside'], [['by'], 'beside'],
   [['beyond'], 'beyond'], [['behind'], 'beyond'], [['past'], 'beyond'],
   [['above'], 'above'], [['over'], 'above'], [['atop'], 'above'], [['overlooking'], 'above'],
@@ -95,9 +95,9 @@ function tokenize(text: string): Token[] {
 }
 
 function lookupNoun(word: string): { noun: Noun; plural: boolean } | undefined {
-  if (nouns[word]) return { noun: nouns[word], plural: false };
+  if (Object.hasOwn(nouns, word)) return { noun: nouns[word], plural: false };
   const singular = irregularPlurals[word] ?? (word.endsWith('ies') ? word.slice(0, -3) + 'y' : word.endsWith('s') ? word.slice(0, -1) : undefined);
-  if (singular && nouns[singular]) return { noun: nouns[singular], plural: true };
+  if (typeof singular === 'string' && Object.hasOwn(nouns, singular)) return { noun: nouns[singular], plural: true };
   return undefined;
 }
 
@@ -114,8 +114,8 @@ export function parsePrompt(prompt: string): Interpretation {
 
   for (let i = 0; i < tokens.length; i += 1) {
     const { word } = tokens[i];
-    if (time[word]) timeOfDay = time[word];
-    if (weather[word]) weatherCue = weather[word];
+    if (Object.hasOwn(time, word)) timeOfDay = time[word];
+    if (Object.hasOwn(weather, word)) weatherCue = weather[word];
     for (const [words, kind] of relationCues) {
       if (words.every((w, k) => tokens[i + k]?.word === w)) {
         relationAt.set(i, { kind, length: words.length });

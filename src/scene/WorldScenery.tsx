@@ -81,7 +81,7 @@ export function WorldScenery({ placements, atmosphere, activeAudio, music, reduc
   useFrame(() => {
     const playing = animate && !activeAudio.paused && !activeAudio.ended && !activeAudio.seeking;
     const pulse = playing && music
-      ? getMusicMotion(activeAudio.currentTime, music, { pulseGain: 0.24, motionSpeed: 1 }).scale - 1
+      ? getMusicMotion(activeAudio.currentTime, music, { pulseGain: 0.04, motionSpeed: .25 + .75 * music.meanEnergy }).scale - 1
       : 0;
     if (ambientMotion && ambientLight.current) ambientLight.current.intensity = ambient * ambientScale + pulse * 0.6;
     for (const material of lights) material.emissiveIntensity = 0.22 + pulse;
@@ -93,7 +93,8 @@ export function WorldScenery({ placements, atmosphere, activeAudio, music, reduc
       <color attach="background" args={[sky]} />
       <fog attach="fog" args={[sky, ...fog]} />
       <ambientLight ref={ambientLight} intensity={ambient * ambientScale} />
-      <directionalLight position={[-7, 10, 6]} color={lightColor ?? light} intensity={key} />
+      <directionalLight position={atmosphere === 'dawn' ? [9, 4, -5] : atmosphere === 'dusk' ? [-9, 4, 5]
+        : atmosphere === 'night' ? [-5, 8, -7] : [-7, 10, 6]} color={lightColor ?? light} intensity={key} />
       {lanterns.map((placement) => (
         <pointLight key={placement.id} position={[placement.at[0], (placement.height ?? 0) + 2.03 * placementScale(placement), placement.at[1]]}
           color="#ffb970" intensity={12} distance={5.5} />

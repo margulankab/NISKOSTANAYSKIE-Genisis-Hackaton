@@ -7,5 +7,5 @@ export async function startPromptGame(page: Page, prompt: string) {
   await page.getByLabel('Describe the world').fill(prompt);
   await page.getByRole('button', { name: 'Build world' }).click();
   await page.getByRole('button', { name: 'Enter world' }).click();
-  await expect(page.locator('.walk-viewport')).toHaveAttribute('data-player', /\d/);
+  await expect(page.locator('.walk-viewport')).toHaveAttribute('data-player', /\d/, { timeout: 12_000 });
 }

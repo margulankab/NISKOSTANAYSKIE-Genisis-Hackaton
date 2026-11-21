@@ -11,6 +11,23 @@ import { localMemories, saveDayProgress } from './indexed-memory-repository';
 import { MemoryActions } from './MemoryActions';
 import type { DaySummary } from './repository';
 
+function ArchiveCard({ id, title, date, palette, thumbnail }: DaySummary) {
+  const [preview, setPreview] = useState<string>();
+  useEffect(() => {
+    if (!thumbnail || !(thumbnail instanceof Blob)) { setPreview(undefined); return; }
+    const url = URL.createObjectURL(thumbnail);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [thumbnail]);
+  const colors = palette?.map(color => `rgb(${color.join(' ')})`) ?? ['#88755e', '#535d51', '#303933'];
+  return <li><a href={`/memory/${id}`} className="day-card">
+    <span className="day-card-image" aria-hidden="true" style={{ backgroundImage: `linear-gradient(138deg, ${colors.join(',')})` }}>
+      {preview && <img src={preview} alt="" onError={() => setPreview(undefined)} />}
+    </span>
+    <span className="day-card-caption"><time dateTime={date}>{date}</time><strong>{title}</strong></span>
+  </a></li>;
+}
+
 export function Archive() {
   const [memories, setMemories] = useState<DaySummary[]>();
   const [listError, setListError] = useState(false);
@@ -70,9 +87,7 @@ export function Archive() {
         !memories ? <p role="status">Opening the archive…</p>
           : memories.length === 0 ? <p>No saved memories yet.</p>
           : <ul className="archive-list" aria-label="Saved memories">
-            {memories.map(({ id, title, date }) => (
-              <li key={id}><a href={`/memory/${id}`}><span>{title}</span><time dateTime={date}>{date}</time></a></li>
-            ))}
+            {memories.map(memory => <ArchiveCard key={memory.id} {...memory} />)}
           </ul>
       )}
     </section>

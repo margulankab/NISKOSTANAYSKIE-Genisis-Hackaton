@@ -1,5 +1,17 @@
 # Documentation changelog
 
+## 2026-11-21 — Local candidate and case materials
+
+- Documented the implemented layout v3, two-stage fictional planner, 108-model gallery, and diary thumbnails and frames. Added the local case guide, visual techniques and rights ledger. Recorded automated evidence and outstanding release gates in [PROGRESS.md](../PROGRESS.md).
+
+## 2026-11-21 — Model-led prompt worlds and asset coverage
+
+- Revised the [game-specific implementation plan](memory_worlds_implementation_plan.md) after the user showed a sparse generated scene. Added structured LLM planning for both prompt actions, catalog retrieval, a 100-model release floor, park and water-park coverage tests, and independent product and case-release tracks. Added USR-11/12 and AT-27–29.
+
+## 2026-11-21 — Memory Worlds implementation specification
+
+- Added the [game-specific implementation plan](memory_worlds_implementation_plan.md) using the integrated branch as the baseline. Defined delivery gates, versioned presentation, richer cove/market/interior art, story and audio behavior, and case release evidence. Kept the earlier delivery plan and original case brief as references.
+
 ## 2026-11-21 — Prompt worlds, soundtrack selection and game menus
 
 - Separated the case brief's day-memory inputs and archive from the expanded prompt-only game scope. Added world composition, cleared soundtrack selection, menus and checkpoints to the active plan, with MW-017–019 and AT-23–26.

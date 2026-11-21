@@ -2,7 +2,7 @@ import { selectWorldSoundtrack } from '../media/world-soundtrack';
 import type { SoundtrackChoice } from '../media/world-soundtrack';
 import type { PromptWorld } from './world-schema';
 
-export function promptSoundtrack({ prompt, interpretation, layout, story }: PromptWorld): SoundtrackChoice {
+export function promptSoundtrack({ prompt, interpretation, layout, story, scene }: PromptWorld): SoundtrackChoice {
   const words = new Set(prompt.toLowerCase().match(/[\p{L}]+/gu));
   const setting: string[] = [];
   if (layout.placements.some(({ recipe }) => recipe === 'lighthouse' || recipe === 'pier' || recipe === 'boat')) {
@@ -19,6 +19,9 @@ export function promptSoundtrack({ prompt, interpretation, layout, story }: Prom
 
   const mood = ['calm', 'peaceful', 'joyful', 'lively', 'subdued', 'nostalgic', 'tense'].filter((cue) => words.has(cue));
   if (story && !mood.includes(story.mood)) mood.push(story.mood);
+  if (scene && !mood.includes(scene.plan.intent.mood)) mood.push(scene.plan.intent.mood);
   const energy = ['gentle', 'bright', 'subdued', 'low', 'high'].filter((cue) => words.has(cue));
+  if (layout.profile === 'water-park') energy.push('bright', 'high');
+  if (layout.profile === 'park') { mood.push('calm'); energy.push('gentle'); }
   return { ...selectWorldSoundtrack({ setting, mood, energy }), muted: false };
 }

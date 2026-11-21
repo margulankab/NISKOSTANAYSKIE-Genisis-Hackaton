@@ -69,6 +69,7 @@ function MemoryOpening({ manifest, entryText, world, resolveAsset, onComplete, g
   const finished = useRef(complete);
   const allRevealed = revealed.size === manifest.artifacts.length;
   const style = getSceneStyle(manifest);
+  const firstPhoto = useAssetUrl(world?.layout.geometryVersion === 3 ? manifest.photos[0]?.assetId : undefined, resolveAsset);
   const [spawn] = useState(() => world?.layout.spawn ?? createWalkLayout(style).spawn);
   const position = useRef<Point>(game?.initial?.position ?? spawn);
   const pause = useGamePause({
@@ -114,7 +115,9 @@ function MemoryOpening({ manifest, entryText, world, resolveAsset, onComplete, g
             artifactLabels={[artifactNames[manifest.artifacts[0].kind], artifactNames[manifest.artifacts[1].kind]]}
             revealed={new Set(world.layout.discoveries.filter((_, index) => revealed.has(manifest.artifacts[index].id))
               .map(({ placementId }) => placementId))}
-            audio={{ activeAudio, music: manifest.music, ambientScale: style.ambientIntensity, lightColor: `rgb(${style.accentPalette[0].join(',')})` }}
+            audio={{ activeAudio, music: manifest.music, ambientScale: style.ambientIntensity,
+              lightColor: `rgb(${style.accentPalette[0].join(',')})`, detailColor: `rgb(${style.accentPalette[1].join(',')})`,
+              photoUrl: firstPhoto.status === 'ready' ? firstPhoto.url : undefined }}
             onReveal={(id) => {
               const index = world.layout.discoveries.findIndex(({ placementId }) => placementId === id);
               reveal(manifest.artifacts[index].id);
@@ -148,7 +151,8 @@ function MemoryOpening({ manifest, entryText, world, resolveAsset, onComplete, g
                   <span className="artifact-state">{open ? 'Revealed' : staticMode ? 'Reveal' : 'Find it in the world'}</span>
                 </button>
                 <div id={panelId} className="artifact-content" hidden={!open}>
-                  {open && photo && <ArtifactPhoto key={photo.assetId} photo={photo} resolveAsset={resolveAsset} />}
+                  {open && photo && <div className="photo-gallery">{manifest.photos.map(item =>
+                    <ArtifactPhoto key={item.assetId} photo={item} resolveAsset={resolveAsset} />)}</div>}
                   {open && excerpt && <blockquote>{entryText.slice(excerpt.start, excerpt.end)}</blockquote>}
                 </div>
               </section>
@@ -163,6 +167,7 @@ function MemoryOpening({ manifest, entryText, world, resolveAsset, onComplete, g
             <div className="closing-card" role="status">
               <h3>Memory complete</h3>
               <p>{manifest.title}</p>
+              {manifest.artifacts[1].excerpt && <blockquote>{entryText.slice(manifest.artifacts[1].excerpt.start, manifest.artifacts[1].excerpt.end)}</blockquote>}
               <button type="button" onClick={replay}>Replay visit</button>
             </div>
           )}

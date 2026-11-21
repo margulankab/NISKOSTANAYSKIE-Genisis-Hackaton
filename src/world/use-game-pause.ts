@@ -27,12 +27,19 @@ export function useGamePause({
   const lastSaved = useRef(initial ? snapshot(initial, selection) : null);
   const pauseButton = useRef<HTMLButtonElement>(null);
   const saving = useRef(false);
+  const destination = useRef<string | null>(null);
+
+  function leaveVisit() {
+    if (destination.current) window.location.assign(destination.current);
+    else leave();
+  }
 
   function resume() {
     if (saving.current) return;
     setPaused(false);
     setConfirmLeave(false);
     setSave({ status: 'idle' });
+    destination.current = null;
     requestAnimationFrame(() => pauseButton.current?.focus());
   }
 
@@ -56,6 +63,18 @@ export function useGamePause({
 
   useEffect(() => {
     if (!persist) return;
+    const onLink = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
+      if (!link || link.download || link.target === '_blank' || link.origin !== window.location.origin ||
+        link.pathname === window.location.pathname && link.search === window.location.search && link.hash) return;
+      if (!saving.current && lastSaved.current === snapshot(progress(), selection)) return;
+      event.preventDefault();
+      if (saving.current) return;
+      destination.current = link.href;
+      setPaused(true);
+      setConfirmLeave(true);
+    };
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.repeat) return;
       if (event.target instanceof HTMLElement && (event.target.isContentEditable
@@ -63,11 +82,15 @@ export function useGamePause({
       event.preventDefault();
       if (saving.current) return;
       if (!paused) setPaused(true);
-      else if (confirmLeave) setConfirmLeave(false);
+      else if (confirmLeave) { destination.current = null; setConfirmLeave(false); }
       else resume();
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    document.addEventListener('click', onLink);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('click', onLink);
+    };
   });
 
   return {
@@ -75,13 +98,14 @@ export function useGamePause({
     menu: {
       save, confirmLeave, onResume: resume,
       onSave: () => void saveGame(),
-      onSaveAndQuit: () => void saveGame().then((ok) => { if (ok) leave(); }),
+      onSaveAndQuit: () => void saveGame().then((ok) => { if (ok) leaveVisit(); }),
       onMainMenu: () => {
+        destination.current = null;
         if (lastSaved.current === snapshot(progress(), selection)) leave();
         else setConfirmLeave(true);
       },
-      onLeaveWithoutSaving: leave,
-      onCancelLeave: () => setConfirmLeave(false),
+      onLeaveWithoutSaving: leaveVisit,
+      onCancelLeave: () => { destination.current = null; setConfirmLeave(false); },
     },
   };
 }

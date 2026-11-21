@@ -47,7 +47,7 @@ export function GameSession({ world, initial, initialSoundtrack, repository = lo
   const latestDiscovery = [...revealed].at(-1);
   const discoveryNotes = story && [story.firstDiscovery, story.secondDiscovery];
   const reply = storyStep === 'first' ? story?.firstReply : storyStep === 'second' ? story?.secondReply : undefined;
-  useEffect(() => { if (storyStep) conversation.current?.focus(); }, [storyStep]);
+  useEffect(() => { if (storyStep && !paused) requestAnimationFrame(() => conversation.current?.focus()); }, [paused, storyStep]);
 
   const reveal = useCallback((id: string) => {
     setRevealed((previous) => previous.has(id) ? previous : new Set([...previous, id]));
@@ -152,9 +152,10 @@ export function GameSession({ world, initial, initialSoundtrack, repository = lo
         </footer>
         <details className="interpretation-details">
           <summary>How this world was built</summary>
+          <p>{world.scene?.processing === 'gemini' ? 'Gemini planned this fictional scene.' : 'The scene was built privately on this device.'}
+            {story && ' The conversation is imagined.'}</p>
           {story && (
             <>
-              <p>{story.source === 'gemini' ? 'Gemini turned your fictional prompt into the scene description below.' : 'The scene was generated on this device. The conversation is imagined.'}</p>
               {story.originalPrompt !== world.prompt && <blockquote>{story.originalPrompt}</blockquote>}
             </>
           )}

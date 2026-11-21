@@ -168,13 +168,13 @@ test('AT-23: unsupported details are listed and a failed prompt is kept for revi
   const field = page.getByLabel('Describe the world');
   await field.fill('Just a feeling of warmth and a carousel.');
   await page.getByRole('button', { name: 'Build world' }).click();
-  await expect(page.getByRole('alert')).toContainText('None of the described places or objects have a builder yet');
-  await expect(page.getByText(/Not built yet:.*carousel/)).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('This place could not be resolved');
+  await expect(page.getByText(/Not built yet.*carousel/)).toBeVisible();
   await expect(field).toHaveValue('Just a feeling of warmth and a carousel.');
 
   await field.fill('A carousel beside a red lighthouse at dusk.');
   await page.getByRole('button', { name: 'Build world' }).click();
-  await expect(page.getByText(/Not built yet:.*carousel/)).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Substitutions and missing features' })).toContainText('carousel');
   await page.getByRole('button', { name: 'Revise prompt' }).click();
   await expect(field).toHaveValue('A carousel beside a red lighthouse at dusk.');
 });

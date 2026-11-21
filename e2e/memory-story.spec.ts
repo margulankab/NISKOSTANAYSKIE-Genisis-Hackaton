@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { captureScene } from './scene-capture';
 import { settledShot, walkToGoal } from './walk';
+import { privateScenePlan } from '../src/world/local-scene-plan';
 
 const prompt = 'At dusk I met Mira near a lighthouse above a foggy cove with a red rowboat beside a pier.';
 const fictionalMarket = 'At a covered night market under a railway bridge I met Nora near the blue bench beside a lamp.';
@@ -29,7 +30,7 @@ test('a private memory can be walked, saved in the conversation, and reopened wi
   test.setTimeout(60_000);
   const storyRequests: string[] = [];
   page.on('request', (request) => {
-    if (request.url().endsWith('/api/memory-story')) storyRequests.push(request.url());
+    if (request.url().endsWith('/api/scene-plan')) storyRequests.push(request.url());
   });
   await openPrompt(page);
   await page.getByRole('button', { name: 'Build memory' }).click();
@@ -72,36 +73,29 @@ test('a fictional prompt can use structured Gemini output and falls back on inva
     } as typeof getContext;
   });
   let valid = true;
-  await page.route('**/api/memory-story', async (route) => {
+  await page.route('**/api/scene-plan', async (route) => {
     expect(route.request().postDataJSON()).toEqual({ prompt: fictionalMarket, fictional: true });
-    await route.fulfill({ json: valid ? {
-      scene: 'A covered night market under a railway bridge with lanterns above the stalls and a blue bench beside a lamp.',
-      place: 'Night market', timeOfDay: 'night', weather: 'clear', mood: 'lively',
-      opening: 'The stalls are closing as you arrive.', npc: { name: 'Nora', outfit: 'ochre' },
-      firstDiscovery: 'Warm light pools on the ground.', secondDiscovery: 'The last footsteps echo under the bridge.',
-      greeting: 'Do you remember the walk home?',
-      firstReply: { choice: 'Every step.', answer: 'So do I.' },
-      secondReply: { choice: 'Just the lights.', answer: 'They stay with me too.' },
-      closing: 'The market falls quiet.',
-    } : { scene: 'Invalid response' } });
+    await route.fulfill({ json: valid ? privateScenePlan(fictionalMarket) : { scene: 'Invalid response' } });
   });
   await openPrompt(page, fictionalMarket);
   await page.getByRole('checkbox', { name: /Send this fictional prompt/ }).check();
   await page.getByRole('button', { name: 'Build memory' }).click();
-  await expect(page.getByText(/Night market · lively · Written with Gemini/)).toBeVisible();
+  await expect(page.getByText('Planned with Gemini')).toBeVisible();
   await expect(page.getByLabel('Soundtrack', { exact: true })).toHaveValue('lantern-market');
   await page.getByRole('button', { name: 'Enter world' }).click();
   await revealInStaticPreview(page);
   await page.getByRole('button', { name: 'Talk to Nora' }).click();
-  await expect(page.getByText('Do you remember the walk home?')).toBeVisible();
-  await page.getByRole('button', { name: 'Just the lights.' }).click();
-  await expect(page.getByRole('region', { name: 'Memory complete' })).toContainText('They stay with me too.');
+  await expect(page.getByText(/What will you take with you when you leave/)).toBeVisible();
+  await page.getByRole('button', { name: 'The way it felt to be here.' }).click();
+  await expect(page.getByRole('region', { name: 'Memory complete' })).toContainText('Then stay another breath.');
 
   valid = false;
   await openPrompt(page, fictionalMarket);
   await page.getByRole('checkbox', { name: /Send this fictional prompt/ }).check();
   await page.getByRole('button', { name: 'Build memory' }).click();
-  await expect(page.getByText('This memory was generated locally.', { exact: false })).toBeVisible();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await page.getByRole('button', { name: 'Build privately' }).click();
+  await expect(page.getByText('Built privately')).toBeVisible();
   await expect(page.getByLabel('Describe the world')).toHaveValue(fictionalMarket);
   await page.getByRole('button', { name: 'Enter world' }).click();
   await revealInStaticPreview(page);
