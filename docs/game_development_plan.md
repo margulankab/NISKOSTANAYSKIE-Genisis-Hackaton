@@ -1,4 +1,100 @@
-# Memory Worlds — two-developer development plan
+# Memory Worlds — three-developer exploration game plan
+
+## Active delivery plan — 2026-11-21
+
+### Prompt-generated worlds, soundtrack selection, and game menus
+
+Park, room, and city become regression examples. The player writes a free-form prompt and can enter a generated, walkable scene without supplying media. The generator assembles terrain, structures, paths, lighting, and props from reusable low-poly builders. It reads described places and objects, counts, cue words for time and atmosphere, and supported relationships such as “beside” and “beyond.” It can combine indoor and outdoor areas in one world. A prompt about a lighthouse above a foggy cove with a red rowboat beside a pier should produce the hill, tower, shore, pier and boat, with a walkable route and an ending. Its layout and recognizable objects should differ from a prompt about a night market under a railway bridge. Coverage grows as new builders and vocabulary are added. If an important description cannot be rendered, show the missing or approximated detail and let the player revise the retained prompt. Explain that exact coverage depends on the available builders.
+
+**Two entry flows.** **New Game → From a prompt** starts with text alone and offers automatic soundtrack selection. With no photo, the two discoveries use generated geometry and identified excerpts from the prompt. **New Game → Create a day memory** follows the case brief with journal text, at least one photo, and the user's associated song. Keep the authorized file path in P0. The chosen song shapes that memory's atmosphere and remains attached to the day. Prompt-only worlds and automatically selected tracks are game features. They do not count as case-compliant favorite-day submissions. Both flows use the same world builder, movement, discovery loop, and ending.
+
+**Soundtrack choice.** Curate a small local catalog of original, owned, or verified CC0 tracks with contrasting mood, setting, and energy tags. Match those tags to the prompt, use a stable tie-break, and provide a preview, a change-track control, and mute. The selected track's measured energy influences ambience and motion. Save the resolved track and its attribution with the world. If no suitable cleared track is available, label the silent state and offer an authorized upload. Start audible playback only after a user gesture. The planned service spend remains $0.
+
+**Game menus and saving.** The title menu offers **New Game**, **Continue**, **Load Game**, **Examples**, and **Settings** for volume and reduced motion. **Continue** opens the most recently saved checkpoint. **Load Game** lists local worlds and day memories by title with their save status. The pause menu offers **Resume**, **Save Game**, **Save & Quit**, and **Return to Main Menu**. Save the realized world and checkpoint together on the first save. Later saves update progress, including player position, revealed objects, and ending state. Show success after storage commits. A save failure leaves the session open for retry, and leaving with unsaved progress requires an explicit choice. Support v1 saved memories and ZIPs. A legacy day with no checkpoint opens at spawn. Portable day ZIPs carry the world and authorized source media. Live checkpoints stay local for this release.
+
+### Work and effort for the expanded scope
+
+| Gate | A · Gameplay | B · Generation, menus and persistence | C · World content and sound | Focused hours A/B/C |
+|---|---|---|---|---|
+| 1 · Shared contract and vertical slice | Move, collide and complete one visit against a generated layout (MW-013/014) | Define the versioned world, checkpoint and prompt contracts and wire one generated preview (MW-017 and MW-019) | Build starter geometry, landmark and prop recipes with a playable mixed setting (MW-016) | 6 / 7 / 6 |
+| 2 · Integrate both entry flows | Touch, accessible interaction, pause/resume and checkpoint restoration (MW-013/014 and MW-019) | Compose and validate worlds from prompts, connect two intake flows, menus and atomic saves, and keep v1 reopen/import (MW-015, MW-017 and MW-019) | Expand recipes and prompt coverage, curate tracks, and integrate atmosphere and selection (MW-016 and MW-018) | 6 / 7 / 6 |
+| 3 · Verify and package | Gameplay regressions and device fixes | Archive, menu and ZIP regressions, deploy and jury evidence (MW-009/010) | Atmosphere/device checks, five case examples, rights and video (MW-008/010) | 4 / 4 / 4 |
+| **Total** | **16** | **18** | **16** | **50 person-hours** |
+
+B sets up the schema and supplies test worlds and a checkpoint fixture. A defines reachability, collision and restorable gameplay state. C owns the recipe catalog and track metadata. Start with a prompt outside the old three settings and use the same contract for both entry flows. Gate 1 requires a complete generated visit. Gate 2 requires AT-23–25 and an existing v1 reopen. Gate 3 requires the full release suite and case evidence. Record actual outcomes before starting each subsequent phase.
+
+These are provisional remaining-work estimates. The expanded 50-hour scope exceeds the earlier 30-hour allocation. The existing November 22, 23:59 Astana submission deadline remains. Preserve the upload window and plan against actual availability. If the full game misses its gates, identify the exact verified scope in any deadline build and leave the remaining gates open. Narrow the initial catalog and decorative effects before cutting menu, saving or core procedural composition. Keep the expanded requirements in the product plan. The earlier calendar below records the previous estimate.
+
+### New acceptance checks
+
+| ID | Passing criterion | Owner |
+|---|---|---|
+| AT-23 | Generate a lighthouse/cove and a covered night market from text only, plus a scene mixing two settings. Compare geometry, object lists, routes and placement relationships. An object or relationship edit changes the relevant output. Same prompt/seed/versions reproduce the layout. Unsupported details are identified, and failed placement preserves the prompt. Walk from spawn to both interactions and the ending in each accepted scene. | B, with A and C |
+| AT-24 | Compare contrasting prompts with the same catalog and verify predictable, explainable cleared track choices. Preview, switch, mute, reload and confirm the saved choice, rights and atmosphere effects. Verify missing or unsuitable track handling. In the case flow, the user's authorized song still drives the result. | C |
+| AT-25 | From the title menu, start a prompt game, walk, reveal one object, pause and save. Reload, Continue at the saved position with one reveal, then complete the game. Save & Quit and Load Game restore the updated checkpoint. Switch between two saves, including an older day. Simulate quota failure and stale or invalid checkpoints. Verify accessible focus, gesture-started audio after reload, legacy v1 import/reopen and case save/export. | B, with A |
+| AT-26 | Audit source attribution, requirement/task/test links, and the new phase effort. Evidence identifies which behaviors are implemented and which gates remain open. | B |
+
+AT-17–21 still cover gameplay and release regressions. For AT-19 include generated worlds beyond the park, room, and city examples. For AT-20 validate both new entry flows and saved layout reuse. Update the case demo to show the title menu, gameplay save/reopen, and the brief's original journal/photo/song flow.
+
+### Earlier three-setting exploration plan
+
+The sections through “Demo and submission” record the previous narrower scope and estimates. Movement, two discoveries, the closing landmark, archive compatibility, and prior test coverage carry forward. Use the expanded scope and gates above for current planning.
+
+The user approved the existing low-poly art direction and asked for a complete, atmospheric exploration game and a three-person team. The merged browser app already generates memories locally, saves and reopens v1 bundles, and reveals two artifacts in an orbit-controlled scene. That build is the starting point. This section governs scope, staffing, milestones, and release evidence. The earlier two-person plan and research follow as historical records. The $0 direction remains active.
+
+### What the player does
+
+1. Open a curated day, a newly generated memory, or a saved day. Start at a readable landmark with a short objective and visible controls. Start the authorized soundtrack with a gesture.
+2. Walk through a compact low-poly park, room, or city with a close third-person camera. Use WASD or arrow keys on desktop and an on-screen movement control on touch. The camera follows the player. Walkable bounds and simple collision keep the player on the route and away from solid geometry. A reset returns the player to a safe spawn.
+3. Approach two distinct artifacts and interact with `E`, an accessible on-screen control, or a touch tap when the object is in reach. Each artifact reveals the corresponding original photo or journal excerpt. A short prompt shows what can be used. Progress counts each artifact once, in either order.
+4. With both discoveries made, an in-world closing landmark becomes available. Walk to it and interact to open the closing card. Replay starts a fresh visit and returning to the diary provides a clear exit.
+
+Keep the original low-poly silhouettes, palette, prop style, and three-environment visual language. Give each environment a short route with a distinct landmark, clear sightlines, and a closing location. Use existing input-derived lighting, photo accents, and soundtrack motion to make the walk feel specific to the day. Give players time to linger. A 60–90 second first visit is a playtest target. Preserve readable prompts and audio controls, and damp camera and ambient movement in reduced-motion mode. Carry the two reveals and ending into the labeled static preview so the original content remains available when WebGL fails.
+
+### Work and handoffs
+
+| Owner | Hours | Work and delivery evidence |
+|---|---:|---|
+| A · Gameplay and controls | 10 | MW-013: player movement, follow camera, walkable bounds, collision, touch and keyboard input, safe reset. MW-014: proximity prompts, two-artifact progression, ending and replay. Own AT-17/18 and hand C the layout and collider contract. |
+| B · Data, integration, and release | 10 | MW-015: wire exploration through fixture, creation and archive entry points, verify v1 and ZIP compatibility. Own AT-20 and release MW-009/010, including static deploy, jury walkthrough, submission checks and evidence log. |
+| C · Level design and atmosphere | 10 | MW-016: tune walkable park, room and city routes, landmark readability, lighting and soundtrack presentation. Own AT-19 and MW-008's five-day set, rights review, physical-device atmosphere checks and MW-010 video. Supply A with bounds, landmarks and collision footprints through the agreed layout interface. |
+
+At kickoff, A defines the runtime inputs for spawn, bounds, solid footprints, two artifact anchors and the closing landmark. C supplies a park layout first and can tune the other layouts against the same interface. B keeps the existing viewer props and v1 fixtures available and can test archive/ZIP independently. A owns the controller and progression, C owns environment geometry and presentation, and B owns routing, adapters and persistence. B records milestone results in [PROGRESS.md](../PROGRESS.md). The proposed technical boundary is in the [architecture](../ARCHITECTURE.md#planned-exploration-architecture--2026-11-21).
+
+### Integration gates and deadline
+
+These are estimates of remaining work from merged `main`. Each developer has 10 focused hours, 30 total, assuming availability in the listed windows. Times are Astana (UTC+05:00). The existing hard deadline is November 22 at 23:59. Availability and rollout time still need to be verified against progress at each gate.
+
+| Window | A | B | C | Gate before proceeding |
+|---|---|---|---|---|
+| Nov 21, 18:00–19:00 | Define controller/layout seam | Pin v1 test bundles and route coverage | Agree park bounds, route and landmark anchors | One shared layout contract and a v1 sample |
+| Nov 21, 19:00–21:00 | Walk, collide, reveal and finish in park | Prepare shared-entry integration and legacy reopen checks | Place and tune park route and sightlines | Complete keyboard park visit and existing artifact/media and archive smoke checks |
+| Nov 22, 09:00–12:00 | Touch controls, reset, focus and fallback | Wire all entry points and verify v1 ZIP round trip | Walkable room and city, soundtrack and light cues | All three settings playable from fixtures and a generated save/reopen verified |
+| Nov 22, 13:00–15:00 | Fix movement, touch and progression regressions | Run integrated checks; smoke-test static deploy | Device walkthrough and five-example review | AT-17–21 and relevant baseline checks evidenced before freeze |
+| Nov 22, 15:00–17:00 | Retest fixes and review recorded controls | Package seven materials and verify fresh-browser release | Capture ≤180-second walkthrough and verify approved credits | Reviewed demo, release bundle and jury walkthrough |
+
+Protect 17:00–20:00 for upload, final checks and the target submission. The remaining window to 23:59 is contingency. If the park loop misses its first gate, simplify route geometry and effects immediately. Keep walking, collision, both interactions, closing landmark, three settings, source-driven atmosphere, and archive compatibility in the release gate. Defer extra paths, optional props, narration and additional audiovisual effects. Any failed or unavailable check remains open and appears in the release handoff.
+
+### Acceptance and regression checks
+
+| ID | Passing criterion | Owner |
+|---|---|---|
+| AT-17 | Keyboard and touch move the player to both artifacts and the closing landmark. Camera follows without trapping the player. Verify collisions, boundaries, safe reset, and input release on blur or touch cancellation. | A |
+| AT-18 | A distant artifact cannot be activated in world mode. Either reveal order works. Repeating one reveal leaves the ending locked. Two unique reveals allow interaction at the closing landmark and completion fires once. Replay resets position and progress. WebGL loss preserves reveal progress in the labeled static preview. | A |
+| AT-19 | Play park, room and city end to end. Each retains low-poly styling, has a discoverable route and distinct atmospheric treatment, and keeps prompts legible during motion. Compare two soundtrack variants with identical text/photos, verify gesture-started audibility and visual response, and repeat with reduced motion. Record device/browser, captures and observed issues. | C, A reviews |
+| AT-20 | Play a fixture, a newly generated preview, a pre-existing v1 saved memory and an imported v1 ZIP. Reload and walk again; original manifest and media remain intact and gameplay layout is deterministic. Verify offline generation and inspect for requests containing personal content. | B |
+| AT-21 | Fresh-browser desktop and physical touch-device runs cover the complete loop, archive navigation, audio, focus and reduced motion. Record device/browser and the existing ≥30 FPS target over 60 seconds, report any misses, and verify static fallback and cleanup. | C device evidence, B release gate |
+| AT-22 | Audit A/B/C ownership, hours, handoffs, deadline, and links from active user requirements to tasks and acceptance checks. Confirm the current build and outstanding gameplay are described accurately. | B |
+
+Run `npm run typecheck`, `npm test`, `npm run build`, and `npm run test:browser` at the integrated gate. Update browser checks that cover the old camera interaction to exercise walking, and retain checks for the media, archive, provenance, and fallback behaviors. AT-17/18 now govern locomotion and completion for USR-01 alongside the relevant AT-10 baseline behaviors. Keep AT-01–09 and AT-11–15 as regression and release coverage under the zero-cost amendment below, especially the rules title (AT-05), offline/error behavior (AT-11), five examples (AT-08/13/14), and rights (AT-12). AT-16 remains the record of the original audit, with AT-22 applying to this revision.
+
+### Demo and submission
+
+Open one rights-cleared favorite-day memory and show real input, the locally generated title, walking to each artifact, both reveals, and arriving at the ending. Show two other contrasting moods, then the five-day feed and a saved-memory reopen. In the ≤180-second video, allow time for audio and movement to be heard and seen. Use the existing controlled audio comparison to substantiate musical influence. Record actual behavior and verify the seven submission materials listed below. The jury walkthrough starts with a controllable public example and includes movement keys and touch instructions, both object interactions, the ending, and archive replay. Planned service spend is $0, with static Pages hosting, local processing and storage, and authorized media. Verify deploy access, rights and the submission destination during release.
+
+## Previous delivery plan and research
+
+The dated amendment below records the original zero-cost decision. Its staffing, estimates and milestones belong to the previous phase. The subsequent original plan includes earlier paid-service proposals and retains their provenance.
 
 ## 2026-11-21 zero-cost delivery amendment
 

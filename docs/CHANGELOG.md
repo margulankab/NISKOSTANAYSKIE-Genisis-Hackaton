@@ -1,5 +1,15 @@
 # Documentation changelog
 
+## 2026-11-21 — Prompt worlds, soundtrack selection and game menus
+
+- Separated the case brief's day-memory inputs and archive from the expanded prompt-only game scope. Added world composition, cleared soundtrack selection, menus and checkpoints to the active plan, with MW-017–019 and AT-23–26.
+- Kept v1 archive/ZIP compatibility and the free, private browser architecture. Re-estimated the expanded work at 50 focused person-hours and retained the earlier schedule as historical planning.
+
+## 2026-11-21 — Three-person exploration plan
+
+- Made walking, nearby artifact interactions, and a reachable ending release requirements. Preserved the approved low-poly direction and browser-local, zero-cost design.
+- Revised the delivery plan, architecture, working rules, requirements, README, progress, and supporting planning documents. Added MW-013–016 and AT-17–22 with owners and handoffs. Retained the earlier plan and audits for reference.
+
 ## 2026-11-21 — zero-cost billing review
 
 | Order | Files | Change | Requirement trace |

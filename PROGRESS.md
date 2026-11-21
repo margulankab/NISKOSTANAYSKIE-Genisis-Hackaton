@@ -1,5 +1,23 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-21 — Prompt worlds, soundtrack selection and game menus
+
+The user expanded scope to prompt-built worlds, automatic music choice, and a menu system with saving. The [expanded plan](docs/game_development_plan.md#prompt-generated-worlds-soundtrack-selection-and-game-menus) keeps the brief's journal/photo/song and titled day archive flow alongside a prompt-only game. The existing generator still selects one v1 setting and fixed artifact types. The current archive saves intact day bundles. Menus, checkpoint saves and composable worlds are planned.
+
+MW-017–019 and AT-23–25 are open. The estimate is 50 focused person-hours across A/B/C, above the earlier 30-hour schedule. The fixed case deadline remains November 22 at 23:59 Astana. The next gate is one complete visit in a prompt-generated world outside the previous three settings, with a shared world and checkpoint contract.
+
+**AT-26 documentation check passed:** `git diff --check` and a read-only Python audit verified 56 local links and anchors, mappings from USR-08–10 to MW-017–019 and AT-23–25, and the three tracks totaling 50 hours. The brief and application files are untouched. Gameplay and device tests were not run for this documentation revision.
+
+## 2026-11-21 — Exploration plan and third developer
+
+The user approved the low-poly visual direction and expanded the game scope to walking, nearby object interaction, and atmospheric exploration. Updated the [delivery plan](docs/game_development_plan.md#active-delivery-plan--2026-11-21), [architecture](ARCHITECTURE.md#planned-exploration-architecture--2026-11-21), and [requirements](docs/00_case_requirements.md#active-exploration-requirements--2026-11-21) for A (gameplay), B (integration and release), and C (levels and atmosphere). The estimate assumes 10 focused hours per person before the existing November 22 deadline.
+
+**Baseline:** inspected merged `main` at `e36d9df`. Its shared viewer still uses orbit/zoom and direct artifact selection. The earlier fixture, creation and archive checks below apply to that baseline. MW-013–016 and AT-17–21 are pending. No application code or assets changed during this revision. The final five-day set, public release and physical-device checks also remain open.
+
+**AT-22 documentation check passed:** `git diff --check` reported no whitespace errors. A read-only Python check verified 38 changed local links and anchors, the new requirements and task/test IDs, three 10-hour tracks, the order and deadline of the five gates, and retention of the earlier plan and audit bodies. Application and device tests were outside this documentation milestone.
+
+**Next:** A and C agree the layout contract while B selects the existing v1 bundles for compatibility checks. Integrate one complete park visit before expanding the other two settings.
+
 ## 2026-11-21 — A/B integration on main
 
 The fixture library, creation preview, and archive reopens share the 3D viewer. Intake uses the same offline audio decoder and mono RMS calculation as Developer A's analyzer. Archive and ZIP tests exercise the integrated renderer and verify that saved and imported bundles preserve the original media and scene data.

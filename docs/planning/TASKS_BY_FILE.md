@@ -1,5 +1,26 @@
 # Memory Worlds — active task/file map (amended 2026-11-20)
 
+## Prompt-world, soundtrack and menu work — 2026-11-21
+
+| Task | Owner | Current entry points | Verification |
+|---|---|---|---|
+| MW-017 · Prompt parsing and layout | B; C supplies builders, A defines movement contract | [Local generation](../../src/intake/generate-memory.ts), [schema](../../src/shared/memory-schema.ts), [environment geometry](../../src/scene/EnvironmentBackdrop.tsx) | Generate distinct worlds from object and relationship cues and validate their routes. AT-23. |
+| MW-018 · Soundtrack selection | C; B persists selected track | [Audio analysis](../../src/media/audio-analysis.ts), [music motion](../../src/scene/music-motion.ts), [viewer](../../src/scene/MemoryViewer.tsx) | Match, preview and override cleared tracks. Preserve case audio and explain musical effect. AT-24. |
+| MW-019 · Game menus and checkpoints | B; A integrates pause/restore | [App](../../src/App.tsx), [current save controls](../../src/data/MemoryActions.tsx), [IndexedDB repository](../../src/data/indexed-memory-repository.ts), [viewer](../../src/scene/MemoryViewer.tsx) | Title/pause menus, atomic save, Continue, Load Game, failure recovery and v1 compatibility. AT-25. |
+
+MW-016 now owns reusable terrain, structure and prop builders and atmospheric presentation. Park, room and city are regression worlds. B still owns integration and release under MW-015 and MW-009/010. [Expanded work and gates](../game_development_plan.md#work-and-effort-for-the-expanded-scope).
+
+## Exploration work — 2026-11-21
+
+Use this map for the [active three-developer phase](../game_development_plan.md#active-delivery-plan--2026-11-21). Paths are current integration points. The earlier file maps below describe the previous phases.
+
+| Task | Owner | Entry points | Handoff and checks |
+|---|---|---|---|
+| MW-013 · Locomotion | A | [MemoryStage](../../src/scene/MemoryStage.tsx), [styles](../../src/styles.css), [stage browser suite](../../e2e/stage.spec.ts) | Agree layout with C first. Implement movement, collision, follow camera, touch and reset. AT-17/21. |
+| MW-014 · Interactions and ending | A | [MemoryViewer](../../src/scene/MemoryViewer.tsx), [MemoryStage](../../src/scene/MemoryStage.tsx), [artifact models](../../src/scene/ArtifactModel.tsx) | Reuse reveal state and media rendering. Add one shared proximity interaction and closing transition, with labeled fallback. AT-18/21. |
+| MW-015 · Entry point and archive integration | B | [App](../../src/App.tsx), [viewer adapter](../../src/shared/memory-viewer.ts), [archive](../../src/data/Archive.tsx), [archive browser suite](../../e2e/archive.spec.ts) | Reuse the v1 contract and verify fixtures, generation, save/reopen and ZIP import. B also owns MW-009/010 release verification. AT-20/21/22. |
+| MW-016 · Layout and atmosphere | C | [Environment geometry](../../src/scene/EnvironmentBackdrop.tsx), [scene style](../../src/scene/scene-style.ts), [music motion](../../src/scene/music-motion.ts), [visual browser suite](../../e2e/visuals.spec.ts) | Give A the park geometry and collision footprints first, then room and city against the same contract. C also owns MW-008 example curation and MW-010 video capture. AT-19/21. |
+
 ## Zero-cost file-map amendment — 2026-11-21
 
 Replace the planned `functions/api/memories/generate.ts` path with `src/generation/generate-memory.ts` and focused tests under `tests/generation/`. The module performs bounded, deterministic, source-grounded title/context selection locally and returns the same validated `MemoryScene` contract with `generation.mode: rules`. No server secret, Pages Function, Gemini adapter, provider retry, or billing configuration belongs in P0. Static Cloudflare Pages Free deployment remains the selected hosting target.

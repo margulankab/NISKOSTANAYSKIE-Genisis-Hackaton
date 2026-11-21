@@ -1,4 +1,8 @@
-# Memory Worlds — researched planning package
+# Memory Worlds
+
+## Exploration game plan
+
+The current prototype is an orbit-controlled low-poly diary with two artifact reveals, soundtrack playback, and a local archive. The planned game builds walkable worlds from free-form prompts using reusable terrain, structure, and prop builders. It adds nearby interactions, an in-world ending, automatic soundtrack selection for prompt games, and title/pause menus with save, load, and resume. The case workflow keeps the player's journal, photo, and associated song. [Active development plan](docs/game_development_plan.md#active-delivery-plan--2026-11-21).
 
 ## Run the prototype
 
@@ -31,7 +35,7 @@ The active P0 plan now expects **$0 in new service spend**: static Cloudflare Pa
 
 Real journal content will not be sent to Gemini's Free tier because its [published pricing](https://ai.google.dev/gemini-api/docs/pricing) states that free-tier content may be used to improve Google products. The organizer brief makes AI optional, so local input-dependent rules produce the required 3–7-word system titles without a privacy or billing tradeoff.
 
-## Planning baseline
+## November 20 documentation audit
 
 **Verified — 2026-11-20:** this checkout contains project documentation, not a playable game. The initial seven files all had existing edits; the audit preserves their full original content below active amendments. No application build, tests, deployed prototype or generated day examples are claimed. The source of case requirements is the supplied [case brief](reference/document_en.md); its independent organizer authenticity is unverified.
 
@@ -40,12 +44,12 @@ Real journal content will not be sent to Gemini's Free tier because its [publish
 ## Start here
 
 1. [Case checklist and traceability](docs/00_case_requirements.md).
-2. [Two-developer development plan, schedule, budget, demo and jury tests](docs/game_development_plan.md).
+2. [Three-developer development plan, schedule, demo and acceptance checks](docs/game_development_plan.md#active-delivery-plan--2026-11-21).
 3. [Architecture and contracts](ARCHITECTURE.md), [file/owner map](docs/planning/TASKS_BY_FILE.md).
 4. [Current progress](PROGRESS.md), [scope cuts and resource research](docs/planning/IDEAS.md), [working rules](AGENTS.md).
 5. [Sequential audit changelog](docs/CHANGELOG.md). The [older project plan](docs/planning/PROJECT_PLAN.md) is retained with an explicit supersession notice.
 
-**Assumed product:** a web 3D diary game, 60–90 seconds per day: text/photo/authorized audio → input-driven diorama → two reveals → ending → named saved folder → archive. One system supports park/room/city and five example days. Vite/React/TypeScript/R3F, a constrained Gemini function, and private browser storage with ZIP backups are the selected target. See MIN-01–08 and USR-01–06 in the checklist.
+**Original proposal (historical):** a web 3D diary game, 60–90 seconds per day: text/photo/authorized audio → input-driven diorama → two reveals → ending → named saved folder → archive. One system supports park/room/city and five example days. Vite/React/TypeScript/R3F, a constrained Gemini function, and private browser storage with ZIP backups are the selected target. See MIN-01–08 and USR-01–06 in the checklist.
 
 ## Research findings
 

@@ -1,5 +1,11 @@
 # Memory Worlds — scoped ideas (amended 2026-11-20)
 
+The [expanded plan](../game_development_plan.md#prompt-generated-worlds-soundtrack-selection-and-game-menus) establishes composable scene builders and local soundtrack selection as core features. Grow vocabulary and builder coverage through new combinations while keeping one low-poly visual language. Test atmospheric choices in generated settings beyond park, room and city.
+
+## Atmosphere priorities — 2026-11-21
+
+Developer C owns atmosphere for the [walkable exploration release](../game_development_plan.md#active-delivery-plan--2026-11-21). Start with route readability, landmark silhouettes, source-derived color and light, and the existing soundtrack response. Test those together while walking in park, room and city. Optional narration, extra paths and additional ambient effects stay outside the P0 gate. The ideas and research below record earlier options.
+
 **Assumed / active:** retain the historical backlog below, but apply this cutoff first. Trace: EVAL-01/02/04, MIN-02/03/06, VIS-01–07, ETH-01–05. Estimates are planning judgments, not measured delivery times.
 
 ## Research findings

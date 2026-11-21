@@ -1,5 +1,11 @@
 # Memory Worlds — project-plan review (amended 2026-11-20)
 
+The [prompt-world and menu plan](../game_development_plan.md#prompt-generated-worlds-soundtrack-selection-and-game-menus) governs the latest scope and effort. Build multiple settings by composing low-poly terrain, structures and objects from the prompt. Include soundtrack selection and title/pause menus with saves. Retain the case workflow and archive. The three-setting milestone below records the earlier estimate.
+
+## Exploration delivery — 2026-11-21
+
+The [active development plan](../game_development_plan.md#active-delivery-plan--2026-11-21) supersedes the working schedule, scope and role assignments below. The merged project has a low-poly diary viewer with local generation and archive. The next milestone upgrades it to a complete exploration loop across park, room and city. Players walk, use two nearby memory objects, and reach a closing landmark. Route design, light and soundtrack response reinforce the mood while carrying forward the approved visual style. A owns gameplay, B owns data and release, and C owns levels, atmosphere and demo assets. Use [the current file map](TASKS_BY_FILE.md#exploration-work--2026-11-21) and record playability evidence in [PROGRESS.md](../../PROGRESS.md).
+
 ## Zero-cost amendment — 2026-11-21
 
 The active delivery plan now selects browser-local deterministic generation and static Cloudflare Pages Free hosting. Paid Gemini, Gemini prepayment, and a Workers subscription are no longer P0 dependencies or budget items. Expected new service cash is **$0**. The organizer brief makes AI optional; input-dependent local rules still generate the required meaningful 3–7-word folder titles. The prior $5–$10 comparison below is retained as historical research, not the current selection.

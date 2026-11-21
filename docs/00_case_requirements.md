@@ -1,5 +1,29 @@
 # Memory Worlds — case requirements
 
+## Prompt-game and menu requirements — 2026-11-21
+
+**Original case brief.** MIN-01–05 require the day entry, photo and associated song, an input-built memory with musical influence, a titled day folder and an archive that reopens past days. The brief specifies that save/archive outcome. The title and pause menus, prompt-only entry, automatic soundtrack selection, and gameplay checkpoints come from the expanded product request and its implementation plan. Test the two entry flows separately. [Case brief](../reference/document_en.md).
+
+| ID | Expanded user requirement | Owner / task | Verification |
+|---|---|---|---|
+| USR-08 | Compose playable worlds from free-form prompts and place the described landscapes, structures and objects using an extensible low-poly system. Report unsupported and approximated details. | B+C / MW-017, C / MW-016 | AT-23 |
+| USR-09 | Automatically choose suitable authorized music for a prompt world, with player override and visible influence on the scene. Preserve the associated song in the case flow (MIN-01/03). | C / MW-018 | AT-24, AT-04/12 |
+| USR-10 | Provide title and pause menus with save, load and resume. Keep previous day archives and portable bundles usable (MIN-04/05). | B+A / MW-019, B / MW-015 | AT-25, AT-06/07/20 |
+
+The updated USR-07 applies the low-poly atmosphere across composable worlds. Park, room and city remain test cases. The role and effort audit for this expansion is AT-26. [Expanded acceptance checks](game_development_plan.md#new-acceptance-checks).
+
+## Active exploration requirements — 2026-11-21
+
+The following rows apply to the user's expanded gameplay and staffing scope. The supplied case requirements still apply. The earlier USR-01/03 rows below record the previous scope. [Current implementation evidence](../PROGRESS.md) and [acceptance tests](game_development_plan.md#acceptance-and-regression-checks) govern verification.
+
+| ID | Active user requirement | Owner / task | Verification |
+|---|---|---|---|
+| USR-01 | A complete browser 3D exploration loop with player-controlled walking, nearby interactions with two original-source artifacts, and a reachable in-world ending | A / MW-013/014, B / MW-015 | AT-17/18/20/21, AT-13 for the release link |
+| USR-03 | Three developers with explicit owners, parallel work, agreed handoffs, effort estimates and dated integration gates | A+B+C / MW-013–016 | AT-22 |
+| USR-07 | Preserve the approved low-poly look and make atmosphere central to the walk through park, room, and city | C / MW-016, A / MW-013 | AT-19/21, with AT-03/04/08/09 for source influence and visual cohesion |
+
+Release ownership for the existing case requirements follows the three-person plan. C owns the five-example set (MW-008) and video capture (MW-010), A owns interaction, and B owns bundle compatibility and delivery. B verifies the seven submission materials (SUB-01–07, USR-06) with A and C's evidence.
+
 ## 2026-11-21 requirement amendment
 
 The user's zero-cost direction supersedes the earlier team-choice row USR-02 below. The active USR-02 is: **normal successful generation produces a deterministic, input-dependent, system-generated 3–7-word title locally; external AI is optional and not a P0 dependency.** Verify it in AT-05 with rules provenance, source grounding, path safety, determinism, and zero generation-network requests. This preserves MIN-04, SUB-03, VIS-04, and VIS-09; the organizer brief does not require AI.

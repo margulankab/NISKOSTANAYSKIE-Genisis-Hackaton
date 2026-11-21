@@ -1,5 +1,15 @@
 # Memory Worlds — active working rules (amended 2026-11-20)
 
+## Prompt-world and menu amendment — 2026-11-21
+
+Follow the [expanded gameplay and delivery plan](docs/game_development_plan.md#prompt-generated-worlds-soundtrack-selection-and-game-menus). A owns gameplay and checkpoint behavior, B owns prompt composition, menus and persistence, and C owns reusable world content, atmosphere and cleared soundtrack selection. Build worlds from prompt-dependent geometry and layout rules. Preserve the original day workflow with its photo and associated song. A prompt-only game is a separate entry into the shared renderer. Title/pause menus, correct saves and v1 archive compatibility are release checks. The earlier fixed-setting scope and 30-hour estimate are historical. Zero-cost and privacy rules remain active.
+
+## Exploration delivery amendment — 2026-11-21
+
+The user approved the current low-poly look and confirmed the third developer. The [three-person exploration plan](docs/game_development_plan.md#active-delivery-plan--2026-11-21) governs staffing, gameplay scope and the release gates. A owns movement, camera and interaction progression. B owns memory data, integration and release. C owns environment design, atmosphere, examples and the demo video. Staffing statements below record the earlier phase. The zero-cost and privacy decisions remain active.
+
+P0 completion requires a playable route in each setting, player-controlled walking and collision, two meaningful object interactions, and an in-world ending. Preserve the shared visual style, original media and local archive behavior. Record new milestone evidence in [PROGRESS.md](PROGRESS.md) against AT-17–22. The existing orbit-viewer evidence covers the baseline only.
+
 ## Billing amendment — 2026-11-21
 
 **User-approved direction:** prefer free options wherever they can satisfy the case. This amendment supersedes the paid-Gemini selection and any $5–$10 runtime cash allowance below. P0 uses deterministic, input-dependent TypeScript rules in the browser for semantic signals, allowed prop/environment choices, and 3–7-word titles. The case makes AI optional (VIS-09); MIN-04 requires a meaningful system-generated title, not a model-generated title. No personal journal text or derived personal data is sent to a free AI service.
