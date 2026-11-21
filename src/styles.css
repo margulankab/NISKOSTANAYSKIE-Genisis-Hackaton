@@ -1,0 +1,77 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #ede7db;
+  background: #171c19;
+  font-synthesis: none;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; }
+button { font: inherit; }
+button:focus-visible { outline: 2px solid #e7bb84; outline-offset: 4px; }
+
+.shell { width: min(100% - 40px, 1060px); margin: 0 auto; }
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+  border-bottom: 1px solid #444940;
+  padding: 24px 0;
+}
+.wordmark { font-family: Georgia, serif; font-size: 1.65rem; }
+.collection, .memory-context, time { color: #bdbfb0; font-size: .82rem; }
+.layout {
+  padding: 40px 0;
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(0, 2fr);
+  gap: clamp(24px, 5vw, 64px);
+}
+.memory-index h1 { font-size: .9rem; font-weight: 550; margin: 0 0 16px; }
+.memory-index ul { display: grid; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.memory-index button {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  padding: 14px;
+  text-align: left;
+  color: inherit;
+  border: 1px solid #444940;
+  border-radius: 5px;
+  background: #202620;
+  cursor: pointer;
+}
+.memory-index button:hover { background: #30382f; }
+.memory-index button[aria-pressed="true"] { border-color: #c6a576; background: #30372d; }
+.memory-context { text-transform: capitalize; }
+.preview { min-width: 0; }
+.preview h2 {
+  font: 400 clamp(2rem, 5vw, 3.6rem)/1.07 Georgia, serif;
+  margin: 5px 0 18px;
+  text-wrap: balance;
+}
+.preview figure { margin: 0; }
+.preview img { display: block; width: 100%; height: auto; border-radius: 5px; }
+.preview blockquote {
+  margin: 18px 0;
+  padding-inline-start: 14px;
+  border-inline-start: 2px solid #c6a576;
+  color: #e6d8c1;
+  font: 1.22rem/1.45 Georgia, serif;
+}
+.preview button {
+  padding: 9px 14px;
+  border-radius: 5px;
+  border: 1px solid #ddb987;
+  color: #211b14;
+  background: #ddb987;
+  cursor: pointer;
+}
+.preview button:disabled { opacity: .55; cursor: default; }
+.play { min-width: 150px; }
+
+@media (max-width: 640px) {
+  .layout { grid-template-columns: 1fr; padding: 24px 0; }
+}
