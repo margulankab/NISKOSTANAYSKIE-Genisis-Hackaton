@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { visitArtifact, visitEnding } from './walk';
 import type { Page } from '@playwright/test';
 
 const memories = [
@@ -11,10 +12,11 @@ function controls(page: Page) {
   return {
     photo: page.getByRole('button', { name: /^1 Photo frame/ }),
     note: page.getByRole('button', { name: /^2 Note/ }),
-    finish: page.getByRole('button', { name: 'Finish memory' }),
     closing: page.getByRole('heading', { name: 'Memory complete' }),
   };
 }
+
+test.setTimeout(120_000);
 
 test('three fixtures reveal exact source content, play audio, and close after both artifacts', async ({ page }) => {
   const errors: string[] = [];
@@ -23,8 +25,8 @@ test('three fixtures reveal exact source content, play audio, and close after bo
 
   const library = page.getByRole('navigation', { name: 'Test memories' });
   await expect(library.getByRole('button')).toHaveCount(3);
-  const { photo, note, finish, closing } = controls(page);
-  const diorama = page.getByRole('region', { name: 'Memory diorama' });
+  const { photo, note, closing } = controls(page);
+  const diorama = page.getByRole('region', { name: 'Memory world' });
 
   for (const [index, { title, excerpt }] of memories.entries()) {
     const fixture = library.getByRole('button', { name: new RegExp(title) });
@@ -32,31 +34,19 @@ test('three fixtures reveal exact source content, play audio, and close after bo
     await expect(fixture).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
     await expect(page.getByText('0 of 2 artifacts revealed')).toBeVisible();
-    await expect(finish).toBeDisabled();
     await expect(closing).toHaveCount(0);
     await expect(page.getByRole('img')).toHaveCount(0);
     await expect(page.locator('blockquote')).toHaveCount(0);
 
-    if (index === 1) {
-      await note.focus();
-      await page.keyboard.press('Enter');
-      await page.keyboard.press('Enter');
-      await expect(note).toHaveAttribute('aria-expanded', 'true');
-      await expect(photo).toHaveAttribute('aria-expanded', 'false');
-    } else {
-      const marker = diorama.getByRole('button', { name: 'Reveal Photo frame in the diorama' });
-      await marker.click();
-      await marker.click();
-      await expect(marker).toHaveAttribute('aria-pressed', 'true');
-      await expect(photo).toHaveAttribute('aria-expanded', 'true');
-      await expect(note).toHaveAttribute('aria-expanded', 'false');
-    }
+    // Walk to one artifact, then the other; each reveal shows its exact source content.
+    const first = index === 1 ? 1 : 0;
+    await visitArtifact(page, first);
     await expect(page.getByText('1 of 2 artifacts revealed')).toBeVisible();
-    await expect(finish).toBeDisabled();
+    await expect(index === 1 ? note : photo).toHaveAttribute('aria-expanded', 'true');
+    await expect(index === 1 ? photo : note).toBeDisabled();
+    await expect(closing).toHaveCount(0);
 
-    const otherArtifact = index === 1 ? photo : note;
-    await otherArtifact.focus();
-    await page.keyboard.press('Space');
+    await visitArtifact(page, 1 - first);
     await expect(page.locator('blockquote')).toHaveText(excerpt);
     const image = page.getByRole('img');
     await expect(image).toBeVisible();
@@ -73,11 +63,8 @@ test('three fixtures reveal exact source content, play audio, and close after bo
     await expect(page.getByRole('button', { name: 'Play soundtrack' })).toBeVisible();
 
     await expect(page.getByText('2 of 2 artifacts revealed')).toBeVisible();
-    await finish.focus();
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
+    await visitEnding(page);
     await expect(closing).toBeVisible();
-    await expect(finish).toBeDisabled();
   }
   await library.getByRole('button', { name: new RegExp(memories[0].title) }).click();
   await expect(page.getByText('0 of 2 artifacts revealed')).toBeVisible();
@@ -97,15 +84,15 @@ test('an undecodable artifact photo leaves the note, soundtrack, and ending usab
     };
   });
   await page.goto('/');
-  const { photo, note, finish, closing } = controls(page);
-  await photo.click();
+  const { photo, note, closing } = controls(page);
+  await visitArtifact(page, 0);
   await expect(page.getByRole('alert')).toContainText('photo could not be opened');
-  await expect(finish).toBeDisabled();
-  await note.click();
+  await expect(closing).toHaveCount(0);
+  await visitArtifact(page, 1);
   await expect(page.locator('blockquote')).toHaveText(memories[0].excerpt);
   await page.getByRole('button', { name: 'Play soundtrack' }).click();
   await expect(page.getByRole('button', { name: 'Pause soundtrack' })).toBeVisible();
-  await finish.click();
+  await visitEnding(page);
   await expect(closing).toBeVisible();
 });
 
@@ -120,7 +107,7 @@ test('switching memories pauses the old soundtrack and releases its photo and au
     };
   });
   await page.goto('/');
-  await controls(page).photo.click();
+  await visitArtifact(page, 0);
   const image = page.getByRole('img');
   await expect(image).toHaveAttribute('src', /^blob:/);
   const photoUrl = await image.getAttribute('src');

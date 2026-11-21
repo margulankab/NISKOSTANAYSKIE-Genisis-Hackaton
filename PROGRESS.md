@@ -1,5 +1,13 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-21 — Developer A: walkable world (MW-013/014, AT-17/18)
+
+**Delivered on `claude/keen-bell-fkqitv`:** the orbit viewer is replaced by a walkable low-poly world for every v1 memory. `src/gameplay/layout.ts` is the A↔C contract (spawn, bounds, solid footprints, two artifact anchors, closing gate, reach). `src/gameplay/controller.ts` holds pure movement with bounds and sliding collision plus proximity targets. `src/scene/WalkStage.tsx` adds the player, follow camera, WASD/arrow keys, `E`, a touch pad and Interact button, Reset position, and input release on blur, visibility change and pointer cancel. Reveals require reach. The ending gate stays locked until both unique reveals, completion fires once, and Replay resets position and progress. Without WebGL, or after context loss, the labeled static preview keeps reveal progress and uses the card buttons plus Finish.
+
+**Checks (headless Chromium with software WebGL, Linux):** `npm run typecheck`, `npm test` (57 tests, 9 new in `tests/gameplay.test.ts`, including approach lanes across spacings), `npm run build`, and the full Playwright suite (23 passed, including new `e2e/walk.spec.ts` for AT-17/18 and the existing fixture, archive, intake, soundtrack and static-fallback flows converted to walk). The preinstalled Chromium was used through a temporary config outside the repo, because the pinned Playwright expects a different browser build.
+
+**Open:** no physical touch-device or ≥30 FPS measurement (AT-21); the layout is one deterministic default that C should tune per setting; `MemoryStage.tsx` still exports shared helpers and its orbit stage is now unused; reduced-motion camera snapping was implemented but is not covered by a dedicated test. The 3D scenes still reuse the existing backdrops scaled up.
+
 ## 2026-11-21 — Prompt worlds, soundtrack selection and game menus
 
 The user expanded scope to prompt-built worlds, automatic music choice, and a menu system with saving. The [expanded plan](docs/game_development_plan.md#prompt-generated-worlds-soundtrack-selection-and-game-menus) keeps the brief's journal/photo/song and titled day archive flow alongside a prompt-only game. The existing generator still selects one v1 setting and fixed artifact types. The current archive saves intact day bundles. Menus, checkpoint saves and composable worlds are planned.

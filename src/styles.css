@@ -270,3 +270,25 @@ button:focus-visible { outline: 2px solid #e7bb84; outline-offset: 4px; }
 }
 .closing-card h3 { margin: 0 0 6px; font: 1.55rem Georgia, serif; }
 .closing-card p { margin: 0; color: #d6c8b0; }
+
+/* Walkable world */
+.walk-viewport { position: relative; touch-action: none; }
+.walk-viewport canvas { cursor: default; }
+.walk-prompt {
+  position: absolute; left: 12px; right: 12px; top: 10px; margin: 0; z-index: 2;
+  padding: 7px 12px; border-radius: 6px; background: rgba(24, 28, 24, .82); color: #f3ecdd;
+  font-size: .92rem; pointer-events: none;
+}
+.walk-pad {
+  position: absolute; left: 14px; bottom: 14px; z-index: 2; display: none;
+  grid-template: 'a up b' 52px 'left c right' 52px 'd down e' 52px / 52px 52px 52px; gap: 4px;
+}
+.walk-pad button { width: 52px; height: 52px; padding: 0; touch-action: none; user-select: none; background: rgba(24, 28, 24, .82); }
+.walk-pad-up { grid-area: up; } .walk-pad-left { grid-area: left; }
+.walk-pad-right { grid-area: right; } .walk-pad-down { grid-area: down; }
+.walk-interact { position: absolute; right: 14px; bottom: 14px; z-index: 2; min-height: 52px; min-width: 96px; }
+.walk-interact:disabled { opacity: .45; }
+.static-note { margin: 0 0 10px; padding: 8px 12px; border: 1px solid #727568; border-radius: 6px; }
+.closing-card button { margin-top: 10px; }
+@media (pointer: coarse) { .walk-pad { display: grid; } }
+@media (prefers-reduced-motion: reduce) { .walk-prompt { transition: none; } }

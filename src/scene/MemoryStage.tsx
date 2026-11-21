@@ -12,11 +12,15 @@ import type { SceneStyle } from './scene-style';
 
 const initialCamera = { position: [3.8, 3.1, 6.4] as [number, number, number], fov: 37 };
 
-class StageBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
+export class StageBoundary extends Component<{ children: ReactNode; fallback: ReactNode; onFail?: () => void }, { failed: boolean }> {
   state = { failed: false };
 
   static getDerivedStateFromError() {
     return { failed: true };
+  }
+
+  componentDidCatch() {
+    this.props.onFail?.();
   }
 
   render() {
@@ -24,7 +28,7 @@ class StageBoundary extends Component<{ children: ReactNode; fallback: ReactNode
   }
 }
 
-function ContextMonitor({ onLost }: { onLost: () => void }) {
+export function ContextMonitor({ onLost }: { onLost: () => void }) {
   const canvas = useThree(({ gl }) => gl.domElement);
   useEffect(() => {
     canvas.addEventListener('webglcontextlost', onLost);
@@ -56,17 +60,17 @@ function ProjectArtifactMarkers({ spacing, markers }: {
 
 const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
 
-function subscribeToReducedMotion(update: () => void) {
+export function subscribeToReducedMotion(update: () => void) {
   const preference = window.matchMedia(reducedMotionQuery);
   preference.addEventListener('change', update);
   return () => preference.removeEventListener('change', update);
 }
 
-function prefersReducedMotion() {
+export function prefersReducedMotion() {
   return window.matchMedia(reducedMotionQuery).matches;
 }
 
-function SoundtrackMotion({ activeAudio, models, music, parameters }: {
+export function SoundtrackMotion({ activeAudio, models, music, parameters }: {
   activeAudio: HTMLAudioElement | null;
   models: RefObject<(Group | null)[]>;
   music: MemoryScene['music'];
@@ -96,7 +100,7 @@ function SoundtrackMotion({ activeAudio, models, music, parameters }: {
   return null;
 }
 
-function Preview() {
+export function Preview() {
   return (
     <div className="stage-fallback">
       <p><strong>Static preview</strong><br />The 3D scene is unavailable on this device.</p>
