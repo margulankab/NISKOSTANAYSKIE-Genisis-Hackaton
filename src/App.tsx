@@ -4,6 +4,7 @@ import { createInMemoryStore } from './data/repository';
 import { fixtures, loadFixture } from './fixtures/memories';
 import { CreateMemoryForm } from './intake/CreateMemoryForm';
 import { MemoryViewer } from './scene/MemoryViewer';
+import { WorldPreview } from './scene/WorldPreview';
 import { createViewerProps } from './shared/memory-viewer';
 import type { MemoryViewerProps } from './shared/memory-viewer';
 
@@ -23,11 +24,13 @@ export function App() {
         <span className="wordmark">Memory Worlds</span>
         <nav className="site-nav" aria-label="Main">
           <a href="/" aria-current={path === '/' ? 'page' : undefined}>Fixture library</a>
+          <a href="/world-preview" aria-current={path === '/world-preview' ? 'page' : undefined}>World preview</a>
           <a href="/create" aria-current={path === '/create' ? 'page' : undefined}>Create a memory</a>
           <a href="/archive" aria-current={path === '/archive' ? 'page' : undefined}>Archive</a>
         </nav>
       </header>
       {path === '/create' ? <CreateMemoryForm /> : path === '/archive' ? <Archive />
+        : path === '/world-preview' ? <WorldPreview />
         : memoryPath ? <SavedMemory key={memoryPath[1]} id={memoryPath[1]} /> : <FixtureLibrary />}
     </main>
   );

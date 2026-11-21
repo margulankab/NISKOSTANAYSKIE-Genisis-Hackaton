@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { settledShot, visitArtifact, visitEnding } from './walk';
+import { captureScene } from './scene-capture';
 import { expect, test } from '@playwright/test';
 
 test('the browser analyzer measures authorized WAV and MP3 audio for the v1 manifest', async ({ page }, testInfo) => {
@@ -68,7 +69,8 @@ test('soundtrack changes the saved composition and animates only during allowed 
   const pause = page.getByRole('button', { name: 'Pause soundtrack' });
   const player = page.locator('audio');
   await expect(marker).toBeVisible();
-  const quiet = await settledShot(canvas, testInfo.outputPath('quiet-composition.png'));
+  await settledShot(canvas);
+  const quiet = await captureScene(canvas, testInfo.outputPath('quiet-composition.png'));
 
   await page.evaluate(async () => {
     const path = '/src/fixtures/memories.ts';
@@ -78,7 +80,8 @@ test('soundtrack changes the saved composition and animates only during allowed 
   });
   await page.getByRole('navigation').getByRole('button').nth(1).click();
   await expect(marker).toBeVisible();
-  const rest = await settledShot(canvas, testInfo.outputPath('louder-composition.png'));
+  await settledShot(canvas);
+  const rest = await captureScene(canvas, testInfo.outputPath('louder-composition.png'));
   expect(rest.equals(quiet)).toBe(false);
   await page.getByText('Why this scene?', { exact: true }).click();
   await expect(page.getByText(/sets movement to .* cycles per second/)).toBeVisible();
@@ -90,7 +93,7 @@ test('soundtrack changes the saved composition and animates only during allowed 
       get: () => nativeTime.get!.call(element) < 0.04 ? 0 : 0.3,
     });
   });
-  const atRest = async () => (await canvas.screenshot()).equals(rest);
+  const atRest = async () => (await captureScene(canvas)).equals(rest);
   // Continuous rendering makes captures slower; loop the 4 s clip so it cannot end mid-comparison.
   await player.evaluate((element: HTMLAudioElement) => { element.loop = true; });
   await play.click();

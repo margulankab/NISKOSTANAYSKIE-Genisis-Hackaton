@@ -8,6 +8,7 @@ import type { MemoryScene } from '../shared/memory-schema';
 import { ArtifactModel, artifactNames } from './ArtifactModel';
 import { EnvironmentBackdrop } from './EnvironmentBackdrop';
 import { getMusicMotion } from './music-motion';
+import { prefersReducedMotion, subscribeToReducedMotion } from './reduced-motion';
 import type { SceneStyle } from './scene-style';
 
 const initialCamera = { position: [3.8, 3.1, 6.4] as [number, number, number], fov: 37 };
@@ -56,18 +57,6 @@ function ProjectArtifactMarkers({ spacing, markers }: {
   });
 
   return null;
-}
-
-const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
-
-export function subscribeToReducedMotion(update: () => void) {
-  const preference = window.matchMedia(reducedMotionQuery);
-  preference.addEventListener('change', update);
-  return () => preference.removeEventListener('change', update);
-}
-
-export function prefersReducedMotion() {
-  return window.matchMedia(reducedMotionQuery).matches;
 }
 
 export function SoundtrackMotion({ activeAudio, models, music, parameters }: {

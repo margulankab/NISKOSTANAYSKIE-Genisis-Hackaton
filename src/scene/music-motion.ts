@@ -3,7 +3,7 @@ import type { MemoryScene } from '../shared/memory-schema';
 export function getMusicMotion(
   time: number,
   { energyEnvelope, sampleStepSec }: MemoryScene['music'],
-  { pulseGain, motionSpeed }: Pick<MemoryScene['presentation']['parameters'], 'pulseGain' | 'motionSpeed'>,
+  { pulseGain, motionSpeed }: { pulseGain: number; motionSpeed: number },
 ) {
   const sample = Math.min(Math.max(0, time / sampleStepSec), energyEnvelope.length - 1);
   const index = Math.floor(sample);
