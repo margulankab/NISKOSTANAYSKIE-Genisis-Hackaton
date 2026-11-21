@@ -26,7 +26,7 @@ The [three-person plan](docs/game_development_plan.md#active-delivery-plan--2026
 
 | Owner | Boundary |
 |---|---|
-| A · Gameplay | Build the movement controller in the shared [stage](src/scene/MemoryStage.tsx). Use a bounded floor, simple solid footprints, delta-based horizontal movement, and a follow camera. A exposes a shared interaction path for keyboard, touch and accessible controls. |
+| A · Gameplay | The [walk stage](src/scene/WalkStage.tsx) uses a bounded floor, simple solid footprints, delta-based horizontal movement, and a follow camera. It exposes a shared interaction path for keyboard, touch and accessible controls. |
 | B · Integration and data | Keep [viewer props](src/shared/memory-viewer.ts), the v1 schema, original text and media resolver, and the existing IndexedDB and ZIP formats. Verify fixture, creation preview, and archived/imported memory entry points. B owns deploy and acceptance recording. |
 | C · Environment and sound | Extend [environment geometry](src/scene/EnvironmentBackdrop.tsx) and [scene styling](src/scene/scene-style.ts). Supply each layout's walkable bounds, solid footprints, safe spawn, two artifact anchors and closing landmark. Tune sightlines, lighting, landmark contrast and [soundtrack response](src/scene/music-motion.ts) using existing measured parameters. |
 
@@ -34,7 +34,7 @@ Derive the layout from checked-in geometry rules and saved environment, seed, ve
 
 The [viewer](src/scene/MemoryViewer.tsx) owns the set of revealed IDs, closing state, and media lifecycle. The 3D stage derives the current target from player position and uses the shared activation path only for a reachable artifact or an unlocked closing landmark. Keep photo and excerpt rendering in the accessible DOM. Formalize completion as one notification per completed visit, with replay starting a new visit. Ignore movement while interacting with unrelated form controls or reading a reveal. Clear held input on focus loss, touch cancellation and unmount. Invalidate frames while moving or animating, and settle to demand rendering while idle. Preserve the existing DPR cap, gesture-started audio and reduced-motion behavior. If WebGL becomes unavailable, keep reveal state and enable the labeled static preview controls for both artifacts and the ending.
 
-Acceptance and ownership are tracked in AT-17–21 and [MW-013–016](docs/planning/TASKS_BY_FILE.md#exploration-work--2026-11-21). The integrated baseline below is historical evidence for the previous controls. The exploration controller, layouts and game progression are pending.
+Acceptance and ownership are tracked in AT-17–21 and [MW-013–016](docs/planning/TASKS_BY_FILE.md#exploration-work--2026-11-21). The controller, v1 layouts, and game progression are implemented in the day-memory viewer. Prompt-world walking and physical-device performance checks remain open. The integrated baseline below records the earlier archive and viewer behavior.
 
 ## Integrated application on main
 

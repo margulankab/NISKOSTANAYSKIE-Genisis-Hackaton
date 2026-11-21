@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
+import { visitArtifact } from './walk';
 import type { Page } from '@playwright/test';
 import { createTestTone } from '../src/fixtures/test-tone';
 
@@ -160,9 +161,9 @@ test('generates and plays a memory offline using the original entry and selected
   await page.getByRole('button', { name: 'Generate memory' }).click();
   await expect(page.getByText('Memory preview ready.', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Remembering last light drain' })).toBeVisible();
-  await page.getByRole('button', { name: /^2 Note/ }).click();
+  await visitArtifact(page, 1);
   await expect(page.locator('blockquote')).toHaveText(text);
-  await page.getByRole('button', { name: /^1 / }).click();
+  await visitArtifact(page, 0);
   const memoryPhoto = page.getByRole('img', { name: 'Memory photo' });
   await expect.poll(() => memoryPhoto.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBe(480);
   await page.getByRole('button', { name: 'Play soundtrack' }).click();
@@ -196,7 +197,7 @@ test('retains the draft on generation failure and recovers with a replacement ph
   await submit(page);
   await page.getByRole('button', { name: 'Generate memory' }).click();
   await expect(page.getByText('Memory preview ready.', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: /^2 Note/ }).click();
+  await visitArtifact(page, 1);
   await expect(page.locator('blockquote')).toHaveText(text);
   await expect(page.getByRole('alert')).toHaveCount(0);
 
@@ -206,7 +207,7 @@ test('retains the draft on generation failure and recovers with a replacement ph
   await page.getByRole('button', { name: 'Generate memory' }).click();
   await expect(page.getByText('Local draft with neutral mood and setting.', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Remembering The Day 2026-10-04' })).toBeVisible();
-  await page.getByRole('button', { name: /^2 Note/ }).click();
+  await visitArtifact(page, 1);
   await expect(page.locator('blockquote')).toHaveText(fallbackText);
   await expect(page.getByRole('alert')).toHaveCount(0);
 });

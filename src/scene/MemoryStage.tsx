@@ -13,11 +13,15 @@ import type { SceneStyle } from './scene-style';
 
 const initialCamera = { position: [3.8, 3.1, 6.4] as [number, number, number], fov: 37 };
 
-export class StageBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
+export class StageBoundary extends Component<{ children: ReactNode; fallback: ReactNode; onFail?: () => void }, { failed: boolean }> {
   state = { failed: false };
 
   static getDerivedStateFromError() {
     return { failed: true };
+  }
+
+  componentDidCatch() {
+    this.props.onFail?.();
   }
 
   render() {
@@ -55,7 +59,7 @@ function ProjectArtifactMarkers({ spacing, markers }: {
   return null;
 }
 
-function SoundtrackMotion({ activeAudio, models, music, parameters }: {
+export function SoundtrackMotion({ activeAudio, models, music, parameters }: {
   activeAudio: HTMLAudioElement | null;
   models: RefObject<(Group | null)[]>;
   music: MemoryScene['music'];
@@ -85,7 +89,7 @@ function SoundtrackMotion({ activeAudio, models, music, parameters }: {
   return null;
 }
 
-function Preview() {
+export function Preview() {
   return (
     <div className="stage-fallback">
       <p><strong>Static preview</strong><br />The 3D scene is unavailable on this device.</p>
