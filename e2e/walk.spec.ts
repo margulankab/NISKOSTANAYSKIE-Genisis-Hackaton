@@ -8,7 +8,7 @@ test.setTimeout(90_000);
 test('AT-17: keyboard walking reaches both artifacts and the ending, with collision and reset', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto('/');
+  await page.goto('/examples');
   await expect(world(page).locator('canvas')).toBeVisible();
   const { spawn, artifacts } = await targets(page);
   await expect.poll(() => playerAt(page)).toEqual(spawn);
@@ -43,7 +43,7 @@ test('AT-17: keyboard walking reaches both artifacts and the ending, with collis
 });
 
 test('AT-18: reveals need proximity, either order, ending stays locked until both, replay resets', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/examples');
   await expect(world(page).locator('canvas')).toBeVisible();
 
   // A distant artifact cannot be activated.
@@ -79,7 +79,7 @@ test('AT-18: reveals need proximity, either order, ending stays locked until bot
 test('AT-17: touch pad and Interact button complete a visit, and cancelled touches release', async ({ browser }) => {
   const page = await browser.newPage({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
   try {
-    await page.goto('/');
+    await page.goto('/examples');
     await expect(world(page).locator('canvas')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
     const { spawn, artifacts, reach } = await targets(page);

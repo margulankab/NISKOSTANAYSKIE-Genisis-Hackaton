@@ -13,7 +13,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite and choose a fictional memory from the library. Walk with WASD, the arrow keys, or the touch controls. Approach both objects and press **E** or **Interact** to reveal the illustration and entry excerpt, then interact with the closing landmark. **Play soundtrack** starts the audio and its scene motion. The viewer respects reduced motion. If WebGL is unavailable, the static preview provides artifact, ending, and audio controls.
+Open the local URL printed by Vite to reach the title menu. **New Game → From a prompt** builds a walkable world from a description; press Esc to pause, save, or quit, and use **Continue** or **Load Game** to resume. Choose **Examples** for the fictional memory library. Walk with WASD, the arrow keys, or the touch controls. Approach both objects and press **E** or **Interact** to reveal the illustration and entry excerpt, then interact with the closing landmark. **Play soundtrack** starts the audio and its scene motion. The viewer respects reduced motion. If WebGL is unavailable, the static preview provides artifact, ending, and audio controls.
 
 Choose **World preview** to orbit the foggy cove or covered night market and try the local soundtracks. Use the landmark buttons to inspect the route and **Overview** to reset the camera. Track choices and mute carry through world switches until you leave the page. These curated examples preview content for the planned prompt-generated game.
 

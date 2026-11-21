@@ -12,6 +12,10 @@ The [expanded plan](docs/game_development_plan.md#prompt-generated-worlds-soundt
 
 AT-23–25 cover these additions. The earlier planned viewer boundary below still applies to input, camera, and legacy playback. Its fixed-setting assumption and checkpoint deferral are superseded.
 
+## Implemented prompt worlds and saves — 2026-11-21 (Developer B)
+
+Prompt worlds live in `src/world/`. `parse-prompt.ts` → `compose-world.ts` produce a `PromptWorld` (`world-schema.ts`, schema version 2) that is validated, including a route check that uses A's controller (`route.ts`). The renderer, `WorldStage.tsx`, draws recipe IDs through `builders.tsx` and plays through `toWalkLayout`. Saved worlds reopen from the stored layout without re-parsing. Storage is IndexedDB `memory-worlds` version 2. It keeps the v1 `days` and `media` stores and adds `worlds` and `checkpoints`, both keyed by world ID (`src/data/game-repository.ts`). Checkpoints are validated against the world's `layoutKey`, bounds and colliders before restore (`checkpoint.ts`). Routes: `/` title menu, `/new`, `/new/prompt`, `/play/:id`, `/load`, `/settings` and `/examples` (the fixture library), plus the existing `/create`, `/archive` and `/memory/:id`.
+
 ### Developer C integration handoff
 
 - [World recipes](src/scene/world-recipes.ts) expose recipe version 1, ID-to-term vocabulary, three size variants, four accents, and quarter-turn headings. Each placement has a stable object ID and an X/Z position. Rendering and footprint transforms use the same source geometry. B saves the resolved placements and anchors in the versioned world manifest, checks supported IDs and versions, and validates ground support and clearance against `getWorldWalkableSurfaces` and `getWorldFootprints`. Walkable surfaces are level at Y=0. Water provides scenery without ground support.

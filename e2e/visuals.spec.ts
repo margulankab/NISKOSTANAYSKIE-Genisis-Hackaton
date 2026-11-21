@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { settledShot } from './walk';
 
 test('analyzes local photo pixels, including transparent and corrupt input', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/examples');
   const results = await page.evaluate(async () => {
     const path = '/src/media/photo-analysis.ts';
     const { analyzePhoto } = await import(path) as typeof import('../src/media/photo-analysis');
@@ -39,7 +39,7 @@ test('analyzes local photo pixels, including transparent and corrupt input', asy
 });
 
 test('each fixture keeps the shared framing and explains the treatment it renders', async ({ page }, testInfo) => {
-  await page.goto('/');
+  await page.goto('/examples');
   const stage = page.getByRole('region', { name: 'Memory world' });
   const examples = [
     { name: /nostalgic.*park/i, setting: 'Park.', treatment: 'Layered photo mounts' },
@@ -70,7 +70,7 @@ test('each fixture keeps the shared framing and explains the treatment it render
 });
 
 test('changing only fixture context or photo features changes its rendered stage', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/examples');
   const stage = page.getByRole('region', { name: 'Memory world' });
   const marker = stage.locator('canvas');
   await expect(marker).toBeVisible();

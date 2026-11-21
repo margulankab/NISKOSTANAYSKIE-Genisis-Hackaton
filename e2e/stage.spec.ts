@@ -8,7 +8,7 @@ test('the scene supplies a labeled preview without WebGL', async ({ page }) => {
       return kind.startsWith('webgl') ? null : Reflect.apply(getContext, this, [kind, ...options]);
     } as typeof getContext;
   });
-  await page.goto('/');
+  await page.goto('/examples');
   await expect(page.getByText('Static preview', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'The last light in the park' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Reset position' })).toHaveCount(0);
@@ -24,7 +24,7 @@ test('the scene supplies a labeled preview without WebGL', async ({ page }) => {
 });
 
 test('losing the renderer keeps the current reveal and makes the preview playable', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/examples');
   await visitArtifact(page, 0);
   await page.locator('canvas').dispatchEvent('webglcontextlost');
   await expect(page.getByText('Static preview', { exact: true })).toBeVisible();

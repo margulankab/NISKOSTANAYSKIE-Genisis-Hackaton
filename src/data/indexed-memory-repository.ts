@@ -6,20 +6,29 @@ import type { MemoryRepository } from './repository';
 const databaseName = 'memory-worlds';
 const days = 'days';
 const media = 'media';
+/** Version 2 adds prompt worlds and their local checkpoints; version 1 day records are untouched. */
+export const worldsStore = 'worlds';
+export const checkpointsStore = 'checkpoints';
 type StoredDay = Pick<DayBundle, 'manifest' | 'entryText' | 'rights'> & { fingerprint: string };
 type StoredMedia = Pick<DayBundle, 'photos' | 'audio' | 'thumbnail'>;
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(databaseName, 1);
+    const request = indexedDB.open(databaseName, 2);
     let blocked = false;
     request.onblocked = () => {
       blocked = true;
       reject(new Error('The archive is busy in another tab. Close that tab and retry.'));
     };
-    request.onupgradeneeded = () => {
-      request.result.createObjectStore(days);
-      request.result.createObjectStore(media);
+    request.onupgradeneeded = ({ oldVersion }) => {
+      if (oldVersion < 1) {
+        request.result.createObjectStore(days);
+        request.result.createObjectStore(media);
+      }
+      if (oldVersion < 2) {
+        request.result.createObjectStore(worldsStore);
+        request.result.createObjectStore(checkpointsStore);
+      }
     };
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
@@ -34,14 +43,14 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-function resultOf<T>(request: IDBRequest<T>): Promise<T> {
+export function resultOf<T>(request: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
 }
 
-async function transact<T>(stores: string[], mode: IDBTransactionMode, operation: (tx: IDBTransaction) => Promise<T>) {
+export async function transact<T>(stores: string[], mode: IDBTransactionMode, operation: (tx: IDBTransaction) => Promise<T>) {
   const db = await openDatabase();
   try {
     const tx = db.transaction(stores, mode);
