@@ -1,5 +1,11 @@
 # Documentation changelog
 
+## 2026-11-21 — zero-cost billing review
+
+| Order | Files | Change | Requirement trace |
+|---|---|---|---|
+| 09 | AGENTS.md, ARCHITECTURE.md, PROGRESS.md, README.md, docs/00_case_requirements.md, docs/game_development_plan.md, docs/planning/PROJECT_PLAN.md, docs/planning/TASKS_BY_FILE.md | Preserved the prior paid-service research and added superseding zero-cost amendments. Replaced paid Gemini/Pages Function P0 with deterministic browser-local generation and static Cloudflare Pages Free hosting; revised USR-02, budget, task ownership, paths, acceptance checks, privacy constraints, and blockers. No purchase, account, deployment, or application implementation occurred. | MIN-02/04/05/07, SUB-03/07, VIS-04/09, ETH-01/06, USR-02/03/06 |
+
 **Verified — 2026-11-20:** starting inventory was seven root Markdown files: AGENTS.md, PROGRESS.md, ARCHITECTURE.md, IDEAS.md, PROJECT_PLAN.md, TASKS_BY_FILE.md, README.md. All already had uncommitted edits. No docs directory, application manifests, code, tests, or deployment configuration existed. Reviews below are sequential; generated checklist, source copy, changelog and final plan are deliverables, not additional items in the original inventory.
 
 | Date / sequence | File | Change / key decision | Requirement trace |

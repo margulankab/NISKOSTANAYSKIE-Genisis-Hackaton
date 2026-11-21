@@ -1,5 +1,43 @@
 # Memory Worlds — researched planning package
 
+## Run the MW-000 fixture library
+
+Use Node.js 20.19+ on the 20.x line or Node.js 22.12 or later. The scaffold was verified on Node.js 24.17.0.
+
+```sh
+npm ci
+npm run dev
+```
+
+Open the URL printed by Vite. Select the park, room, or city fixture to inspect its illustration and original excerpt, then choose **Play test tone**. The preview is the development handoff for the 3D viewer.
+
+Choose **Create a memory** to validate a local draft from a date, journal text, photos, and an authorized audio excerpt. The draft lives in the open page.
+
+After validation, select **Generate memory** to preview the generated title, photo, journal excerpt, and playable audio. Generation runs in the open page and works offline after the app has loaded.
+
+Select **Save to archive** to keep the memory in this browser. Reopen it from **Archive**. Use **Export ZIP** from the preview or a saved memory to make a portable copy. To open that copy in another browser, choose **Import ZIP** in the archive.
+
+```sh
+npm run typecheck
+npm test
+npm run build
+```
+
+The build writes static output to `dist/`. The [architecture](ARCHITECTURE.md) describes the viewer and repository interfaces. [Progress](PROGRESS.md) tracks milestone checks and review.
+
+To run the browser fixture check with Microsoft Edge installed, use PowerShell:
+
+```powershell
+$env:PLAYWRIGHT_CHANNEL = 'msedge'
+npm run test:browser
+```
+
+## Zero-cost decision — 2026-11-21
+
+The active P0 plan now expects **$0 in new service spend**: static Cloudflare Pages Free hosting, deterministic browser-local generation, IndexedDB/ZIP storage, local media analysis, open-source libraries/tests, authorized free or owned media, and OBS. Paid Gemini, Gemini prepayment, Pages Functions, Workers Paid, Supabase Pro, paid TTS, and purchased assets are not P0 dependencies. The older paid-model estimates below are retained as historical research and are superseded where they conflict.
+
+Real journal content will not be sent to Gemini's Free tier because its [published pricing](https://ai.google.dev/gemini-api/docs/pricing) states that free-tier content may be used to improve Google products. The organizer brief makes AI optional, so local input-dependent rules produce the required 3–7-word system titles without a privacy or billing tradeoff.
+
 **Verified — 2026-11-20:** this checkout contains project documentation, not a playable game. The initial seven files all had existing edits; the audit preserves their full original content below active amendments. No application build, tests, deployed prototype or generated day examples are claimed. The source of case requirements is the supplied [case brief](reference/document_en.md); its independent organizer authenticity is unverified.
 
 **Verified — audit reconciliation:** `docs/game_development_plan.md` now exists with the schedule and AT-01–16 definitions. Concurrent organization moved three supporting documents into `docs/planning/`; those moves and the milestone-testing gate are preserved. Historical text below retains its original paths.

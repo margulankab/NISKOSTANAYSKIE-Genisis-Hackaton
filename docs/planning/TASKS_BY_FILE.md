@@ -1,5 +1,9 @@
 # Memory Worlds — active task/file map (amended 2026-11-20)
 
+## Zero-cost file-map amendment — 2026-11-21
+
+Replace the planned `functions/api/memories/generate.ts` path with `src/generation/generate-memory.ts` and focused tests under `tests/generation/`. The module performs bounded, deterministic, source-grounded title/context selection locally and returns the same validated `MemoryScene` contract with `generation.mode: rules`. No server secret, Pages Function, Gemini adapter, provider retry, or billing configuration belongs in P0. Static Cloudflare Pages Free deployment remains the selected hosting target.
+
 **Verified:** application paths below do not yet exist. **Assumed:** this compact single-app target supersedes the historical monorepo and A/B/C/D assignments. Keep original content below for audit history. Requirements: USR-03, MIN-01–08, SUB-01–07; contracts are authoritative in [ARCHITECTURE.md](../../ARCHITECTURE.md), hours in [the final plan](../game_development_plan.md).
 
 ## Research findings

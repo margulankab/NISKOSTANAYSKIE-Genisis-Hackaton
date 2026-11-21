@@ -1,5 +1,65 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-21 — MW-007 local archive and ZIP portability
+
+**Status:** MW-007 passed on `B_development`. `/create` saves or exports the generated bundle. `/archive` lists and imports local memories, and `/memory/:id` reopens the saved v1 bundle through the preview. The [archive and ZIP format](ARCHITECTURE.md#mw-007-local-archive-and-zip-portability--2026-11-21) use IndexedDB and fflate 0.8.3 (MIT).
+
+**AT-05/06:** Edge saved two different memories with the same generated title, reloaded the archive, and reopened each by UUID. The exported ZIP used the exact generated title as its root folder. The original and reopened exports contained identical manifest, journal, media, and credits bytes.
+
+**AT-07/11:** A fresh Edge context imported and played a deflated ZIP with an optional PNG preview. Identical reimport left one archive entry. Conflicting text or photo bytes, traversal paths, missing or unreadable media, and unsupported versions were rejected with the existing record intact. Unit checks also covered duplicate paths, checksums, streaming ZIP descriptors, member count, and expanded-size limits. A simulated quota failure during the media write rolled back the day record, preserved the preview, and still allowed ZIP export.
+
+**Checks:** `npm run typecheck`, `npm test` (43 tests), `npm run build`, and `git diff --check` passed. `$env:PLAYWRIGHT_CHANNEL = 'msedge'` followed by `npm run test:browser` passed all 10 scenarios, including the previous intake, offline-generation, and fixture flows. The build retains the two existing Zod annotation warnings.
+
+**Next:** Integrate Developer A's renderer with the archive flow and prepare the five rights-cleared examples for MW-008. Public deployment and physical-device verification remain release work.
+
+## 2026-11-21 — MW-004 local generation
+
+**Status:** MW-004 passed on `B_development` for the browser-local generation and preview milestone. A validated draft generates a v1 bundle with a path-safe title, original-text excerpt, photo and audio measurements, allowed props, and rule provenance. The [implemented flow](ARCHITECTURE.md#mw-004-browser-local-generation--2026-11-21) keeps the draft available on failure and hands the bundle to the preview through `createViewerProps`.
+
+**Checks:** `npm run typecheck`, `npm test` (37 tests), `npm run build`, and `git diff --check` passed. `$env:PLAYWRIGHT_CHANNEL = 'msedge'` followed by `npm run test:browser` passed all seven scenarios. The sandbox initially denied loopback connections. The suite passed with loopback access. The build retains the two existing Zod annotation warnings.
+
+**Evidence:** AT-02 checks v1 validation and malformed bundles. The generation portions of AT-05 and AT-11 cover stable manifests, source-grounded Unicode titles, safe paths, measured audio including silence and a partial window, zero HTTP requests while generating offline, media playback and cleanup, and failure recovery without losing the entry or other selections. The existing AT-01 and three-fixture playback scenarios passed again. Developer A's photo analyzer matches the source on `A_development` byte for byte.
+
+**Next:** MW-007 adds the local archive, reopening, and ZIP export/import. Exported folder names, duplicate titles, and storage failure checks remain pending there. The preview on this branch uses the existing 2D layout. The 3D renderer and physical-device checks remain integration and release work.
+
+## 2026-11-21 — MW-003 local intake
+
+**Status:** MW-003 and AT-01 passed on `B_development`. Developer A accepted the MW-000 shared contract in `6841a07` on `A_development`. The pending review below records the earlier handoff state.
+
+**Delivered:** [Create route and validated draft contract](ARCHITECTURE.md#mw-003-browser-local-intake--2026-11-21) for a dated journal entry, one to three photos, one authorized audio excerpt, and per-asset rights records. File validation runs in the browser and retains the journal and selected files when a correction is needed. The accepted draft lives in the open page.
+
+**Checks:** `npm run typecheck`, `npm test` (32 contract tests), `npm run build`, and `git diff --check` passed. In PowerShell, setting `$env:PLAYWRIGHT_CHANNEL = 'msedge'` and running `npm run test:browser` passed five browser tests. AT-01 coverage includes offline success with PNG/JPEG/WebP and WAV/MP3, missing fields or rights, file count and size bounds, MIME mismatch, corrupt media, decoded dimensions and duration, and a corrected retry with the original journal text and valid photo still selected. Existing fixture decoding and playback passed again. The first retry test used a Playwright payload that filled an empty MIME with a generic value. It now selects a genuinely untyped File with DataTransfer. Vite still reports the two existing non-blocking Zod annotation warnings.
+
+**Test media provenance:** The browser tests reuse the original fixture PNG and locally generated PCM tone, create JPEG and WebP test images with canvas, and use an original three-second sine tone encoded as MP3 with FFmpeg and libmp3lame. The MP3 is test-only. Running the suite uses the checked-in file and does not require FFmpeg.
+
+**Next:** MW-004 consumes the validated draft for deterministic local generation. Production hosting and physical-device checks remain with release verification.
+
+## 2026-11-21 — MW-000 Developer B handoff
+
+**Status:** Implementation and local verification complete on `B_development`. Developer A's contract review is pending (USR-03 and the MW-000 handoff referenced by AT-16). **Developer A, please review** the [implemented contract](ARCHITECTURE.md#mw-000-implemented-contract--2026-11-21), especially the original-text offsets, asset resolver, visual parameters, and rule records, then confirm the handoff before MW-001 integration.
+
+**Delivered:** A runnable Vite/React fixture library, strict v1 scene and bundle schemas, viewer props, async repository interface and in-memory adapter, and nostalgic park, tense room, and calm city test bundles. All three days are fictional. Illustrations and audio are original fixture assets with per-asset provenance. The audio envelope is measured from its generated PCM.
+
+**Verification:** `npm ci`, `npm run typecheck`, `npm test`, `npm run build`, and `git diff --check` passed on Windows with Node.js 24.17.0. Vitest passed 32 checks including the AT-02 cases for malformed versions, IDs, titles, artifacts, rules, and source references. Build emitted static `dist/` output. Rollup reported two non-blocking pure-annotation warnings inside Zod. The sandboxed npm install failed and succeeded with registry access.
+
+**Browser:** `$env:PLAYWRIGHT_CHANNEL = 'msedge'` followed by `npm run test:browser` passed in desktop headless Edge after using an explicit IPv4 loopback address and running with permission to launch the browser. All three images decoded at 480 px, all three source excerpts rendered, and every four-second WAV advanced after a user gesture and paused through the same control. This check measures browser playback state. Device-level audibility and mobile playback belong to MW-006/009.
+
+**Tools and licenses:** React, React DOM, Zod, Vite, Vite React plugin, Vitest, and the TypeScript declaration packages declare MIT. TypeScript and Playwright Test declare Apache-2.0. Versions are pinned in the npm lockfile. The build uses bundled fixture images and browser-created audio. Static hosting, user intake/generation, durable storage, ZIP I/O, and 3D remain later milestones.
+
+**Next:** MW-003 validated local intake after the MW-000 review.
+
+## 2026-11-21 — zero-cost billing decision
+
+**Decision:** P0 now has an expected cash cost of **$0**. Replace paid Gemini and the Pages Function with deterministic in-browser TypeScript generation. Keep Cloudflare Pages Free for static hosting, IndexedDB/ZIP for storage, local photo/audio analysis, original or open-licensed resources, local tests, and OBS. The existing $5 Gemini prepayment and optional $5 Workers allowance below are historical estimates, not approved purchases or current dependencies.
+
+**Requirement effect:** USR-02's earlier AI-title choice is superseded by the user's zero-cost direction. MIN-04, SUB-03, and VIS-04 remain satisfied by input-dependent 3–7-word titles produced by the prototype; VIS-09 verifies that AI is optional. MW-004 now means local rules, validation, provenance, and input-preserving failure behavior. No application code exists yet, so this is a documentation decision, not implementation evidence.
+
+**Checks required during implementation:** prove deterministic titles vary with relevant input, contain only permitted/source-grounded words, meet length/path-safety rules, survive export/import, and require no network request. Verify the deployed static app remains within Cloudflare Free limits. Any future external AI experiment must use fictional non-personal data unless separately approved under suitable paid/privacy terms.
+
+**Documentation milestone checks — 2026-11-21:** `git diff --check` passed (Git reported only prospective LF→CRLF working-copy notices for two Markdown files). A read-only PowerShell audit scanned all 11 Markdown files: every local Markdown link resolved; MIN-04, SUB-03, VIS-04, VIS-09, USR-02, AT-05, and AT-11 references were present; the active plan contained the $0 total and local no-model generation decision; and the earlier paid-option research remained preserved. No application build, runtime test, browser test, deployment, account check, or purchase was performed because this checkout still contains no application code or package scripts. Implementation acceptance remains incomplete.
+
+**Sources checked — 2026-11-21:** [Gemini API pricing and data-use comparison](https://ai.google.dev/gemini-api/docs/pricing), [Cloudflare Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/), [Workers Free limits](https://developers.cloudflare.com/workers/platform/limits/), and [Pages Functions/static asset pricing](https://developers.cloudflare.com/pages/functions/pricing/). Published availability does not verify that the team's accounts or deployment work.
+
 **Verified:** the user confirms two developers. Initial Git inspection found seven modified root Markdown files and no application code, manifests, tests or deployment configuration. Requirements and the portable case source now exist. External deployments have not been inspected. This session implements documentation, not the game.
 
 **Assumed / active:** this amendment supersedes old staffing, Pydantic/Supabase dependencies and fixture-substitution behavior. Deadline: November 22, 2026, 23:59 Astana. Current hour allocation: [development plan](docs/game_development_plan.md). Traceability: [requirements](docs/00_case_requirements.md), especially USR-03/05/06 and MIN-01–08.

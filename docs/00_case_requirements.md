@@ -1,5 +1,9 @@
 # Memory Worlds — case requirements
 
+## 2026-11-21 requirement amendment
+
+The user's zero-cost direction supersedes the earlier team-choice row USR-02 below. The active USR-02 is: **normal successful generation produces a deterministic, input-dependent, system-generated 3–7-word title locally; external AI is optional and not a P0 dependency.** Verify it in AT-05 with rules provenance, source grounding, path safety, determinism, and zero generation-network requests. This preserves MIN-04, SUB-03, VIS-04, and VIS-09; the organizer brief does not require AI.
+
 **Verified — 2026-11-20:** extracted from the complete user-supplied `document_en.md`, sections 01–12. Source: [case brief](../reference/document_en.md). The source is the supplied brief, not an independently authenticated organizer publication. The user made its requirements binding.
 
 **Evidence convention:** **Verified** = cited source or inspected repository fact; **Assumed** = chosen design, estimate, or target; **Unverified** = unavailable evidence or behavior not tested. All implementation evidence below is **Unverified / pending**: this checkout contains documentation only. A checked requirement requires actual evidence, not this plan. A/B denote the two developers confirmed by the user.

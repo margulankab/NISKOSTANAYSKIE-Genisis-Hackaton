@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Archive, SavedMemory } from './data/Archive';
 import { createInMemoryStore } from './data/repository';
 import { fixtures, loadFixture } from './fixtures/memories';
+import { CreateMemoryForm } from './intake/CreateMemoryForm';
+import { MemoryPreview } from './MemoryPreview';
 import { createViewerProps } from './shared/memory-viewer';
 import type { MemoryViewerProps } from './shared/memory-viewer';
 
@@ -11,31 +14,46 @@ type FixtureState =
 const store = createInMemoryStore();
 
 export function App() {
-  const [selected, setSelected] = useState(fixtures[0]);
+  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  const memoryPath = path.match(/^\/memory\/([^/]+)$/);
 
   return (
     <main className="shell">
       <header className="masthead">
         <span className="wordmark">Memory Worlds</span>
-        <span className="collection">Fictional test memories</span>
-      </header>
-      <div className="layout">
-        <nav aria-label="Test memories" className="memory-index">
-          <h1>Fixture library</h1>
-          <ul>
-            {fixtures.map((fixture) => (
-              <li key={fixture.slug}>
-                <button type="button" aria-pressed={fixture === selected} onClick={() => setSelected(fixture)}>
-                  <span className="memory-context">{fixture.mood.primary} · {fixture.context.environment}</span>
-                  <span>{fixture.title}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+        <nav className="site-nav" aria-label="Main">
+          <a href="/" aria-current={path === '/' ? 'page' : undefined}>Fixture library</a>
+          <a href="/create" aria-current={path === '/create' ? 'page' : undefined}>Create a memory</a>
+          <a href="/archive" aria-current={path === '/archive' ? 'page' : undefined}>Archive</a>
         </nav>
-        <FixturePanel key={selected.slug} fixture={selected} />
-      </div>
+      </header>
+      {path === '/create' ? <CreateMemoryForm /> : path === '/archive' ? <Archive />
+        : memoryPath ? <SavedMemory key={memoryPath[1]} id={memoryPath[1]} /> : <FixtureLibrary />}
     </main>
+  );
+}
+
+function FixtureLibrary() {
+  const [selected, setSelected] = useState(fixtures[0]);
+
+  return (
+    <div className="layout">
+      <nav aria-label="Test memories" className="memory-index">
+        <h1>Fixture library</h1>
+        <p className="collection">Fictional test memories</p>
+        <ul>
+          {fixtures.map((fixture) => (
+            <li key={fixture.slug}>
+              <button type="button" aria-pressed={fixture === selected} onClick={() => setSelected(fixture)}>
+                <span className="memory-context">{fixture.mood.primary} · {fixture.context.environment}</span>
+                <span>{fixture.title}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <FixturePanel key={selected.slug} fixture={selected} />
+    </div>
   );
 }
 
@@ -60,7 +78,7 @@ function FixturePanel({ fixture }: { fixture: (typeof fixtures)[number] }) {
     return () => { disposed = true; };
   }, [fixture, attempt]);
 
-  if (state.status === 'ready') return <FixturePreview {...state.viewer} />;
+  if (state.status === 'ready') return <MemoryPreview {...state.viewer} fixture />;
   if (state.status === 'error') {
     return (
       <section className="preview">
@@ -73,75 +91,4 @@ function FixturePanel({ fixture }: { fixture: (typeof fixtures)[number] }) {
     );
   }
   return <p role="status">Opening {fixture.title}…</p>;
-}
-
-function FixturePreview({ manifest, entryText, resolveAsset }: MemoryViewerProps) {
-  const [media, setMedia] = useState<{ photo: string; audio: string }>();
-  const [mediaError, setMediaError] = useState(false);
-  const [playbackError, setPlaybackError] = useState(false);
-  const [playing, setPlaying] = useState(false);
-  const audioPlayer = useRef<HTMLAudioElement>(null);
-  const artifact = manifest.artifacts.find(({ photoId }) => photoId !== null);
-  const note = manifest.artifacts.find(({ excerpt }) => excerpt !== null)?.excerpt;
-  const photoId = artifact?.photoId ?? manifest.source.photoIds[0];
-  const caption = manifest.photos.find(({ assetId }) => assetId === photoId)?.caption;
-
-  useEffect(() => {
-    let disposed = false;
-    let urls: { photo: string; audio: string } | undefined;
-    Promise.all([resolveAsset(photoId), resolveAsset(manifest.source.audioId)]).then(
-      ([photo, audio]) => {
-        if (disposed) return;
-        urls = { photo: URL.createObjectURL(photo), audio: URL.createObjectURL(audio) };
-        setMedia(urls);
-      },
-    ).catch(() => { if (!disposed) setMediaError(true); });
-    return () => {
-      disposed = true;
-      if (urls) {
-        URL.revokeObjectURL(urls.photo);
-        URL.revokeObjectURL(urls.audio);
-      }
-    };
-  }, [manifest.source.audioId, photoId, resolveAsset]);
-
-  async function togglePlayback() {
-    const player = audioPlayer.current;
-    if (!player) return;
-    setPlaybackError(false);
-    if (!player.paused) {
-      player.pause();
-      return;
-    }
-    try {
-      await player.play();
-    } catch {
-      setPlaybackError(true);
-    }
-  }
-
-  return (
-    <article className="preview" aria-labelledby="preview-title">
-      <header>
-        <time dateTime={manifest.date}>{manifest.date}</time>
-        <h2 id="preview-title">{manifest.title}</h2>
-      </header>
-      {mediaError && <p role="alert">The fixture media could not be opened.</p>}
-      {media && (
-        <>
-          <figure>
-            <img src={media.photo} alt={caption ?? 'Fixture illustration'} width="480" height="300" />
-          </figure>
-          <audio ref={audioPlayer} src={media.audio} preload="metadata"
-            onPlaying={() => setPlaying(true)} onPause={() => setPlaying(false)}
-            onEnded={() => setPlaying(false)} onError={() => setPlaybackError(true)} />
-        </>
-      )}
-      {note && <blockquote>{entryText.slice(note.start, note.end)}</blockquote>}
-      <button type="button" className="play" disabled={!media} onClick={togglePlayback}>
-        {playing ? 'Pause test tone' : 'Play test tone'}
-      </button>
-      {playbackError && <p role="alert">The test tone could not play.</p>}
-    </article>
-  );
 }

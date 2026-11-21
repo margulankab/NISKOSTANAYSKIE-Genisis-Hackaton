@@ -1,5 +1,42 @@
 # Memory Worlds — two-developer development plan
 
+## 2026-11-21 zero-cost delivery amendment
+
+This section supersedes conflicting Gemini, Pages Function, paid-access, AI-title, and $5–$10 budget statements below. Historical estimates remain for auditability; they are not the active delivery decision.
+
+### Active stack and ownership
+
+| Area | Zero-cost P0 decision | Acceptance impact |
+|---|---|---|
+| Generation | Deterministic TypeScript rules in the browser: bounded tokenization/keyword maps, allowed context/prop selection, source-grounded 3–7-word title construction, then Zod validation | MW-004/AT-02/05/11; same input + seed + rules version is reproducible; no model request |
+| Hosting | Static Vite build on Cloudflare Pages Free; no Function required | MW-001/009/AT-13; verify the actual build and Free-plan limits |
+| Storage | Native IndexedDB plus fflate ZIP export/import | MW-007/AT-06/07; $0 and no cloud account |
+| Media/art | Local Web Audio/photo analysis; original primitives; self-hosted open-licensed font/assets; owned or individually verified CC0 audio | MW-005/006/008/AT-03/04/12; rights still require evidence |
+| Tests/video | Local Vitest/Playwright/manual device checks and OBS | MW-009/010; no hosted test or recording subscription |
+
+Developer B replaces the four-hour Gemini/API task with a four-hour local generation module and negative tests. Remove `GEMINI_API_KEY`, provider retry/quota handling, and the deployed API connectivity dependency. Keep typed local errors, validation, provenance (`generation.mode: rules`), bounded inputs, and an input-preserving draft. Developer A's scene/audio/presentation work and both 26-hour totals remain unchanged.
+
+### Active budget
+
+| Item | Selected free option | Expected cash |
+|---|---|---:|
+| Hosting | Cloudflare Pages Free static hosting | $0 |
+| Generation | Local deterministic rules; no Gemini/API | $0 |
+| Storage/export | IndexedDB + fflate | $0 |
+| Libraries/tests | Open-source packages; local Vitest/Playwright | $0 |
+| Assets/font/audio | Original geometry, self-hosted open-licensed resources, authorized owned/CC0 audio | $0 purchase target |
+| Recording | OBS | $0 |
+| **Total planned new service spend** | | **$0** |
+
+The Gemini Free tier is not selected for real journal data: Google's [current pricing page](https://ai.google.dev/gemini-api/docs/pricing) says free-tier content is used to improve its products, while paid processing avoids that use. A clearly separated fictional/non-personal experiment is allowed, but cannot become a hidden runtime dependency or count as favorite-day evidence. Cloudflare documents [Workers Free limits](https://developers.cloudflare.com/workers/platform/limits/) and [Pages static asset behavior](https://developers.cloudflare.com/pages/functions/pricing/). Cloudflare Workers Paid, Supabase Pro, paid TTS, asset packs, streaming APIs, and remote font services remain deferred.
+
+### Revised gates and risks
+
+- AT-05 must prove 3–7 words, one consistent tone, source grounding, deterministic output, path safety, and correct ZIP folder naming without a network call. The five submission examples need successful prototype-generated titles, not AI provenance.
+- AT-11 replaces provider timeout/429 cases with offline operation, malformed input, missing keyword matches, duplicate titles, storage quota, and deterministic fallback tests. The creation flow must work with network access disabled after the static app loads.
+- The first-hour account/billing check is removed. Use that time to verify the local title corpus/rules and the first static deployment.
+- Free hosting availability and limits remain unverified until deployed. Rights, consent, actual app performance, repository access, and the submission destination remain blockers; billing activation is no longer one.
+
 ## 1. Decision and evidence baseline
 
 **Verified — 2026-11-20:** the complete [case brief](../reference/document_en.md) and all seven original documents were read. Each original document was separately researched, amended and logged before this plan was written; see [CHANGELOG.md](CHANGELOG.md). The checkout has documentation only, no runnable game. The configured Git remote is `https://github.com/margulankab/NISKOSTANAYSKIE-Genisis-Hackaton.git`; public/jury access is **Unverified**. No deployment, account credentials, paid purchases, licensed demo assets, generated results or video have been verified.

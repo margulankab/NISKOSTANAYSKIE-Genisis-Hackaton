@@ -1,5 +1,11 @@
 # Memory Worlds — active working rules (amended 2026-11-20)
 
+## Billing amendment — 2026-11-21
+
+**User-approved direction:** prefer free options wherever they can satisfy the case. This amendment supersedes the paid-Gemini selection and any $5–$10 runtime cash allowance below. P0 uses deterministic, input-dependent TypeScript rules in the browser for semantic signals, allowed prop/environment choices, and 3–7-word titles. The case makes AI optional (VIS-09); MIN-04 requires a meaningful system-generated title, not a model-generated title. No personal journal text or derived personal data is sent to a free AI service.
+
+**Selected $0 services:** static Cloudflare Pages hosting within its Free plan, native IndexedDB, Web Audio, local photo analysis, ZIP export/import, original geometry, self-hosted open-licensed fonts/assets, authorized owned or CC0 audio, local Vitest/Playwright checks, and OBS. A Pages Function and Gemini are deferred experiments, not P0 dependencies. If later enabled, they require a separate privacy, terms, quota, and billing decision; do not silently activate billing or send personal material to an unpaid model tier.
+
 **Verified:** the user approved the documentation audit and two-developer plan. No further acceptance confirmation is needed for that audit. Its acceptance is complete per-file research, preserved originals, traceable requirements, a feasible schedule, and recorded checks. [Requirements](docs/00_case_requirements.md): USR-03/05/06, MIN-01–08, ETH-01–07.
 
 **Assumed / active decisions:** this amendment supersedes conflicting technical, staffing, and fixture-fallback statements in the historical text below. Read this amendment, PROGRESS.md, and relevant ARCHITECTURE.md sections before work. The source of case requirements is `reference/document_en.md`; the current delivery plan is `docs/game_development_plan.md`. All application work remains planned until evidenced.
