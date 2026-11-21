@@ -38,19 +38,20 @@ export function PauseMenu({ save, confirmLeave, onResume, onSave, onSaveAndQuit,
             <h3 id={headingId}>Leave without saving?</h3>
             <p>Your latest progress in this world has not been saved.</p>
             <button type="button" ref={first} disabled={busy} onClick={onSaveAndQuit}>Save and leave</button>
-            <button type="button" disabled={busy} onClick={onLeaveWithoutSaving}>Leave without saving</button>
-            <button type="button" disabled={busy} onClick={onCancelLeave}>Keep playing</button>
+            <button type="button" className="button-secondary" disabled={busy} onClick={onLeaveWithoutSaving}>Leave without saving</button>
+            <button type="button" className="button-secondary" disabled={busy} onClick={onCancelLeave}>Keep playing</button>
           </>
         ) : (
           <>
             <h3 id={headingId}>Paused</h3>
             <button type="button" ref={first} onClick={onResume}>Resume</button>
-            <button type="button" disabled={busy} onClick={onSave}>Save Game</button>
-            <button type="button" disabled={busy} onClick={onSaveAndQuit}>Save &amp; Quit</button>
-            <button type="button" disabled={busy} onClick={onMainMenu}>Return to Main Menu</button>
+            <button type="button" className="button-secondary" disabled={busy} onClick={onSave}>Save Game</button>
+            <button type="button" className="button-secondary" disabled={busy} onClick={onSaveAndQuit}>Save &amp; Quit</button>
+            <button type="button" className="button-secondary" disabled={busy} onClick={onMainMenu}>Return to Main Menu</button>
           </>
         )}
         {busy && <p role="status">Saving…</p>}
+        {!confirmLeave && save.status === 'idle' && <p className="pause-hint">Press Esc to resume</p>}
         {save.status === 'saved' && <p role="status">{save.message}</p>}
         {save.status === 'error' && <p role="alert">{save.message}</p>}
       </div>

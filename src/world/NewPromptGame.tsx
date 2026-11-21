@@ -7,6 +7,11 @@ import { PROMPT_MAX } from './world-schema';
 import type { PromptWorld } from './world-schema';
 
 const EXAMPLE = 'A lighthouse above a foggy cove with a red rowboat beside a pier.';
+const STARTERS = [
+  ['Foggy lighthouse', EXAMPLE],
+  ['Night market', 'A covered night market under a railway bridge, with lanterns above the stalls and a blue bench beside a lamp.'],
+  ['Kitchen and garden', 'A quiet kitchen with a wooden table, then a garden with two oak trees beyond a small house.'],
+] as const;
 
 /** New Game → From a prompt: text only, generated locally, with a preview before entering. */
 export function NewPromptGame() {
@@ -30,6 +35,11 @@ export function NewPromptGame() {
         <label htmlFor={inputId}>Describe the world</label>
         <textarea id={inputId} value={prompt} maxLength={PROMPT_MAX} rows={4} placeholder={EXAMPLE}
           onChange={(event) => { setPrompt(event.target.value); setResult(null); }} />
+        <div className="prompt-starters" role="group" aria-label="Example prompts">
+          {STARTERS.map(([label, text]) => (
+            <button key={label} type="button" className="chip" onClick={() => { setPrompt(text); setResult(null); }}>{label}</button>
+          ))}
+        </div>
         <p className="field-hint">{prompt.length} / {PROMPT_MAX} · Try places, objects, counts, colors, time, weather and words like “beside” or “beyond”.</p>
         <button type="submit">Build world</button>
       </form>
@@ -45,7 +55,7 @@ export function NewPromptGame() {
           <InterpretationPanel prompt={result.world.prompt} interpretation={result.world.interpretation} />
           <div className="prompt-actions">
             <button type="button" onClick={() => setPlaying(result.world)}>Enter world</button>
-            <button type="button" onClick={() => setResult(null)}>Revise prompt</button>
+            <button type="button" className="button-secondary" onClick={() => setResult(null)}>Revise prompt</button>
           </div>
         </div>
       )}

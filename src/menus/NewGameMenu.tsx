@@ -6,7 +6,7 @@ export function NewGameMenu() {
         <a className="menu-item" href="/new/prompt">From a prompt <span>Describe any place in words. No photos or music needed.</span></a>
         <a className="menu-item" href="/create">Create a day memory <span>Your journal, at least one photo, and the song you associate with the day.</span></a>
       </nav>
-      <p><a href="/">Back to main menu</a></p>
+      <a className="back-link" href="/">Back to main menu</a>
     </section>
   );
 }
