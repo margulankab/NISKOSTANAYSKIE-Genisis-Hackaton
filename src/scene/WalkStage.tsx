@@ -10,7 +10,8 @@ import { WORLD_SCALE, createWalkLayout } from '../gameplay/layout';
 import type { Point, WalkLayout } from '../gameplay/layout';
 import { ArtifactModel, artifactNames } from './ArtifactModel';
 import { EnvironmentBackdrop } from './EnvironmentBackdrop';
-import { ContextMonitor, Preview, SoundtrackMotion, StageBoundary, prefersReducedMotion, subscribeToReducedMotion } from './MemoryStage';
+import { ContextMonitor, Preview, SoundtrackMotion, StageBoundary } from './MemoryStage';
+import { prefersReducedMotion, subscribeToReducedMotion } from './reduced-motion';
 import type { SceneStyle } from './scene-style';
 
 const CAMERA_OFFSET = { y: 3.4, z: 4.5 };

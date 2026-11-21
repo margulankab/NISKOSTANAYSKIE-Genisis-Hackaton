@@ -2,7 +2,7 @@
 
 ## 2026-11-21 — Developer B: prompt worlds, menus and saves (MW-017/019, AT-23/25)
 
-**Delivered on `B_development` (built on A's `claude/keen-bell-fkqitv`):** Gate 1 and the B part of Gate 2 for the expanded plan.
+**Delivered on `B_development` (built on A's walk work, then merged with `main` after A's PR #1 and C's PR #2):** Gate 1 and the B part of Gate 2 for the expanded plan.
 
 - **Contracts.** `src/world/world-schema.ts` is the versioned prompt-world format (schema 2, parser/layout/catalog versions, seed, interpretation with source spans, resolved layout, discoveries with prompt excerpts, landmark, nullable soundtrack slot for C). Validation rejects broken references and any layout where spawn, either discovery or the ready ending cannot be reached with A's collision rules (`src/world/route.ts`). `toWalkLayout` adapts a world to A's `WalkLayout`. `src/world/checkpoint.ts` is the checkpoint format (world ID, layout key, position, revealed IDs, ending) with restore checks for stale layout, foreign world, out-of-bounds or blocked position, unknown discoveries and an inconsistent ending.
 - **Prompt composition.** `parse-prompt.ts` resolves places, objects, counts, colors, time, weather, indoor/outdoor zones and `beside/beyond/above/under/in front of` to the recipe catalog (`recipes.ts`, the B↔C seam), and reports approximated and unsupported words. `compose-world.ts` places the landmark first, applies relations, scatters the rest with a prompt-derived seed, picks two discoveries, builds colliders (water with a walkable pier, room walls with a door) and retries with less clutter before failing with the prompt kept.
@@ -11,8 +11,53 @@
 
 **Checks (macOS, Google Chrome via `PLAYWRIGHT_CHANNEL=chrome`):** `npm run typecheck` passed. `npm test` passed 67 tests, including 10 new tests in `tests/prompt-world.test.ts`: lighthouse/cove, night market and mixed kitchen/garden worlds walked end to end with A's controller, determinism, edits that change output, unsupported/approximated reporting, route rejection and checkpoint checks. `npm run build` passed. The full Playwright suite ran 29 tests: 28 passed, including 6 new tests in `e2e/prompt-world.spec.ts` (title menu → prompt game → reveal → save → reload → Continue at the saved position → finish → Save & Quit → Load Game; simulated quota failure; unsaved-leave confirmation; invalid checkpoint restart; v1 database upgrade; unsupported details and retained prompt). `e2e/soundtrack.spec.ts:62` fails at its `atRest` poll on line 101. It fails the same way on A's branch without these changes.
 
-**Open:** the soundtrack slot is empty until C's catalog (MW-018), so prompt worlds show a labeled silent state. Day memories appear in Load Game and open at spawn; day checkpoints need A's restore hook in `WalkStage` (MW-019, A). `WorldStage` duplicates A's input handling rather than sharing a hook. Prompt-world ZIP export is not implemented (checkpoints stay local by design). No touch-device, FPS or AT-26 audit was run. B's Gate 3 work (deploy, release evidence, MW-009/010) has not started.
+**Open:** C's handoff on `main` now provides `world-recipes.ts`, `WorldScenery`, the soundtrack catalog and `WorldSoundtrack`. B's prompt worlds still use B's own starter `recipes.ts`/`builders.tsx` and an empty soundtrack slot, so they show a labeled silent state. Next B step: map the parser onto C's recipe IDs and footprints, render with `WorldScenery`, and save the catalog track chosen from the prompt's mood/setting/energy tags. Day memories appear in Load Game and open at spawn; day checkpoints need A's restore hook in `WalkStage` (MW-019, A). `WorldStage` duplicates A's input handling rather than sharing a hook. Prompt-world ZIP export is not implemented (checkpoints stay local by design). No touch-device, FPS or AT-26 audit was run. B's Gate 3 work (deploy, release evidence, MW-009/010) has not started.
 
+## 2026-11-21 — PR #2 conflict resolution
+
+Merged `main` at `b8085b3` into the Developer C branch. The day-memory viewer uses the walk stage, with the shared audio player and reduced-motion preference. The curated world preview retains its orbit and landmark views. Fixed the browser soundtrack comparison to measure the canvas interior so viewport borders do not affect the motion assertion.
+
+- `npm.cmd run typecheck`, `npm.cmd test` (64 tests), and `npm.cmd run build` passed. With `$env:PLAYWRIGHT_CHANNEL = 'msedge'`, `npm.cmd run test:browser -- --config=.vite/c-preview-polish.config.ts --workers=2 --reporter=list` passed all 27 tests, including walking, soundtrack, curated worlds, and archive regression checks.
+- AT-23 and AT-24 remain open for prompt-generated gameplay and saved soundtrack restoration. Physical-device checks remain pending.
+
+## 2026-11-21 — Developer C expanded world previews
+
+The curated cove spans 24 units across a longer shore approach with dunes, rocks, and coastal grass. The night market spans 30 units across side courts, two more bridge spans, extra stalls, and shopfronts. The wider preview stage keeps the key landmarks in frame. Route checks now use the exact preview placements.
+
+- `npm.cmd test` passed 55 tests, and `npm.cmd run build` passed typechecking and bundling with the existing warnings. With `$env:PLAYWRIGHT_CHANNEL = 'msedge'`, `npm.cmd run test:browser -- --config=.vite/c-preview-polish.config.ts --workers=2 --reporter=list` passed all 26 tests. Reviewed desktop and 390-pixel-wide screenshots of each world.
+- AT-23 and AT-24 remain open for walking, prompt composition, and soundtrack restoration in the integrated game. Physical-device testing remains pending.
+
+## 2026-11-21 — Developer C preview polish
+
+The curated cove and market use responsive framing, keyboard-accessible landmark views in route order, and an Overview reset. The cove keeps the shore landmarks visible through the fog, and warm lanterns light the stalls beneath the market bridge. Route text and audio remain usable after renderer loss. Each world's soundtrack override lasts for the preview visit, mute carries between worlds, and changing worlds stops playback until the next user gesture.
+
+- `npm.cmd run typecheck`, `npm.cmd test` (54 tests), and `npm.cmd run build` passed. The build retained the dependency annotation and chunk-size warnings.
+- With `$env:PLAYWRIGHT_CHANNEL = 'msedge'`, `npm.cmd run test:browser -- --config=.vite/c-preview-polish.config.ts --workers=2 --reporter=list` passed all 26 tests. The ignored config used port 46272 after the default port was unavailable. Coverage included landmark views, camera reset, renderer loss, audio and light-pulse rest states, soundtrack switches, reduced motion, upload and missing media, and the original day-memory and archive flows. Reviewed desktop and 390-pixel touch-emulated captures of both worlds.
+- AT-23 and AT-24 remain open for integration with generated layouts, walking, and saved soundtrack restoration. Physical-device audibility and sustained performance still need verification.
+
+## 2026-11-21 — Future soundtrack behavior clarified
+
+The player enters the prompt in the game. The future soundtrack system uses it to compose music at runtime or retrieve suitable cleared music online. The current local catalog covers the preview. [Updated delivery plan](docs/game_development_plan.md#prompt-generated-worlds-soundtrack-selection-and-game-menus).
+
+## 2026-11-21 — World preview available from navigation
+
+The main app now links to `/world-preview` in development and production builds. The page shows the foggy cove and covered night market, orbit controls, and the local soundtrack controls. It reports when the browser cannot render 3D.
+
+`npm.cmd run typecheck`, `npm.cmd test` (54 tests), and `npm.cmd run build` passed. Headless Edge passed all 24 browser tests with `npm.cmd run test:browser -- --config=.vite/c-playwright.config.ts --workers=2`, including navigation from the library to the preview. A separate Edge smoke check of the production build at `http://127.0.0.1:4317/world-preview` verified both canvases and gesture-started audio.
+
+## 2026-11-21 — Developer C world content and soundtrack
+
+MW-016 supplies cove and covered-market recipes, ground support, collision footprints, discovery approaches, and scenery rendering from resolved placements. Geometry checks cover routes through cove, market, and a connected market-to-shore example. MW-018 supplies three original tracks, local cue matching with stable ties, measured audio, saved-record inputs, and preview, override, mute, and authorized upload controls. The browser preview exercises the cove render, audio-driven lighting, reduced motion, switching tracks during playback, silence, missing media, and corrupt and authorized uploads. The v1 day, original song, and archive regression checks passed. [Integration handoff](ARCHITECTURE.md#developer-c-integration-handoff).
+
+- `npm.cmd run typecheck` passed. `npm.cmd test` passed 54 tests. `npm.cmd run build` passed with dependency annotation and chunk-size warnings.
+- `$env:PLAYWRIGHT_CHANNEL = 'msedge'` and `npm.cmd run test:browser -- --config=.vite/c-playwright.config.ts --workers=2` passed all 24 tests. The default port 4173 was unavailable, so the ignored config ran the same browser suite on port 4237. Visually inspected the foggy-cove capture and verified the corrected shore surface.
+- Integrated AT-23 and AT-24 remain open. A and B still need to wire walking, prompt composition and feedback, and saved soundtrack restoration into the generated game. Physical-device playback and performance checks remain pending.
+
+## 2026-11-21 — Developer C cove geometry checkpoint
+
+Cove recipes supply render geometry, rotated solid footprints, and approach offsets. A simulated ground-level route reaches both discovery anchors and the pier ending with collision clearance. The world recipes reproduce geometry and approaches from serialized placements.
+
+`npm.cmd run typecheck` and `npm.cmd test` passed (50 tests). This verifies C's cove geometry and route. The Gate 1 prompt-generated player visit remains open pending A's movement and B's composition.
 ## 2026-11-21 — Developer A: walkable world (MW-013/014, AT-17/18)
 
 **Delivered on `claude/keen-bell-fkqitv`:** the orbit viewer is replaced by a walkable low-poly world for every v1 memory. `src/gameplay/layout.ts` is the A↔C contract (spawn, bounds, solid footprints, two artifact anchors, closing gate, reach). `src/gameplay/controller.ts` holds pure movement with bounds and sliding collision plus proximity targets. `src/scene/WalkStage.tsx` adds the player, follow camera, WASD/arrow keys, `E`, a touch pad and Interact button, Reset position, and input release on blur, visibility change and pointer cancel. Reveals require reach. The ending gate stays locked until both unique reveals, completion fires once, and Replay resets position and progress. Without WebGL, or after context loss, the labeled static preview keeps reveal progress and uses the card buttons plus Finish.

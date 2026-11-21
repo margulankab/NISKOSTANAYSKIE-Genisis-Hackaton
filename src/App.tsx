@@ -11,6 +11,7 @@ import { installVolumeSetting } from './menus/settings';
 import { NewPromptGame } from './world/NewPromptGame';
 import { SavedGame } from './world/SavedGame';
 import { MemoryViewer } from './scene/MemoryViewer';
+import { WorldPreview } from './scene/WorldPreview';
 import { createViewerProps } from './shared/memory-viewer';
 import type { MemoryViewerProps } from './shared/memory-viewer';
 
@@ -34,6 +35,7 @@ export function App() {
     '/archive': () => <Archive />,
     '/load': () => <LoadGameMenu />,
     '/settings': () => <SettingsMenu />,
+    '/world-preview': () => <WorldPreview />,
   };
 
   return (
@@ -43,6 +45,7 @@ export function App() {
         <nav className="site-nav" aria-label="Main">
           <a href="/" aria-current={path === '/' ? 'page' : undefined}>Main menu</a>
           <a href="/examples" aria-current={path === '/examples' ? 'page' : undefined}>Examples</a>
+          <a href="/world-preview" aria-current={path === '/world-preview' ? 'page' : undefined}>World preview</a>
           <a href="/create" aria-current={path === '/create' ? 'page' : undefined}>Create a memory</a>
           <a href="/archive" aria-current={path === '/archive' ? 'page' : undefined}>Archive</a>
         </nav>

@@ -2,7 +2,7 @@
 
 ## Exploration game plan
 
-The current prototype is an orbit-controlled low-poly diary with two artifact reveals, soundtrack playback, and a local archive. The planned game builds walkable worlds from free-form prompts using reusable terrain, structure, and prop builders. It adds nearby interactions, an in-world ending, automatic soundtrack selection for prompt games, and title/pause menus with save, load, and resume. The case workflow keeps the player's journal, photo, and associated song. [Active development plan](docs/game_development_plan.md#active-delivery-plan--2026-11-21).
+The current prototype is a walkable low-poly diary with two nearby artifact reveals, an in-world ending, soundtrack playback, and a local archive. The planned game builds worlds from free-form prompts using reusable terrain, structure, and prop builders. It adds automatic soundtrack selection for prompt games and title/pause menus with save, load, and resume. The case workflow keeps the player's journal, photo, and associated song. [Active development plan](docs/game_development_plan.md#active-delivery-plan--2026-11-21).
 
 ## Run the prototype
 
@@ -13,7 +13,9 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite to reach the title menu. **New Game → From a prompt** builds a walkable world from a description; press Esc to pause, save, or quit, and use **Continue** or **Load Game** to resume. **Examples** opens the fictional memory library: drag to orbit, and scroll or pinch to zoom. Select both numbered objects or use the artifact buttons to reveal the illustration and entry excerpt. Then choose **Finish memory**. **Play soundtrack** starts the audio and its scene motion. The viewer respects reduced motion. The static preview keeps the artifact and audio controls available if WebGL is unavailable.
+Open the local URL printed by Vite to reach the title menu. **New Game → From a prompt** builds a walkable world from a description; press Esc to pause, save, or quit, and use **Continue** or **Load Game** to resume. Choose **Examples** for the fictional memory library. Walk with WASD, the arrow keys, or the touch controls. Approach both objects and press **E** or **Interact** to reveal the illustration and entry excerpt, then interact with the closing landmark. **Play soundtrack** starts the audio and its scene motion. The viewer respects reduced motion. If WebGL is unavailable, the static preview provides artifact, ending, and audio controls.
+
+Choose **World preview** to orbit the foggy cove or covered night market and try the local soundtracks. Use the landmark buttons to inspect the route and **Overview** to reset the camera. Track choices and mute carry through world switches until you leave the page. These curated examples preview content for the planned prompt-generated game.
 
 Choose **Create a memory** to validate a date, journal entry, photos, and an authorized audio excerpt. Select **Generate memory** to open the generated scene. Generation runs in the browser and works offline after the app loads. Use **Save to archive** to keep the memory in this browser. Use **Export ZIP** and **Import ZIP** to move a copy to another browser.
 
