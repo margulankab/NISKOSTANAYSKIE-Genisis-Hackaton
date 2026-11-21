@@ -1,9 +1,10 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createInMemoryStore } from '../src/data/repository';
 import { fixtures, loadFixture } from '../src/fixtures/memories';
-import { dayBundleSchema, memorySceneSchema } from '../src/shared/memory-schema';
+import { dayBundleSchema, memorySceneSchema, resolvePresentation } from '../src/shared/memory-schema';
 import type { DayBundle, MemoryScene } from '../src/shared/memory-schema';
 import { createViewerProps } from '../src/shared/memory-viewer';
+import { getSceneStyle } from '../src/scene/scene-style';
 
 let bundles: DayBundle[];
 beforeAll(async () => {
@@ -82,6 +83,27 @@ describe('MW-000 / AT-02', () => {
     })],
   ])('rejects a bundle with %s', (_name, modify) => {
     expect(dayBundleSchema.safeParse(modify(bundles[0])).success).toBe(false);
+  });
+});
+
+it('replays scene styling deterministically and isolates context and photo inputs', () => {
+  const { manifest } = bundles[0];
+  const original = getSceneStyle(manifest);
+  expect(getSceneStyle(structuredClone(manifest))).toEqual(original);
+  expect(getSceneStyle({ ...manifest, seed: 0xffffffff }).variation).not.toEqual(original.variation);
+  expect(getSceneStyle({ ...manifest, context: { ...manifest.context, environment: 'room' } }))
+    .toEqual({ ...original, environment: 'room' });
+
+  const photo = {
+    ...manifest.photos[0],
+    meanLightness: 1,
+    palette: [[8, 70, 198], [11, 40, 93], [140, 180, 249]],
+  } satisfies MemoryScene['photos'][number];
+  const presentation = resolvePresentation(photo, manifest.mood, manifest.music.meanEnergy);
+  expect(getSceneStyle({ ...manifest, photos: [photo], presentation })).toEqual({
+    ...original,
+    accentPalette: photo.palette,
+    ambientIntensity: 1.3,
   });
 });
 

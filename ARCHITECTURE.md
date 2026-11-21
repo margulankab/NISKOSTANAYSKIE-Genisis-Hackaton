@@ -1,5 +1,11 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Developer A visual rules and photo analysis — 2026-11-21
+
+- MW-005 uses one platform, camera and artifact layout. Saved environment and seed select and vary the decorative park, room or city geometry. Saved palette, image brightness, warmth and artifact spacing drive accents, lighting and placement. Mood selects angular mounts, layered photo mounts or softer lighting.
+- [Photo analysis](src/media/photo-analysis.ts) exports browser-only `analyzePhoto(blob): Promise<PhotoFeatures>`. Intake assigns the asset ID and optional caption and combines them with the returned palette, mean lightness and decoded dimensions. The analyzer downsamples the image with its aspect ratio intact to at most 64 × 64, weights RGB bins and brightness by alpha, and closes its bitmap. Decode or analysis errors reject so intake can keep the original draft and report the failing photo. Byte-signature checks belong to intake.
+- The viewer replays saved features, including the authored fixture values. It does not analyze the asset again on open. **Why this scene?** reads the verified rule sources and results and describes the applied visual treatment. Audible playback remains independent of the current still composition. Runtime audio-driven motion is MW-006.
+
 ## Developer A viewer handoff — 2026-11-21
 
 The root Vite app opens three fictional fixture memories from Developer B's committed MW-000 scaffold. The active zero-cost direction is deterministic browser-local processing and static hosting. Retained sections below describe the original planning baseline.

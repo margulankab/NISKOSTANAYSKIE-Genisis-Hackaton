@@ -1,5 +1,16 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-21 — Developer A · MW-005 visual rules and photo analysis
+
+Park, room and city now share one stage and interaction layout. Saved context and seed drive backdrop geometry. Photo accents and brightness, warmth and spacing drive the presentation. **Why this scene?** explains those values and the mood treatment, including in the static preview.
+
+- `npm run typecheck`, `npm test` (33 checks), `npm run build`, and `git diff --check` passed. The build still reports Zod annotation and chunk-size warnings (373 kB gzip).
+- `$env:PLAYWRIGHT_CHANNEL = 'msedge'; npm run test:browser` passed all 10 scenarios. Controlled substitutions changed only context or photo features and produced visibly different renders. The suite checks photo brightness, palette ties, transparent/corrupt input, explanations, the reveal loop, camera and touch emulation, audio/media cleanup and WebGL fallback. Fixed a white-image rounding discrepancy and reran the full suite.
+- Compared the three Edge screenshots side by side. Trees and path, window, and skyline distinguish the settings. The artifact positions remain readable with the same initial framing.
+- [Photo analysis](src/media/photo-analysis.ts) is ready for Developer B's intake. Call `analyzePhoto(blob)` and combine its returned features with the assigned asset ID and optional caption. Saved fixtures still use their authored metadata. The viewer handles decode errors independently on reopening.
+
+AT-03 context and photo checks and the local AT-09 explanation checks passed. AT-03's song comparison and playback motion remain MW-006. The three-fixture visual portion of AT-08 passed. The five-day feed and favorite-day author review remain MW-008. Physical-device and deployment checks remain pending. Next for A is MW-006.
+
 ## 2026-11-21 — Developer A · MW-002 playable fixture loop
 
 Local viewer acceptance passed on `A_development` (USR-01 and AT-10). Both manifest artifacts reveal their own source content. Opening the same artifact twice leaves the ending locked. The closing card is available after both reveals and sends one completion event per opening. Switching fixtures resets the loop, pauses audio and revokes the old media URLs. The labeled static preview preserves the loop if WebGL fails at startup or during play.

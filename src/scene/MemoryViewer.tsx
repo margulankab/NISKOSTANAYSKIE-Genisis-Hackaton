@@ -3,6 +3,8 @@ import type { MemoryScene } from '../shared/memory-schema';
 import type { MemoryViewerProps } from '../shared/memory-viewer';
 import { artifactNames } from './ArtifactModel';
 import { MemoryStage } from './MemoryStage';
+import { SceneExplanation } from './SceneExplanation';
+import { getSceneStyle } from './scene-style';
 
 type AssetUrl = { status: 'loading' | 'error' } | { status: 'ready'; url: string };
 type ResolveAsset = MemoryViewerProps['resolveAsset'];
@@ -121,6 +123,7 @@ function MemoryOpening({ manifest, entryText, resolveAsset, onComplete }: Memory
   const [complete, setComplete] = useState(false);
   const finished = useRef(false);
   const allRevealed = revealed.size === manifest.artifacts.length;
+  const style = getSceneStyle(manifest);
 
   function reveal(id: string) {
     setRevealed((previous) => previous.has(id) ? previous : new Set([...previous, id]));
@@ -139,7 +142,8 @@ function MemoryOpening({ manifest, entryText, resolveAsset, onComplete }: Memory
         <time dateTime={manifest.date}>{manifest.date}</time>
         <h2 id={headingId}>{manifest.title}</h2>
       </header>
-      <MemoryStage manifest={manifest} revealed={revealed} onReveal={reveal} />
+      <MemoryStage manifest={manifest} style={style} revealed={revealed} onReveal={reveal} />
+      <SceneExplanation manifest={manifest} style={style} />
       <div className="memory-actions">
         <p role="status">{revealed.size} of {manifest.artifacts.length} artifacts revealed</p>
         <MemoryAudio id={manifest.source.audioId} resolveAsset={resolveAsset} />

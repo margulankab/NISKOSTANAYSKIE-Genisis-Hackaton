@@ -5,6 +5,8 @@ import { OrbitControls } from '@react-three/drei';
 import { Color, SRGBColorSpace, Vector3 } from 'three';
 import type { MemoryScene } from '../shared/memory-schema';
 import { ArtifactModel, artifactNames } from './ArtifactModel';
+import { EnvironmentBackdrop } from './EnvironmentBackdrop';
+import type { SceneStyle } from './scene-style';
 
 const initialCamera = { position: [3.8, 3.1, 6.4] as [number, number, number], fov: 37 };
 
@@ -59,15 +61,16 @@ function Preview() {
   );
 }
 
-export function MemoryStage({ manifest, revealed, onReveal }: {
+export function MemoryStage({ manifest, style, revealed, onReveal }: {
   manifest: MemoryScene;
+  style: SceneStyle;
   revealed: ReadonlySet<string>;
   onReveal: (id: string) => void;
 }) {
   const [contextLost, setContextLost] = useState(false);
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
   const markers = useRef<(HTMLButtonElement | null)[]>([]);
-  const { accentPalette, artifactSpacing, lightWarmth, photoLightness } = manifest.presentation.parameters;
+  const { accentPalette, artifactSpacing, lightWarmth, ambientIntensity, treatment } = style;
   const colors = accentPalette.map(([r, g, b]) => new Color().setRGB(r / 255, g / 255, b / 255, SRGBColorSpace));
   const surround = new Color('#242b28').lerp(colors[1], 0.22);
   const deck = new Color('#454739').lerp(colors[2], 0.38);
@@ -88,8 +91,8 @@ export function MemoryStage({ manifest, revealed, onReveal }: {
             >
               <ContextMonitor onLost={() => setContextLost(true)} />
               <color attach="background" args={[surround]} />
-              <ambientLight intensity={0.65 + 0.65 * photoLightness} />
-              <directionalLight position={[-3, 5, 3]} color={keyLight} intensity={2.3} />
+              <ambientLight intensity={ambientIntensity} />
+              <directionalLight position={[-3, 5, 3]} color={keyLight} intensity={treatment === 'soft' ? 1.8 : 2.3} />
               <mesh position={[0, -0.43, 0]}>
                 <boxGeometry args={[5.2, 0.44, 3.25]} />
                 <meshStandardMaterial color={deck} roughness={0.85} />
@@ -102,11 +105,19 @@ export function MemoryStage({ manifest, revealed, onReveal }: {
                 <boxGeometry args={[4.84, 0.025, 0.02]} />
                 <meshStandardMaterial color={colors[0]} />
               </mesh>
-              {manifest.artifacts.map(({ id, kind }, index) => {
+              <EnvironmentBackdrop
+                environment={style.environment}
+                variation={style.variation}
+                deck={deck}
+                accent={colors[0]}
+                secondary={colors[1]}
+              />
+              {manifest.artifacts.map(({ id, kind, photoId }, index) => {
                 const open = revealed.has(id);
                 const accent = colors[index];
                 return (
                   <group key={id} position={[(index - 0.5) * artifactSpacing, 0, 0]}
+                    rotation={[0, treatment === 'angular' ? (index === 0 ? -0.23 : 0.23) : 0, 0]}
                     onClick={(event) => {
                       if (event.delta > 4) return;
                       event.stopPropagation();
@@ -118,6 +129,18 @@ export function MemoryStage({ manifest, revealed, onReveal }: {
                       <meshStandardMaterial color={accent} roughness={0.65}
                         emissive={accent} emissiveIntensity={open ? 0.16 : 0} />
                     </mesh>
+                    {treatment === 'collage' && photoId && (
+                      <>
+                        <mesh position={[0.18, 0.012, -0.08]} rotation={[0, -0.19, 0]}>
+                          <boxGeometry args={[0.91, 0.018, 0.66]} />
+                          <meshStandardMaterial color={colors[2]} />
+                        </mesh>
+                        <mesh position={[-0.13, 0.026, -0.12]} rotation={[0, 0.15, 0]}>
+                          <boxGeometry args={[0.82, 0.018, 0.62]} />
+                          <meshStandardMaterial color="#d8c4a6" />
+                        </mesh>
+                      </>
+                    )}
                     <ArtifactModel kind={kind} accent={accent} />
                   </group>
                 );

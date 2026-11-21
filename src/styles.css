@@ -150,6 +150,21 @@ button:focus-visible { outline: 2px solid #e7bb84; outline-offset: 4px; }
   flex-wrap: wrap;
   margin: 0 0 16px;
 }
+.scene-explanation {
+  margin-bottom: 16px;
+  border: 1px solid #545a4e;
+  border-radius: 7px;
+  background: #202620;
+  color: #e6decf;
+}
+.scene-explanation summary { padding: 12px 14px; cursor: pointer; }
+.scene-explanation summary:focus-visible { outline: 2px solid #e7bb84; outline-offset: 3px; }
+.scene-explanation dl { display: grid; gap: 14px; margin: 0; padding: 2px 14px 14px; }
+.scene-explanation dt { font-weight: 650; margin-bottom: 4px; }
+.scene-explanation dd { margin: 0; color: #cecab9; overflow-wrap: anywhere; }
+.scene-palette { display: flex; flex-wrap: wrap; gap: 5px 12px; padding: 0; margin: 0 0 5px; list-style: none; }
+.scene-palette li { display: flex; align-items: center; gap: 5px; font-size: .82rem; }
+.scene-palette li span { width: 12px; height: 12px; background: currentColor; border: 1px solid #c6bda6; border-radius: 3px; }
 .memory-actions button { min-height: 42px; }
 .memory-actions p { margin: 0; color: #bdbfb0; }
 .artifact-grid { display: grid; gap: 10px; }
