@@ -75,3 +75,48 @@ button:focus-visible { outline: 2px solid #e7bb84; outline-offset: 4px; }
 @media (max-width: 640px) {
   .layout { grid-template-columns: 1fr; padding: 24px 0; }
 }
+
+.memory-stage { margin: 0 0 20px; }
+.stage-viewport {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  min-height: 240px;
+  overflow: hidden;
+  border: 1px solid #52584c;
+  border-radius: 8px;
+  background: #242b28;
+}
+.stage-viewport canvas { cursor: grab; }
+.stage-viewport canvas:active { cursor: grabbing; }
+.stage-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  color: #bdbfb0;
+  font-size: .82rem;
+}
+.stage-toolbar button { border-color: #727568; background: transparent; color: #ede7db; }
+.stage-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 5px;
+  padding: 20px;
+  text-align: center;
+  color: #ede7db;
+}
+.stage-fallback strong { font-family: Georgia, serif; font-size: 1.3rem; }
+.stage-swatch {
+  display: flex;
+  gap: 24px;
+  padding: 13px 22px;
+  border: 1px solid #b2a486;
+  border-radius: 5px;
+  background: #423e33;
+}
+.stage-swatch i { width: 26px; height: 20px; border: 1px solid #bdab8d; border-radius: 3px; }

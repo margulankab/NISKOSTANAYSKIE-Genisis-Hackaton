@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createInMemoryStore } from './data/repository';
 import { fixtures, loadFixture } from './fixtures/memories';
+import { MemoryStage } from './scene/MemoryStage';
 import { createViewerProps } from './shared/memory-viewer';
 import type { MemoryViewerProps } from './shared/memory-viewer';
 
@@ -126,6 +127,7 @@ function FixturePreview({ manifest, entryText, resolveAsset }: MemoryViewerProps
         <time dateTime={manifest.date}>{manifest.date}</time>
         <h2 id="preview-title">{manifest.title}</h2>
       </header>
+      <MemoryStage manifest={manifest} />
       {mediaError && <p role="alert">The fixture media could not be opened.</p>}
       {media && (
         <>

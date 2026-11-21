@@ -1,5 +1,17 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-21 — Developer A · MW-001 diorama foundation
+
+The fixture library mounts the same original 3D platform for all three days. Saved palette, lightness, warmth and artifact spacing drive the static composition. Bounded orbit/zoom, camera reset and a labeled WebGL fallback are available. The desktop Edge browser suite passed four tests covering mouse orbit/zoom/reset, emulated mobile touch drag/pinch, no-WebGL fallback, and the three fixture media flows.
+
+`npm run typecheck`, `npm test` (32 checks), `npm run build`, `git diff --check`, and `$env:PLAYWRIGHT_CHANNEL = 'msedge'; npm run test:browser` passed. Fixed initial test typing and trailing whitespace, then reran their checks. Vite emitted Zod annotation and large bundle warnings. Physical touch-device and deploy verification are pending.
+
+## 2026-11-21 — Developer A · MW-000 handoff accepted
+
+Reviewed the Developer B handoff at `a76eaeb` on `A_development`. The viewer accepts the validated manifest, original entry, async Blob resolver, and completion callback through the existing `MemoryViewerProps` interface. Excerpts are half-open JavaScript string ranges. Assets resolve by ID and missing IDs reject. The three fixtures supply bounded palette, lightness, warmth, spacing and music parameters and three source-linked rule records. The viewer uses saved values and owns temporary URLs and completion for each opening.
+
+On this Windows worktree, `npm ci`, `npm run typecheck`, `npm test` (32 checks), and `PLAYWRIGHT_CHANNEL=msedge npm run test:browser` (one test covering all three fixtures) passed. The browser verified decoded original illustrations, original excerpts, and gesture-started playback advancing and pausing. Fixture media is fictional. Public deployment and physical-device audio remain pending.
+
 **Verified:** the user confirms two developers. Initial Git inspection found seven modified root Markdown files and no application code, manifests, tests or deployment configuration. Requirements and the portable case source now exist. External deployments have not been inspected. This session implements documentation, not the game.
 
 **Assumed / active:** this amendment supersedes old staffing, Pydantic/Supabase dependencies and fixture-substitution behavior. Deadline: November 22, 2026, 23:59 Astana. Current hour allocation: [development plan](docs/game_development_plan.md). Traceability: [requirements](docs/00_case_requirements.md), especially USR-03/05/06 and MIN-01–08.
