@@ -4,16 +4,18 @@ export interface MemoryViewerProps {
   manifest: MemoryScene;
   entryText: string;
   world?: DayBundle['world'];
+  song?: DayBundle['song'];
   resolveAsset(id: string): Promise<Blob>;
   onComplete(): void;
 }
 
-export function createViewerProps({ manifest, entryText, photos, audio, world }: DayBundle, onComplete: () => void): MemoryViewerProps {
+export function createViewerProps({ manifest, entryText, photos, audio, world, song }: DayBundle, onComplete: () => void): MemoryViewerProps {
   const assets = new Map([...photos, audio].map(({ id, blob }) => [id, blob]));
   return {
     manifest,
     entryText,
     world,
+    ...(song && { song }),
     onComplete,
     async resolveAsset(id) {
       const asset = assets.get(id);

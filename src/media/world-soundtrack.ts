@@ -47,6 +47,20 @@ const compositions = {
     notes: [57, 60, 64, 60, 55, 59, 62, 59, 53, 57, 60, 64, 55, 62, 59, 55],
     bass: [33, 31, 29, 31], amplitude: 0.12, percussion: 0,
   },
+  'warm-tape': {
+    title: 'Warm Tape',
+    tags: { mood: ['nostalgic', 'peaceful'], setting: ['park', 'garden', 'home'], energy: ['gentle'] },
+    beatSeconds: 0.72,
+    notes: [65, 69, 72, 76, 74, 72, 69, 67, 64, 67, 71, 74, 72, 69, 65, 67],
+    bass: [41, 38, 43, 36], amplitude: 0.19, percussion: 0.05,
+  },
+  'night-drive': {
+    title: 'Night Drive',
+    tags: { mood: ['lively', 'tense'], setting: ['city', 'railway', 'night'], energy: ['high', 'bright'] },
+    beatSeconds: 0.4,
+    notes: [69, 72, 76, 72, 69, 72, 76, 79, 67, 71, 74, 71, 65, 69, 72, 76],
+    bass: [45, 45, 43, 41], amplitude: 0.26, percussion: 0.22,
+  },
 } satisfies Record<string, Composition>;
 
 export type CatalogTrackId = keyof typeof compositions;

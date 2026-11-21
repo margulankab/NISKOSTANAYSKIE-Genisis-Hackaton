@@ -17,7 +17,7 @@ export function LoadGameMenu() {
   }, []);
 
   return (
-    <section className="intake menu">
+    <section className="intake menu" data-win="load_game.exe">
       <h1>Load Game</h1>
       {games === 'loading' && <p role="status">Opening saves…</p>}
       {games === 'error' && <p role="alert">Saved games are unavailable in this browser.</p>}

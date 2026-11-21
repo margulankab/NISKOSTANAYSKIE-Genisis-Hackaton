@@ -21,11 +21,12 @@ import { placementHeight, placementSolids, recipes, sceneryPlacement } from './r
 import { routeTo } from './route';
 import { StoryCharacter } from './StoryCharacter';
 import { WorldPhotoFrame } from './WorldPhotoFrame';
+import { useStageDpr } from '../chrome/use-pixel';
 import { placementById, toWalkLayout } from './world-schema';
 import type { PromptWorld } from './world-schema';
 
 type StageWorld = Pick<PromptWorld, 'layout' | 'interpretation' | 'story' | 'scene'>;
-type StageAudio = { activeAudio: HTMLAudioElement | null; music?: MemoryScene['music']; lightColor?: string; ambientScale?: number; detailColor?: string; photoUrl?: string };
+type StageAudio = { activeAudio: HTMLAudioElement | null; music?: MemoryScene['music']; lightColor?: string; ambientScale?: number; detailColor?: string; photoUrl?: string; songPulse?: { bpm: number; energy: number } };
 const NO_EXCLUSIONS: readonly RecipeId[] = [];
 
 const CAMERA = { y: 5.2, z: 6.4, ahead: 2 };
@@ -66,7 +67,7 @@ export function labelFor(world: StageWorld, placementId: string) {
   return term?.color ? `${term.color[0].toUpperCase()}${term.color.slice(1)} ${label.toLowerCase()}` : label;
 }
 
-function WorldScene({ world, layout, revealed, ended, position, input, playerGroup, hud, onTarget, paused,
+function WorldScene({ world, layout, revealed, ended, position, input, playerGroup, hud, compass, onTarget, paused,
   conversationOpen, audio }: {
   world: StageWorld;
   audio?: StageAudio;
@@ -77,10 +78,12 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
   input: RefObject<Input>;
   playerGroup: RefObject<Group | null>;
   hud: RefObject<HTMLElement | null>;
+  compass?: RefObject<HTMLDivElement | null>;
   onTarget: (target: Target | null) => void;
   paused: boolean;
   conversationOpen: boolean;
 }) {
+  const compassText = useRef('');
   const reducedMotion = useSyncExternalStore(subscribeToReducedMotion, prefersReducedMotion);
   const camera = useThree(({ camera: c }) => c);
   const lastKey = useRef('');
@@ -153,6 +156,25 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
       onTarget(target);
     }
     hud.current?.setAttribute('data-player', next.x.toFixed(2) + ',' + next.z.toFixed(2));
+    // Compass: the next unfound discovery, then the ending. The camera looks toward -z, so screen-up is -z.
+    const box = compass?.current;
+    if (box) {
+      const nextIndex = discoveryIds.findIndex(id => !revealed.has(id));
+      const goal = conversationOpen || ended ? null : nextIndex >= 0 ? layout.artifacts[nextIndex] : layout.landmark;
+      const distance = goal ? Math.hypot(goal.x - next.x, goal.z - next.z) : 0;
+      const text = goal && distance > layout.reach + 1.2
+        ? `${Math.round(Math.atan2(goal.x - next.x, next.z - goal.z) * 180 / Math.PI / 5) * 5}|${Math.round(distance)}` : '';
+      if (text !== compassText.current) {
+        compassText.current = text;
+        box.hidden = !text;
+        if (text) {
+          const [angle, metres] = text.split('|');
+          box.style.setProperty('--heading', angle + 'deg');
+          box.lastElementChild!.textContent = `${metres} m`;
+          box.setAttribute('data-goal', nextIndex >= 0 ? 'discovery' : 'ending');
+        }
+      }
+    }
   });
 
   const ground = geometryVersion ? groundBounds(world.layout) : bounds;
@@ -162,7 +184,7 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
     <>
       {geometryVersion ? (
         <WorldScenery ambientMotion placements={scenery} atmosphere={atmosphere}
-          activeAudio={paused ? null : audio?.activeAudio ?? null} music={audio?.music} lightColor={audio?.lightColor} ambientScale={audio?.ambientScale} />
+          activeAudio={paused ? null : audio?.activeAudio ?? null} music={audio?.music} lightColor={audio?.lightColor} ambientScale={audio?.ambientScale} songPulse={audio?.songPulse} />
       ) : (
         <>
           <color attach="background" args={[fogColor]} />
@@ -289,14 +311,16 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
   const held = useRef(new Map<string, Point>());
   const playerGroup = useRef<Group | null>(null);
   const hud = useRef<HTMLElement | null>(null);
+  const compass = useRef<HTMLDivElement | null>(null);
+  const running = useRef(false);
   const [target, setTarget] = useState<Target | null>(null);
 
   const sync = useCallback(() => {
     let x = 0, z = 0;
     for (const d of held.current.values()) { x += d.x; z += d.z; }
-    input.current = { x: Math.sign(x), z: Math.sign(z) };
+    input.current = { x: Math.sign(x), z: Math.sign(z), run: running.current };
   }, []);
-  const release = useCallback(() => { held.current.clear(); sync(); }, [sync]);
+  const release = useCallback(() => { held.current.clear(); running.current = false; sync(); }, [sync]);
 
   const interact = useCallback(() => {
     const t = targetAt(position.current, layout, revealed.size, world.layout.discoveries.map(({ placementId }) => revealed.has(placementId)));
@@ -314,13 +338,14 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (element instanceof HTMLElement && (element.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(element.tagName))) return;
       const key = event.key.toLowerCase();
+      if (running.current !== event.shiftKey) { running.current = event.shiftKey; sync(); }
       if (key === 'e' && !event.repeat) { interactRef.current(); return; }
       if (!KEYS[key]) return;
       event.preventDefault();
       held.current.set('key:' + key, KEYS[key]);
       sync();
     };
-    const up = (event: KeyboardEvent) => { held.current.delete('key:' + event.key.toLowerCase()); sync(); };
+    const up = (event: KeyboardEvent) => { running.current = event.shiftKey; held.current.delete('key:' + event.key.toLowerCase()); sync(); };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('blur', release);
@@ -334,6 +359,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
     };
   }, [paused, release, sync]);
 
+  const dpr = useStageDpr();
   const [supported] = useState(webglAvailable);
   const [lost, setLost] = useState(false);
   const loseContext = useCallback(() => { setLost(true); onUnavailable(); }, [onUnavailable]);
@@ -358,15 +384,16 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
       <StageBoundary fallback={unavailable} onFail={onUnavailable}>
         <div className="stage-viewport walk-viewport" ref={(element) => { hud.current = element; }} data-player=""
           data-walk-targets={JSON.stringify(layout)}>
-          <Canvas camera={{ position: [position.current.x, CAMERA.y, position.current.z + CAMERA.z], fov: 50 }} dpr={[1, 1.5]} fallback={<Preview />}>
+          <Canvas camera={{ position: [position.current.x, CAMERA.y, position.current.z + CAMERA.z], fov: 50 }} dpr={dpr} fallback={<Preview />}>
             <ContextMonitor onLost={loseContext} />
             <WorldScene world={world} layout={layout} revealed={revealed} ended={ended} position={position} input={input}
-              playerGroup={playerGroup} hud={hud} onTarget={setTarget} paused={paused}
+              playerGroup={playerGroup} hud={hud} compass={compass} onTarget={setTarget} paused={paused}
               conversationOpen={conversationOpen} audio={audio} />
           </Canvas>
           <p className="walk-prompt" role="status">{conversationOpen
             ? (ended ? 'The memory is complete.' : 'Choose how to reply.')
             : describeTarget(target, world, revealed, artifactLabels)}</p>
+          <div className="walk-compass" ref={compass} hidden aria-hidden="true"><span className="walk-compass-needle" /><span /></div>
           <div className="walk-pad" aria-label="Touch movement controls">
             {pad('up', 'Walk forward', '▲', { x: 0, z: -1 })}
             {pad('left', 'Walk left', '◀', { x: -1, z: 0 })}
@@ -376,7 +403,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
           <button type="button" className="walk-interact" disabled={!canInteract || paused} onClick={interact}>Interact</button>
         </div>
         <div className="stage-toolbar">
-          <span>WASD or arrow keys to walk · E to interact · Esc to pause</span>
+          <span>WASD or arrow keys to walk, Shift to run, E to interact, Esc to pause</span>
           <button type="button" disabled={paused} onClick={() => { position.current = layout.spawn; }}>Reset position</button>
         </div>
       </StageBoundary>

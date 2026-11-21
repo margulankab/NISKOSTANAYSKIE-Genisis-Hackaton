@@ -1,5 +1,29 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Song of the day, larger worlds and interface atmospheres — 2026-11-21
+
+Implemented on `claude/keen-bell-fkqitv` over `dedf7ad`. Saved worlds and day bundles from earlier builds stay valid, because every new field is optional or defaulted.
+
+**B · Song of the day (music apps).** [`src/music/song.ts`](src/music/song.ts) recognizes links from Spotify, Apple Music, YouTube Music, YouTube, Yandex Music, SoundCloud, Deezer, TIDAL, Bandcamp and VK. It accepts exact hosts only, over HTTPS without credentials or ports, at most 300 characters. It removes sharing codes (`si`, `utm_*`, `feature` …) before saving. The player can also describe the song (artist, title, style, year) and tap its tempo; `bpmFromTaps` takes the median of the latest run of at least four taps. A validated `song` (Zod, `songSchema`) is stored as:
+
+- `PromptWorld.song` (optional) in IndexedDB worlds;
+- `DayBundle.song` (optional) in IndexedDB days, included in the duplicate-import fingerprint, and exported as `song.json` in the day ZIP (8 KiB import limit).
+
+The app never embeds a third-party player, downloads a track or calls a music service. **Open in …** / **Find in …** links open the player's own app on click. This follows AGENTS.md and the Spotify policy note: in-game playback stays with the cleared catalog or an authorized upload.
+
+**C · How the song shapes the world.** `songCues` maps style, tempo and year to the catalog's mood and energy tags with readable reasons. For example, jazz suggests nostalgic and gentle, 72 BPM is slow, and a year before 1995 reads as nostalgic. `promptSoundtrack` now selects from the song's cues plus the setting first, and falls back to the world's generic cues only if nothing matches. Two original compositions, *Warm Tape* and *Night Drive*, widen the catalog to five. Parks add a `park` setting cue, and night scenes add `night`. In the 3D view, lanterns and the ambient light pulse on the song's half-time beat, scaled by its energy, unless motion is reduced.
+
+**A + C · Larger outdoor worlds.** [`extendOutdoorLayout`](src/world/extend-world.ts) runs in `composeSceneTemplate` before `addRouteDressing`:
+
+- **Land added:** 8 m on each side, 12 m in front and 6 m behind every outdoor composed scene. Typical bounds grow from about 17 × 18 m to 35 × 36 m. Interior and mixed indoor scenes keep their composed size.
+- **Untouched:** placements, attachments (pier to shore, boat beside pier) and approaches stay exactly where the composer put them. Saved placements still match the accepted scene plan.
+- **Extended:** water rectangles grow to the new edge on their side. Water parks get four walkable `drySurfaces` margins. The spawn moves outward, so the walkways the route code generates now begin with an approach to the entrance.
+- **Scenery:** ground-detail density scales with area (88 to 240 instances), and side tree lines frame wider worlds. Fog distances increased for every atmosphere.
+- **Movement:** Shift runs at 1.75× speed (`RUN_MULTIPLIER`).
+- **Compass:** the HUD compass points to the next unfound discovery, then to the ending, with its distance in metres. It is updated from the render loop without React state.
+
+**Interface atmospheres.** Settings gained `theme` (`auto`, `genesis`, `nebula`, `daylight`, `fog`) and `pixel` (default on), both with defaults so older settings still parse. `applyAppearance` writes `data-ui`, `data-motion` and `data-pixel` on `<html>` before the first render. While a world is open, `setWorldAtmosphere` passes it an atmosphere from the world's time of day and weather. With the pixel filter on, 3D canvases render at DPR 0.5 and are scaled up with `image-rendering: pixelated`. See [docs/design_system.md](docs/design_system.md).
+
 ## Composed scene layouts and catalog
 
 Both prompt actions preserve the exact source and use [the scene composer](src/world/compose-scene-template.ts). The private path generates intent from local evidence and selects compatible catalog entries. The optional fictional loopback endpoint asks Gemini for an intent and then a template from a shortlist of up to 48 asset IDs. The gateway and the browser check references, source evidence, supported surfaces, exclusions, meaningful anchors and an actual walking route. One corrective template request shares the 20-second model budget. Story text is authored locally around the resulting discoveries and landmark.

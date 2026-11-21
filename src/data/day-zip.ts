@@ -30,7 +30,7 @@ function metadata({ id, filename, mime }: AssetMetadata) {
 }
 
 export async function exportBundle(bundle: DayBundle): Promise<Blob> {
-  const { manifest, entryText, photos, audio, rights, thumbnail, world } = dayBundleSchema.parse(bundle);
+  const { manifest, entryText, photos, audio, rights, thumbnail, world, song } = dayBundleSchema.parse(bundle);
   const root = `${manifest.title}/`;
   const entry = textEncoder.encode(entryText);
   if (textDecoder.decode(entry) !== entryText) throw new Error('The entry contains text that cannot be written to the ZIP.');
@@ -42,6 +42,7 @@ export async function exportBundle(bundle: DayBundle): Promise<Blob> {
     })),
   };
   if (world) files[`${root}world.json`] = textEncoder.encode(JSON.stringify(world));
+  if (song) files[`${root}song.json`] = textEncoder.encode(JSON.stringify(song));
   for (const asset of [...photos, audio]) {
     const path = root + assetPath(asset);
     if (Object.hasOwn(files, path)) throw new Error('This memory contains conflicting asset paths.');
@@ -66,7 +67,7 @@ export async function importBundle(zip: Blob): Promise<DayBundle> {
     }
     title = root;
     const member = path.slice(slash + 1);
-    const isMetadata = ['', 'manifest.json', 'entry.txt', 'credits.json', 'world.json', 'preview.png', 'photos/', 'audio/'].includes(member);
+    const isMetadata = ['', 'manifest.json', 'entry.txt', 'credits.json', 'world.json', 'song.json', 'preview.png', 'photos/', 'audio/'].includes(member);
     const isMedia = /^(?:photos\/[\da-f-]{36}\.(?:jpg|png|webp)|audio\/[\da-f-]{36}\.(?:mp3|wav))$/i.test(member);
     if (!isMetadata && !isMedia) throw new Error('This ZIP contains an unexpected path.');
   });
@@ -113,9 +114,10 @@ export async function importBundle(zip: Blob): Promise<DayBundle> {
   const thumbnail = entries.has(`${title}/preview.png`)
     ? new Blob([take('preview.png')], { type: 'image/png' }) : undefined;
   const world = entries.has(`${title}/world.json`) ? readJson('world.json', 128 * 1024) : undefined;
+  const song = entries.has(`${title}/song.json`) ? readJson('song.json', 8 * 1024) : undefined;
   if (entries.size) throw new Error('This ZIP contains files that do not belong to the memory.');
 
-  const bundle = dayBundleSchema.safeParse({ manifest: manifest.data, entryText, photos, audio, rights: credits.data.rights, thumbnail, ...(world !== undefined && { world }) });
+  const bundle = dayBundleSchema.safeParse({ manifest: manifest.data, entryText, photos, audio, rights: credits.data.rights, thumbnail, ...(world !== undefined && { world }), ...(song !== undefined && { song }) });
   if (!bundle.success) throw new Error('This ZIP contains invalid memory data or asset references.');
   try {
     for (const photo of photos) await inspectPhoto(photo.blob);

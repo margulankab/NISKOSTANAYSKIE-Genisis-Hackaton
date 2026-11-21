@@ -73,7 +73,7 @@ export function Archive() {
   }
 
   return (
-    <section className="intake archive">
+    <section className="intake archive" data-win="archive.exe">
       <h1>Archive</h1>
       <p>Memories are stored in this browser. Export a ZIP to keep a portable copy.</p>
       <form className="archive-import" onSubmit={upload} aria-busy={importing}>

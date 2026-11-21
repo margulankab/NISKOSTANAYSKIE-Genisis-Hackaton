@@ -10,6 +10,8 @@ import { PROMPT_MAX, promptLength, promptSchema } from './layout-schema';
 import { promptSoundtrack } from './prompt-soundtrack';
 import { recipes } from './recipes';
 import type { PromptWorld } from './world-schema';
+import { SongOfTheDay } from '../music/SongOfTheDay';
+import type { Song } from '../music/song';
 
 const ignoreAudio = () => {};
 const EXAMPLE = 'At dusk I met Mira by a lighthouse in a foggy cove. A red rowboat was beside the pier and a lantern was on the shore.';
@@ -25,6 +27,7 @@ export function NewPromptGame() {
   const [fictional, setFictional] = useState(false);
   const [phase, setPhase] = useState<'planning' | 'building' | null>(null);
   const [failed, setFailed] = useState<{ story: boolean; reason: string } | null>(null);
+  const [song, setSong] = useState<Song | null>(null);
   useEffect(() => () => active.current?.abort(), []);
 
   if (playing && soundtrack) return <GameSession world={playing} initial={null} initialSoundtrack={soundtrack} />;
@@ -73,7 +76,8 @@ export function NewPromptGame() {
       if (controller.signal.aborted) return;
       const built = composeSceneTemplate(prompt, { id: crypto.randomUUID(), plan, processing: useGemini ? 'gemini' : 'private' });
       if (useGemini && !built.ok) throw new Error(built.reason);
-      const next = story ? withMemoryStory(built) : built;
+      const storied = story ? withMemoryStory(built) : built;
+      const next = storied.ok && song ? { ...storied, world: { ...storied.world, song } } : storied;
       setResult(next);
       if (next.ok) setSoundtrack(promptSoundtrack(next.world));
     } catch (error) {
@@ -92,7 +96,7 @@ export function NewPromptGame() {
   const scene = result?.ok ? result.world.scene : null;
   const features = result?.ok ? [...new Set(result.world.layout.placements.map(({ recipe }) => recipes[recipe].label))] : [];
   return (
-    <section className="intake prompt-game">
+    <section className="intake prompt-game" data-win="prompt_world.exe">
       <h1>New game from a prompt</h1>
       <p>Describe a place to explore. Build a memory to meet a fictional character after two discoveries, or build a world to end your walk at a landmark.</p>
       <form onSubmit={event => {
@@ -113,6 +117,7 @@ export function NewPromptGame() {
             Send this fictional prompt to Google Gemini. Use invented details only.
           </label>
         )}
+        <SongOfTheDay value={song} onChange={value => { clear(); setSong(value); }} />
         <p className="field-hint">Processing · {fictional ? 'Gemini scene planner' : 'Private on this device'}</p>
         <div className="prompt-actions">
           <button type="submit" disabled={Boolean(phase)}>Build memory</button>

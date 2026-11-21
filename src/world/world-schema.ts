@@ -6,6 +6,7 @@ import { checkWorldLayout, interpretationSchema, promptSchema, worldLayoutSchema
 import { memoryStorySchema } from './memory-story-schema';
 import { scenePlanProblems, scenePlanSchema, sceneTemplateSchema } from './scene-template-schema';
 import { sceneCandidates } from './local-scene-plan';
+import { songSchema } from '../music/song';
 
 export { colorNames, relationKinds, PROMPT_MAX, promptSchema, placementById, toWalkLayout } from './layout-schema';
 export type { Interpretation, Placement, Term, WorldLayout } from './layout-schema';
@@ -41,6 +42,8 @@ export const promptWorldSchema = z.strictObject({
   layout: worldLayoutSchema,
   soundtrack: soundtrackSchema.nullable(),
   story: memoryStorySchema.optional(),
+  /** The player's song of the day: a music-app link and/or description. Optional, so older saves stay valid. */
+  song: songSchema.optional(),
   scene: z.strictObject({ processing: z.enum(['private', 'gemini']), plan: scenePlanSchema, coverage: sceneTemplateSchema.shape.coverage }).optional(),
 }).superRefine(({ prompt, interpretation, layout, versions, scene }, ctx) => {
   if ((layout.geometryVersion ?? 1) !== versions.layout || versions.layout !== versions.catalog

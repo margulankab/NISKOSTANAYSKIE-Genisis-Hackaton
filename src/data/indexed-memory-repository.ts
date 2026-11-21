@@ -12,7 +12,7 @@ const media = 'media';
 export const worldsStore = 'worlds';
 export const checkpointsStore = 'checkpoints';
 export const dayCheckpointKey = (id: string) => 'day:' + id;
-type StoredDay = Pick<DayBundle, 'manifest' | 'entryText' | 'rights' | 'world'> & { fingerprint: string };
+type StoredDay = Pick<DayBundle, 'manifest' | 'entryText' | 'rights' | 'world' | 'song'> & { fingerprint: string };
 type StoredMedia = Pick<DayBundle, 'photos' | 'audio' | 'thumbnail'>;
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -76,7 +76,7 @@ export async function transact<T>(stores: string[], mode: IDBTransactionMode, op
   }
 }
 
-async function fingerprint({ manifest, entryText, rights, photos, audio, thumbnail, world }: DayBundle) {
+async function fingerprint({ manifest, entryText, rights, photos, audio, thumbnail, world, song }: DayBundle) {
   async function digest(blob: Blob) {
     const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', await blob.arrayBuffer()));
     return Array.from(hash, (byte) => byte.toString(16).padStart(2, '0')).join('');
@@ -87,16 +87,16 @@ async function fingerprint({ manifest, entryText, rights, photos, audio, thumbna
   }
   const preview = thumbnail ? await digest(thumbnail) : null;
   // JSON keys come from the validated schema. Preserve array order as part of the bundle.
-  return digest(new Blob([JSON.stringify({ manifest, entryText, rights, assets, preview, ...(world && { world }) })]));
+  return digest(new Blob([JSON.stringify({ manifest, entryText, rights, assets, preview, ...(world && { world }), ...(song && { song }) })]));
 }
 
 async function saveDay(bundle: DayBundle, checkpoint?: Checkpoint) {
   const validated = dayBundleSchema.parse(bundle);
-  const { manifest, entryText, rights, photos, audio, thumbnail, world } = validated;
+  const { manifest, entryText, rights, photos, audio, thumbnail, world, song } = validated;
   if (checkpoint && !restoreCheckpoint(dayCheckpointTarget(validated), checkpoint).ok) {
     throw new Error('The checkpoint does not match this day memory.');
   }
-  const day: StoredDay = { manifest, entryText, rights, world, fingerprint: await fingerprint(validated) };
+  const day: StoredDay = { manifest, entryText, rights, world, ...(song && { song }), fingerprint: await fingerprint(validated) };
   const assets: StoredMedia = { photos, audio, thumbnail };
   await transact(checkpoint ? [days, media, checkpointsStore] : [days, media], 'readwrite', async (tx) => {
     const table = tx.objectStore(days);
@@ -118,8 +118,8 @@ async function load(id: string): Promise<DayBundle | undefined> {
     Promise.all([resultOf(tx.objectStore(days).get(id)), resultOf(tx.objectStore(media).get(id))]));
   if (!day && !assets) return undefined;
   if (!day || !assets) throw new Error('This stored memory is missing its day or media records.');
-  const { manifest, entryText, rights, world } = day;
-  return dayBundleSchema.parse({ manifest, entryText, rights, ...(world && { world }), ...assets });
+  const { manifest, entryText, rights, world, song } = day;
+  return dayBundleSchema.parse({ manifest, entryText, rights, ...(world && { world }), ...(song && { song }), ...assets });
 }
 
 export const localMemories: MemoryRepository = {

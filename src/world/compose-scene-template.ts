@@ -1,6 +1,7 @@
 import { catalogById, SCENE_CATALOG_VERSION } from './catalog';
 import { addRouteDressing, composeGrounds, signatureProblems } from './compose-grounds';
 import { clauseAround, composeLayout, seedFromPrompt, titleFromPrompt } from './compose-world';
+import { extendOutdoorLayout } from './extend-world';
 import type { ComposeResult } from './compose-world';
 import { promptSchema } from './layout-schema';
 import type { Interpretation, Term, WorldLayout } from './layout-schema';
@@ -122,7 +123,8 @@ export function composeSceneTemplate(prompt: string, { id, plan: input, processi
         surfaces: template.groups.map(group => template.zones[group.zone].surface),
       });
     if (typeof composed === 'string') { lastProblem = composed; continue; }
-    const layout = addRouteDressing({ ...composed, geometryVersion: 3, profile });
+    // Outdoor scenes get open land around the composed core; walkways are then routed from the new spawn.
+    const layout = addRouteDressing(extendOutdoorLayout({ ...composed, geometryVersion: 3, profile }));
     if (typeof layout === 'string') { lastProblem = layout; continue; }
     const placed = template.groups.map((_, index) => layout.placements.filter(placement => placement.term === index).length);
     const coverage = template.coverage.map(item => {

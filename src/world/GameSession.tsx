@@ -13,6 +13,9 @@ import { WorldStage, labelFor } from './WorldStage';
 import type { PromptWorld } from './world-schema';
 import type { StoryStep } from './memory-story-schema';
 import { prefersReducedMotion, subscribeToReducedMotion } from '../scene/reduced-motion';
+import { SongCard } from '../music/SongOfTheDay';
+import { songCues } from '../music/song';
+import { atmosphereFor, setWorldAtmosphere } from '../menus/settings';
 
 /** One play session of a prompt world: walking, discoveries, ending, pause menu and saving. */
 export function GameSession({ world, initial, initialSoundtrack, repository = localGames, leave = () => window.location.assign('/') }: {
@@ -43,6 +46,12 @@ export function GameSession({ world, initial, initialSoundtrack, repository = lo
   });
   const { paused } = menu;
   const music = soundtrack.record.kind === 'silent' ? undefined : soundtrack.record.music;
+  const songTempo = world.song ? songCues(world.song) : null;
+  // Auto atmosphere: the interface takes on this world's time of day and weather while it is open.
+  useEffect(() => {
+    setWorldAtmosphere(atmosphereFor(world.interpretation));
+    return () => setWorldAtmosphere(null);
+  }, [world.interpretation]);
   const discoveries = world.layout.discoveries;
   const latestDiscovery = [...revealed].at(-1);
   const discoveryNotes = story && [story.firstDiscovery, story.secondDiscovery];
@@ -114,11 +123,12 @@ export function GameSession({ world, initial, initialSoundtrack, repository = lo
         )}
         <div key={visit} className={story && !reducedMotion ? `story-stage${ended ? ' story-stage-ended' : ''}` : undefined}>
           <WorldStage world={world} revealed={revealed} ended={ended} position={position} paused={paused || !!storyStep}
-            conversationOpen={!!storyStep} audio={{ activeAudio, music }} onReveal={reveal} onFinish={finish} onUnavailable={useStatic} />
+            conversationOpen={!!storyStep} audio={{ activeAudio, music, ...(songTempo && { songPulse: { bpm: songTempo.tempo, energy: songTempo.energyLevel } }) }} onReveal={reveal} onFinish={finish} onUnavailable={useStatic} />
         </div>
         <div className="memory-actions">
           <p role="status">{revealed.size} of 2 discoveries found</p>
         </div>
+        {world.song && <SongCard song={world.song} />}
         <WorldSoundtrack value={soundtrack} onChange={changeTrack} onActiveAudio={setActiveAudio} paused={paused}
           mute={{ value: soundtrack.muted, onChange: (muted) => setSoundtrack((previous) => ({ ...previous, muted })) }} />
         <div className="artifact-grid">

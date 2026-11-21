@@ -1,4 +1,7 @@
-import { useCallback, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { SongCard } from '../music/SongOfTheDay';
+import { songCues } from '../music/song';
+import { atmosphereFor, setWorldAtmosphere } from '../menus/settings';
 import type { MemoryScene } from '../shared/memory-schema';
 import type { MemoryViewerProps } from '../shared/memory-viewer';
 import { createWalkLayout } from '../gameplay/layout';
@@ -58,7 +61,12 @@ export function MemoryViewer(props: ViewerProps) {
   return <MemoryOpening key={props.manifest.id} {...props} />;
 }
 
-function MemoryOpening({ manifest, entryText, world, resolveAsset, onComplete, game }: ViewerProps) {
+function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onComplete, game }: ViewerProps) {
+  const songTempo = song ? songCues(song) : null;
+  useEffect(() => {
+    setWorldAtmosphere(atmosphereFor({ timeOfDay: manifest.context.timeOfDay }));
+    return () => setWorldAtmosphere(null);
+  }, [manifest.context.timeOfDay]);
   const headingId = useId();
   const artifactGroupId = useId();
   const [revealed, setRevealed] = useState<ReadonlySet<string>>(() => game?.initial?.revealed ?? new Set());
@@ -107,6 +115,7 @@ function MemoryOpening({ manifest, entryText, world, resolveAsset, onComplete, g
           <h2 id={headingId}>{manifest.title}</h2>
           {game && <button type="button" ref={pause.pauseButton} onClick={pause.open}>Pause</button>}
         </header>
+        {song && <SongCard song={song} />}
         {staticMode && (
           <p className="static-note" role="status">Static preview — the 3D world is unavailable here. Reveal each object from the list below.</p>
         )}
@@ -117,7 +126,8 @@ function MemoryOpening({ manifest, entryText, world, resolveAsset, onComplete, g
               .map(({ placementId }) => placementId))}
             audio={{ activeAudio, music: manifest.music, ambientScale: style.ambientIntensity,
               lightColor: `rgb(${style.accentPalette[0].join(',')})`, detailColor: `rgb(${style.accentPalette[1].join(',')})`,
-              photoUrl: firstPhoto.status === 'ready' ? firstPhoto.url : undefined }}
+              photoUrl: firstPhoto.status === 'ready' ? firstPhoto.url : undefined,
+              ...(songTempo && { songPulse: { bpm: songTempo.tempo, energy: songTempo.energyLevel } }) }}
             onReveal={(id) => {
               const index = world.layout.discoveries.findIndex(({ placementId }) => placementId === id);
               reveal(manifest.artifacts[index].id);

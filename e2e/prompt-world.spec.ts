@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { captureScene } from './scene-capture';
-import { playerAt, settledShot, walkToGoal } from './walk';
+import { playerAt, settledShot, targets, walkToGoal } from './walk';
 import { startPromptGame } from './world-walk';
 
 const lighthouse = 'A lighthouse above a foggy cove with a red rowboat beside a pier.';
@@ -248,7 +248,8 @@ test('AT-24: a missing saved soundtrack can be replaced, and a failed update rol
   await expect(page.getByRole('alert')).toContainText('The saved soundtrack is unavailable');
   await expect(track).toHaveValue('lantern-market');
   const position = await playerAt(page);
-  expect(position).toEqual({ x: 0, z: 5.6 });
+  // Outdoor worlds now start further out (larger worlds); the restore must land exactly on this world's spawn.
+  expect(position).toEqual((await targets(page)).spawn);
 
   await track.selectOption('coastal-light');
   await page.getByRole('button', { name: 'Pause', exact: true }).click();

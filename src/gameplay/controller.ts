@@ -1,7 +1,9 @@
 import type { Point, Solid, WalkLayout } from './layout';
 
 export const PLAYER_SPEED = 3.2;
-export interface Input { x: number; z: number }
+/** Holding Shift covers the larger outdoor worlds faster. */
+export const RUN_MULTIPLIER = 1.75;
+export interface Input { x: number; z: number; run?: boolean }
 
 function clampBounds({ x, z }: Point, { bounds, playerRadius: r }: WalkLayout): Point {
   return {
@@ -34,7 +36,7 @@ export function blocked(p: Point, layout: WalkLayout) {
 export function stepPlayer(position: Point, input: Input, dt: number, layout: WalkLayout): Point {
   const length = Math.hypot(input.x, input.z);
   if (length === 0 || dt <= 0) return position;
-  const step = PLAYER_SPEED * Math.min(dt, 0.1) / Math.max(length, 1);
+  const step = PLAYER_SPEED * (input.run ? RUN_MULTIPLIER : 1) * Math.min(dt, 0.1) / Math.max(length, 1);
   let next = position;
   const tryMove = (candidate: Point) => {
     const bounded = clampBounds(candidate, layout);

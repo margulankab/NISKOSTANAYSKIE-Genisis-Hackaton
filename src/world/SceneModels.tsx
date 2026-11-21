@@ -95,7 +95,9 @@ export function GroundsDressing({ layout, excluded = [], tint }: { layout: World
     const rand = seededRandom(Math.round((layout.placements[0]?.x ?? 0) * 5000 + layout.bounds.minZ * 100) ^ 0x6cc813);
     const { bounds, paths = [], drySurfaces, water, indoor } = layout;
     const result: Placement[] = [];
-    const target = layout.profile === 'interior' ? 22 : 88;
+    // Density follows area, so extended worlds are as lush as the composed core (capped for frame time).
+    const area = (bounds.maxX - bounds.minX) * (bounds.maxZ - bounds.minZ);
+    const target = layout.profile === 'interior' ? 22 : Math.round(Math.min(240, Math.max(88, 88 * area / 312)));
     for (let i = 0; i < target * 9 && result.length < target; i++) {
       const point = { x: bounds.minX + rand() * (bounds.maxX - bounds.minX), z: bounds.minZ + rand() * (bounds.maxZ - bounds.minZ) };
       const inside = (area: typeof bounds) => point.x >= area.minX && point.x <= area.maxX && point.z >= area.minZ && point.z <= area.maxZ;
@@ -116,6 +118,16 @@ export function GroundsDressing({ layout, excluded = [], tint }: { layout: World
         const x = bounds.minX - 4 + i * (bounds.maxX - bounds.minX + 8) / 18;
         result.push({ x, z: bounds.minZ - 1.6 - rand() * 5, id: `horizon-${i}`, recipe: allowed[i % allowed.length], y: -.13,
           rotation: (rand() - .5) * .6, scale: 1 + rand() * 1.2, term: null, color: null });
+      }
+      // Side edges of larger worlds get their own tree line, skipping any shore.
+      const sideRows = Math.round((bounds.maxZ - bounds.minZ) / 2.6);
+      for (const [side, edge] of [[-1, bounds.minX], [1, bounds.maxX]] as const) {
+        if (water && (side > 0 ? water.maxX >= bounds.maxX : water.minX <= bounds.minX)) continue;
+        for (let i = 0; i < sideRows && allowed.length && bounds.maxX - bounds.minX > 24; i++) {
+          result.push({ x: edge + side * (1.4 + rand() * 4), z: bounds.minZ + i * (bounds.maxZ - bounds.minZ) / sideRows,
+            id: `edge-${side}-${i}`, recipe: allowed[(i + (side > 0 ? 1 : 0)) % allowed.length], y: -.13,
+            rotation: (rand() - .5) * .6, scale: .9 + rand() * 1.1, term: null, color: null });
+        }
       }
     }
     return result;

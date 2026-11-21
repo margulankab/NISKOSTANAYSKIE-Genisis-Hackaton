@@ -8,6 +8,8 @@ import { NewGameMenu } from './menus/NewGameMenu';
 import { SettingsMenu } from './menus/SettingsMenu';
 import { TitleMenu } from './menus/TitleMenu';
 import { installVolumeSetting } from './menus/settings';
+import { StatusBar } from './chrome/StatusBar';
+import { ViewSwitch } from './chrome/ViewSwitch';
 import { NewPromptGame } from './world/NewPromptGame';
 import { SavedGame } from './world/SavedGame';
 import { MemoryViewer } from './scene/MemoryViewer';
@@ -41,8 +43,9 @@ export function App() {
 
   return (
     <main className="shell">
+      <StatusBar />
       <header className="masthead">
-        <span className="wordmark">Memory Worlds</span>
+        <span className="wordmark">Memory_Worlds<b>.exe</b></span>
         <nav className="site-nav" aria-label="Main">
           <a href="/" aria-current={path === '/' ? 'page' : undefined}>Main menu</a>
           <a href="/examples" aria-current={path === '/examples' ? 'page' : undefined}>Examples</a>
@@ -50,6 +53,7 @@ export function App() {
           <a href="/create" aria-current={path === '/create' ? 'page' : undefined}>Create a memory</a>
           <a href="/archive" aria-current={path === '/archive' ? 'page' : undefined}>Archive</a>
         </nav>
+        <ViewSwitch />
       </header>
       {memoryPath ? <SavedMemory key={memoryPath[1]} id={memoryPath[1]} />
         : playPath ? <SavedGame key={playPath[1]} id={playPath[1]} />

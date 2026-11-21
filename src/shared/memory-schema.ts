@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { checkWorldLayout, dayWorldSchema, PROMPT_MAX } from '../world/layout-schema';
+import { songSchema } from '../music/song';
 
 const id = z.uuid();
 const fraction = z.number().min(0).max(1);
@@ -214,6 +215,8 @@ export const dayBundleSchema = z.strictObject({
   manifest: memorySceneSchema,
   entryText: entryTextSchema,
   world: dayWorldSchema.optional(),
+  /** Optional song-of-the-day link and description, stored beside the authorized audio excerpt. */
+  song: songSchema.optional(),
   photos: z.array(photoMedia).min(1).max(3),
   audio: audioMedia,
   rights: z.array(z.strictObject({

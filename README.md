@@ -15,6 +15,12 @@ npm run dev
 
 Open the local URL printed by Vite to reach the title menu. **New Game → From a prompt** builds a walkable world from a description; press Esc to pause, save, or quit, and use **Continue** or **Load Game** to resume. Choose **Examples** for the fictional memory library. Walk with WASD, the arrow keys, or the touch controls. Approach both objects and press **E** or **Interact** to reveal the illustration and entry excerpt, then interact with the closing landmark. **Play soundtrack** starts the audio and its scene motion. The viewer respects reduced motion. If WebGL is unavailable, the static preview provides artifact, ending, and audio controls.
 
+Outdoor worlds are about four times larger than before: the walk starts on the approach to the scene. Hold **Shift** to run, and follow the compass in the top-right corner to the next discovery and then to the ending.
+
+**Song of the day.** In **From a prompt** and **Create a memory**, paste a link from Spotify, Apple Music, YouTube Music, Yandex Music, SoundCloud, Deezer, TIDAL, Bandcamp or VK. You can add the artist, song, style and year, or press **Tap the beat** while the song plays in your music app. The world picks its cleared in-game score from those details, and lanterns pulse at the song's tempo. **Open in …** takes you back to your app. The link is stored without its sharing code, and nothing is sent to the music service.
+
+**Atmospheres.** Use **◐ View** in the header, or **Settings**, to choose GENESIS, Nebula, Daylight or Fog. With **Auto**, the interface follows the time of day and weather of the world you are in. The pixel filter renders 3D worlds at half resolution for the retro look, and it is also lighter on older devices.
+
 Choose **World preview** to orbit the foggy cove or covered night market and try the local soundtracks. Use the landmark buttons to inspect the route and **Overview** to reset the camera. Track choices and mute carry through world switches until you leave the page. These curated examples preview content for the planned prompt-generated game.
 
 Choose **Create a memory** to validate a date, journal entry, photos, and an authorized audio excerpt. Select **Generate memory** to open the generated scene. Generation runs in the browser and works offline after the app loads. Use **Save to archive** to keep the memory in this browser. Use **Export ZIP** and **Import ZIP** to move a copy to another browser.
