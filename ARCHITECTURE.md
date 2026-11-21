@@ -1,5 +1,54 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Integrated application on main
+
+The fixture library, generation preview, and reopened archive entries use the same [3D viewer](src/scene/MemoryViewer.tsx). IndexedDB and ZIP store and restore the validated bundle, so reopening uses the saved presentation values. Intake and demo analysis share the 16 kHz offline decoder and measure 100 ms RMS after averaging channels to mono. The existing v1 manifest format stays compatible.
+
+The [Egypt development demo](egypt-demo.local/README.md) is a separate Vite page. A standard production build uses the root entry point and excludes that page and its assets.
+
+## MW-007 local archive and ZIP portability — 2026-11-21
+
+`/create` can save the generated bundle or export it directly. `/archive` lists local memories by date and imports a ZIP. `/memory/:id` loads the saved bundle and opens it through `createViewerProps`, with the original media and resolved scene parameters. A memory URL resolves only in a browser profile and origin that holds that ID.
+
+The [IndexedDB repository](src/data/indexed-memory-repository.ts) implements the existing `MemoryRepository` interface. Database `memory-worlds` version 1 uses `days` and `media` stores keyed by the manifest UUID. A successful write commits both records in one transaction. A SHA-256 fingerprint over the validated metadata and media bytes makes a repeated save or import idempotent and rejects different content with the same UUID. A storage error leaves the generated preview and ZIP export available.
+
+The [ZIP codec](src/data/day-zip.ts) writes a standard ZIP rooted at the exact manifest title. `manifest.json` contains the v1 scene, `entry.txt` contains the original UTF-8 journal, and `credits.json` contains `formatVersion: 1`, photo and audio asset IDs, original filenames, MIME types, and per-asset rights. Media uses `photos/<asset-id>.<ext>` and `audio/<asset-id>.<ext>` with lowercase IDs. An optional PNG is stored as `preview.png`. Exports use stored ZIP members. The importer also accepts deflated members, verifies ZIP paths and checksums, and enforces a 41 MiB packed limit, 40 MiB expanded limit, and 20-member limit. It validates the v1 bundle and checks media signatures and decodability before writing either store. fflate 0.8.3 (MIT) supplies encoding and DEFLATE decoding. (MIN-04/05, VIS-08, AT-05/06/07/11)
+
+## MW-004 browser-local generation — 2026-11-21
+
+After intake succeeds, **Generate memory** calls [`generateMemory(draft)`](src/intake/generate-memory.ts) and validates the result with the strict v1 bundle schema. The scene ID is the draft's entry UUID. Two distinct artifact UUIDs derive from it, and the seed derives from the date and original text. Bounded English keywords choose mood, setting, and time. Unmatched categories use mixed, room, or unknown. A draft with no matches records `no-keyword-match` and displays its local fallback status. Titles use words from the entry, or its date when it contains no usable words. The note's UTF-16 offsets point into the original journal text.
+
+[Developer A's photo analyzer](src/media/photo-analysis.ts) measures palette and lightness from each authorized photo. Intake now retains measured music features from its existing offline PCM decode. [Audio analysis](src/media/audio-analysis.ts) takes RMS across channels in 100 ms windows, including the final partial window, and scales it like the fixture tones. The first photo supplies the photo prop and accent palette. `resolvePresentation` combines the source measurements with mood and produces the existing rule records.
+
+`createViewerProps` passes the validated manifest, original text, and local Blob resolver to the preview. Generation needs no service or network call. A failed attempt retains the validated draft and form inputs for retry or replacement. MW-007 consumes the same bundle for durable storage and ZIP portability. The 3D renderer integration remains a separate handoff. (MIN-02/04, USR-02, VIS-04/09, AT-02/05/11)
+
+## MW-003 browser-local intake — 2026-11-21
+
+The fixture library links to `/create`. The form holds the date, original journal text, selected files, and rights confirmation in the current page. The initial date comes from the browser's local calendar. A failed submit keeps the input available for correction.
+
+[`validateDayDraft`](src/intake/validate-day-draft.ts) returns either field errors or a `ValidatedDayDraft` containing `entryId`, `entryText`, `date`, `photos`, `audio`, and `rights`. Photo records have the bundle-compatible Blob, canonical MIME, filename and ID, plus decoded width and height. The audio record has the same base fields with its decoded duration in seconds. The validator assigns IDs for the lifetime of the accepted draft. Each rights record carries the creator's confirmation for its asset.
+
+The validator checks date, original text, counts, file sizes and rights before decoding. Recognized signatures identify canonical MIME for files the browser leaves untyped. Declared types must agree with the signature, with common WAV and MP3 aliases normalized. Photo decoding verifies the 16-megapixel limit. Audio metadata gates an offline decode, which confirms that the audio can be decoded and falls within 1–90 seconds. Temporary image handles and audio object URLs are released after use.
+
+The local draft is the MW-004 generation input (MIN-01, ETH-01/02, VIS-10, AT-01). A's analyzers supply the presentation features and MW-007 handles persistence and ZIP portability.
+
+## MW-000 implemented contract — 2026-11-21
+
+The root Vite/React application serves a development fixture library. B owns the shell, shared contract, fixtures, and future intake and archive. A owns the 3D viewer, scene rules, and media analysis. Where earlier sections describe a server generation path, the November 21 zero-cost amendment governs.
+
+- [Shared contract](src/shared/memory-schema.ts) exports `memorySceneSchema`, `dayBundleSchema`, and the inferred types. The manifest is strict v1 JSON with rules provenance, bounded source measurements, and two distinct artifacts. A bundle includes the original entry, photo/audio Blobs, and per-asset rights records. Validation checks that referenced assets exist and excerpt offsets index the original JavaScript string. Media byte signatures and decoding belong to intake and ZIP import.
+- `presentation.parameters` contains `accentPalette`, `photoLightness`, `lightWarmth`, `motionSpeed`, `pulseGain`, and `artifactSpacing`. `appliedRules` holds `photo-palette`, `music-motion`, and `mood-composition` in that order, with source values, results, and an explanation. `resolvePresentation` applies the documented motion and spacing formulas. The viewer applies `1 + pulseGain * e(t)` at playback time and owns the interpolation and reduced-motion behavior.
+- [Viewer handoff](src/shared/memory-viewer.ts) exports `MemoryViewerProps` and `createViewerProps(bundle, onComplete)`. `MemoryViewer` receives `manifest`, `entryText`, `resolveAsset(id): Promise<Blob>`, and `onComplete(): void`. The resolver rejects missing assets. The consuming view creates and revokes temporary object URLs. Excerpts render with `entryText.slice(start, end)`.
+- [Repository contract](src/data/repository.ts) exposes async `save(bundle): void`, `list(): DaySummary[]`, `load(id): DayBundle | undefined`, `delete(id): void`, `exportDay(id): Blob`, and `importDay(zip): string` as promise results. The fixture adapter implements save/list/load/delete in memory. IndexedDB and ZIP I/O are MW-007.
+- [Fixtures](src/fixtures/memories.ts) are three independently selectable fictional days with original procedural PNGs and four-second PCM tones. Each tone's 100 ms energy envelope is measured from the generated PCM. Fixture palettes use authored image colors. Fixture text and titles are authored examples. They provide integration inputs for USR-03 and AT-02.
+
+## Zero-cost architecture amendment — 2026-11-21
+
+**Selected P0:** a static Vite/React/TypeScript application on Cloudflare Pages Free. All input processing stays in the browser: Zod validation, bounded keyword/context classification, deterministic title construction, photo palette/lightness analysis, audio-energy analysis, scene-rule resolution, IndexedDB persistence, and ZIP export/import. The same input + seed + schema/rules versions produces the same manifest. The title generator selects and sanitizes source-grounded words into the established 3–7-word tone; it never calls an external model.
+
+**Removed from P0:** `POST /api/memories/generate`, `GEMINI_API_KEY`, Pages Functions, Gemini calls, provider retries/quotas, and the $5–$10 cash contingency. No server is required for the submitted prototype. Cloudflare Workers Free remains an optional later seam only if a measured need appears; adding it does not authorize a paid plan. The prior paid-Gemini and function design below is retained as historical planning material and is superseded where it conflicts.
+
+**Cost and privacy result:** expected new service spend is **$0**. Gemini's Free tier is not used for real journal entries because its [published pricing](https://ai.google.dev/gemini-api/docs/pricing) states that free-tier content is used to improve Google products; the paid tier avoids that use but would require billing. Since the case explicitly makes AI optional and requires system-generated rather than AI-generated titles, local rules meet the active requirements without that privacy/cost tradeoff. Free-tier AI may be evaluated only with clearly fictional, non-personal test text in a separate experiment and may not be represented as the P0 path. Cloudflare documents the [Workers Free limits](https://developers.cloudflare.com/workers/platform/limits/) and [Pages static asset behavior](https://developers.cloudflare.com/pages/functions/pricing/); account availability and the actual deployment remain unverified.
 ## Developer A audio analysis and playback motion (MW-006)
 
 - [Audio analysis](src/media/audio-analysis.ts) exports browser-only `analyzeAudio(blob): Promise<MemoryScene['music']>` (MIN-03, AT-03/04). Call it from MW-004 with the WAV or MP3 Blob returned by validated intake. An offline decoder produces 16 kHz PCM. The analyzer averages channels to mono and measures `min(1, 4 × RMS)` in each 100 ms window, including the final partial window. The mean is the arithmetic average of the envelope. Duration is bounded to 1–90 seconds. Decode and analysis failures reject so the caller can preserve the draft and report the failing audio. BPM and key remain null. [Web Audio API](https://www.w3.org/TR/webaudio-1.0/)

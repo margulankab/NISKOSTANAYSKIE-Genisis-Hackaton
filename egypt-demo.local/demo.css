@@ -1,0 +1,22 @@
+body { background: #17211d; color: #f0eddf; }
+.egypt-demo { padding-bottom: 3rem; }
+.egypt-demo .masthead { border-color: #50604e; }
+.demo-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 64px);
+  padding: 38px 0 42px;
+}
+.demo-intro h1 {
+  margin: 0;
+  font: 400 clamp(2.35rem, 5vw, 4.2rem)/1.02 Georgia, serif;
+  text-wrap: balance;
+}
+.demo-intro p { margin: 1.2rem 0 0; line-height: 1.65; max-width: 32ch; color: #dadac8; }
+.demo-intro img { display: block; width: 100%; height: auto; border-radius: 8px; }
+.egypt-demo article.preview > header > time { display: none; }
+.egypt-demo article.preview > header > h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); }
+@media (max-width: 640px) {
+  .demo-intro { grid-template-columns: 1fr; padding: 28px 0; }
+}

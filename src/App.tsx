@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Archive, SavedMemory } from './data/Archive';
 import { createInMemoryStore } from './data/repository';
 import { fixtures, loadFixture } from './fixtures/memories';
+import { CreateMemoryForm } from './intake/CreateMemoryForm';
 import { MemoryViewer } from './scene/MemoryViewer';
 import { createViewerProps } from './shared/memory-viewer';
 import type { MemoryViewerProps } from './shared/memory-viewer';
@@ -12,31 +14,46 @@ type FixtureState =
 const store = createInMemoryStore();
 
 export function App() {
-  const [selected, setSelected] = useState(fixtures[0]);
+  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  const memoryPath = path.match(/^\/memory\/([^/]+)$/);
 
   return (
     <main className="shell">
       <header className="masthead">
         <span className="wordmark">Memory Worlds</span>
-        <span className="collection">Fictional test memories</span>
-      </header>
-      <div className="layout">
-        <nav aria-label="Test memories" className="memory-index">
-          <h1>Fixture library</h1>
-          <ul>
-            {fixtures.map((fixture) => (
-              <li key={fixture.slug}>
-                <button type="button" aria-pressed={fixture === selected} onClick={() => setSelected(fixture)}>
-                  <span className="memory-context">{fixture.mood.primary} · {fixture.context.environment}</span>
-                  <span>{fixture.title}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+        <nav className="site-nav" aria-label="Main">
+          <a href="/" aria-current={path === '/' ? 'page' : undefined}>Fixture library</a>
+          <a href="/create" aria-current={path === '/create' ? 'page' : undefined}>Create a memory</a>
+          <a href="/archive" aria-current={path === '/archive' ? 'page' : undefined}>Archive</a>
         </nav>
-        <FixturePanel key={selected.slug} fixture={selected} />
-      </div>
+      </header>
+      {path === '/create' ? <CreateMemoryForm /> : path === '/archive' ? <Archive />
+        : memoryPath ? <SavedMemory key={memoryPath[1]} id={memoryPath[1]} /> : <FixtureLibrary />}
     </main>
+  );
+}
+
+function FixtureLibrary() {
+  const [selected, setSelected] = useState(fixtures[0]);
+
+  return (
+    <div className="layout">
+      <nav aria-label="Test memories" className="memory-index">
+        <h1>Fixture library</h1>
+        <p className="collection">Fictional test memories</p>
+        <ul>
+          {fixtures.map((fixture) => (
+            <li key={fixture.slug}>
+              <button type="button" aria-pressed={fixture === selected} onClick={() => setSelected(fixture)}>
+                <span className="memory-context">{fixture.mood.primary} · {fixture.context.environment}</span>
+                <span>{fixture.title}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <FixturePanel key={selected.slug} fixture={selected} />
+    </div>
   );
 }
 

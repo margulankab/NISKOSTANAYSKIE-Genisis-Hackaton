@@ -1,5 +1,11 @@
 # Memory Worlds — project-plan review (amended 2026-11-20)
 
+## Zero-cost amendment — 2026-11-21
+
+The active delivery plan now selects browser-local deterministic generation and static Cloudflare Pages Free hosting. Paid Gemini, Gemini prepayment, and a Workers subscription are no longer P0 dependencies or budget items. Expected new service cash is **$0**. The organizer brief makes AI optional; input-dependent local rules still generate the required meaningful 3–7-word folder titles. The prior $5–$10 comparison below is retained as historical research, not the current selection.
+
+Do not send real journal content to Gemini's Free tier: Google's [published pricing](https://ai.google.dev/gemini-api/docs/pricing) identifies free-tier content as usable to improve its products. Any later AI experiment is isolated to fictional/non-personal data unless the team separately approves suitable privacy terms and billing. No purchase or billing activation is authorized by this plan.
+
 **Verified:** the source brief and all historical content below were read in full. **Assumed / active:** [docs/game_development_plan.md](../game_development_plan.md) replaces the historical plan as the delivery schedule after this audit. Original content is preserved, including the old November 19 preparation stage and four-role proposal; those are not current commitments. Trace: all [case requirements](../00_case_requirements.md), particularly EVAL-01–05 and USR-03/06.
 
 ## Research findings

@@ -1,15 +1,17 @@
 # Memory Worlds — researched planning package
 
-## Run the playable fixture library
+## Run the prototype
 
-Use Node.js 20.19+ on the 20.x line or Node.js 22.12 or later. This worktree was verified with Node.js 24.17.0.
+Use Node.js 20.19+ on the 20.x line or Node.js 22.12 or later. This project was verified with Node.js 24.17.0.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite. Choose a fictional memory from the library, drag to orbit, and scroll or pinch to zoom. Select the two numbered objects or use the artifact buttons to reveal the illustration and an excerpt from the entry. Once both are open, choose **Finish memory**. **Play soundtrack** starts the fixture audio and its scene motion. The viewer respects your reduced-motion preference. If WebGL is unavailable, the labeled static preview preserves the artifact and audio controls.
+Open the local URL printed by Vite. Choose a fictional memory from the library, drag to orbit, and scroll or pinch to zoom. Select both numbered objects or use the artifact buttons to reveal the illustration and entry excerpt. Then choose **Finish memory**. **Play soundtrack** starts the audio and its scene motion. The viewer respects reduced motion. The static preview keeps the artifact and audio controls available if WebGL is unavailable.
+
+Choose **Create a memory** to validate a date, journal entry, photos, and an authorized audio excerpt. Select **Generate memory** to open the generated scene. Generation runs in the browser and works offline after the app loads. Use **Save to archive** to keep the memory in this browser. Use **Export ZIP** and **Import ZIP** to move a copy to another browser.
 
 ```powershell
 npm run typecheck
@@ -19,7 +21,15 @@ $env:PLAYWRIGHT_CHANNEL = 'msedge'
 npm run test:browser
 ```
 
-The build writes static output to `dist/`. The browser command uses an installed Microsoft Edge. See the [viewer handoff](ARCHITECTURE.md#developer-a-viewer-handoff--2026-11-21), [milestone checks](PROGRESS.md), and [3D dependency licenses](public/3d-licenses.txt).
+The build writes static output to `dist/`. The browser tests use an installed Microsoft Edge. See the [architecture](ARCHITECTURE.md), [milestone checks](PROGRESS.md), and [3D dependency licenses](public/3d-licenses.txt).
+
+The [Egypt demo](egypt-demo.local/README.md) runs as a separate development preview. The production build uses the main application entry point.
+
+## Zero-cost decision — 2026-11-21
+
+The active P0 plan now expects **$0 in new service spend**: static Cloudflare Pages Free hosting, deterministic browser-local generation, IndexedDB/ZIP storage, local media analysis, open-source libraries/tests, authorized free or owned media, and OBS. Paid Gemini, Gemini prepayment, Pages Functions, Workers Paid, Supabase Pro, paid TTS, and purchased assets are not P0 dependencies. The older paid-model estimates below are retained as historical research and are superseded where they conflict.
+
+Real journal content will not be sent to Gemini's Free tier because its [published pricing](https://ai.google.dev/gemini-api/docs/pricing) states that free-tier content may be used to improve Google products. The organizer brief makes AI optional, so local input-dependent rules produce the required 3–7-word system titles without a privacy or billing tradeoff.
 
 ## Planning baseline
 

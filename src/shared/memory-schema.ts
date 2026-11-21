@@ -13,6 +13,11 @@ export const entryTextSchema = z.string().max(6000).refine(
   (text) => text.trim().length >= 20,
   'Enter at least 20 characters about the day.',
 );
+export const entryDateSchema = z.iso.date();
+export const PHOTO_BYTES_LIMIT = 5 * 1024 ** 2;
+export const PHOTO_PIXELS_LIMIT = 16_000_000;
+export const AUDIO_BYTES_LIMIT = 10 * 1024 ** 2;
+export const AUDIO_DURATION_LIMIT = 90;
 
 const moodSchema = z.strictObject({
   primary: z.enum(['calm', 'nostalgic', 'tense', 'joyful', 'mixed']),
@@ -26,13 +31,13 @@ const photoSchema = z.strictObject({
   assetId: id,
   palette,
   meanLightness: fraction,
-  width: z.int().min(1).max(16_000_000),
-  height: z.int().min(1).max(16_000_000),
+  width: z.int().min(1).max(PHOTO_PIXELS_LIMIT),
+  height: z.int().min(1).max(PHOTO_PIXELS_LIMIT),
   caption: z.string().max(200).optional(),
-}).refine(({ width, height }) => width * height <= 16_000_000, 'Photo exceeds 16 megapixels.');
+}).refine(({ width, height }) => width * height <= PHOTO_PIXELS_LIMIT, 'Photo exceeds 16 megapixels.');
 
 const musicSchema = z.strictObject({
-  durationSec: z.number().min(1).max(90),
+  durationSec: z.number().min(1).max(AUDIO_DURATION_LIMIT),
   sampleStepSec: z.literal(0.1),
   energyEnvelope: z.array(fraction).min(10).max(900),
   meanEnergy: fraction,
@@ -98,7 +103,7 @@ export const memorySceneSchema = z.strictObject({
   schemaVersion: z.literal(1),
   rulesVersion: z.literal(1),
   seed: z.int().min(0).max(0xffffffff),
-  date: z.iso.date(),
+  date: entryDateSchema,
   title: memoryTitleSchema,
   generation: z.strictObject({
     mode: z.literal('rules'),
@@ -196,12 +201,12 @@ const mediaRecord = {
 const photoMedia = z.strictObject({
   ...mediaRecord,
   mime: z.enum(['image/jpeg', 'image/png', 'image/webp']),
-}).refine(({ blob, mime }) => blob.type === mime && blob.size > 0 && blob.size <= 5 * 1024 ** 2,
+}).refine(({ blob, mime }) => blob.type === mime && blob.size > 0 && blob.size <= PHOTO_BYTES_LIMIT,
   'Photo MIME or size does not match the intake limits.');
 const audioMedia = z.strictObject({
   ...mediaRecord,
   mime: z.enum(['audio/mpeg', 'audio/wav']),
-}).refine(({ blob, mime }) => blob.type === mime && blob.size > 0 && blob.size <= 10 * 1024 ** 2,
+}).refine(({ blob, mime }) => blob.type === mime && blob.size > 0 && blob.size <= AUDIO_BYTES_LIMIT,
   'Audio MIME or size does not match the intake limits.');
 
 export const dayBundleSchema = z.strictObject({

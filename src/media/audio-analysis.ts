@@ -30,9 +30,16 @@ export function measureAudio(channels: readonly Float32Array[], sampleRate: numb
   return { durationSec, sampleStepSec, energyEnvelope, meanEnergy, bpm: null, key: null, provenance: 'measured' };
 }
 
-export async function analyzeAudio(blob: Blob): Promise<MemoryScene['music']> {
+export async function decodeAudioBuffer(blob: Blob): Promise<AudioBuffer> {
   const decoder = new OfflineAudioContext(1, 1, analysisSampleRate);
-  const buffer = await decoder.decodeAudioData(await blob.arrayBuffer());
+  return decoder.decodeAudioData(await blob.arrayBuffer());
+}
+
+export function measureAudioBuffer(buffer: AudioBuffer): MemoryScene['music'] {
   const channels = Array.from({ length: buffer.numberOfChannels }, (_, index) => buffer.getChannelData(index));
   return measureAudio(channels, buffer.sampleRate);
+}
+
+export async function analyzeAudio(blob: Blob): Promise<MemoryScene['music']> {
+  return measureAudioBuffer(await decodeAudioBuffer(blob));
 }
