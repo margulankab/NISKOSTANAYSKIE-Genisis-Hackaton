@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 
 test('the browser analyzer measures authorized WAV and MP3 audio for the v1 manifest', async ({ page }, testInfo) => {
   const mp3 = await readFile(new URL('./media/validation-tone.mp3', import.meta.url));
-  await page.goto('/');
+  await page.goto('/examples');
   const results = await page.evaluate(async (mp3Bytes) => {
     const audioModule = '/src/media/audio-analysis.ts';
     const fixturesModule = '/src/fixtures/memories.ts';
@@ -60,7 +60,7 @@ test('the browser analyzer measures authorized WAV and MP3 audio for the v1 mani
 });
 
 test('soundtrack changes the saved composition and animates only during allowed playback', async ({ page }, testInfo) => {
-  await page.goto('/');
+  await page.goto('/examples');
   const stage = page.getByRole('region', { name: 'Memory world' });
   const canvas = stage.locator('canvas');
   const marker = stage.locator('canvas');
@@ -126,7 +126,7 @@ test('a soundtrack error leaves both reveals and the ending available', async ({
       ? createUrl(new Blob(['invalid soundtrack'], { type: 'audio/wav' }))
       : createUrl(object);
   });
-  await page.goto('/');
+  await page.goto('/examples');
   await expect(page.getByRole('alert')).toContainText('The soundtrack could not play.');
   await visitArtifact(page, 0);
   await visitArtifact(page, 1);

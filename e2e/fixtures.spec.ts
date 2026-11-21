@@ -21,7 +21,7 @@ test.setTimeout(120_000);
 test('three fixtures reveal exact source content, play audio, and close after both artifacts', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto('/');
+  await page.goto('/examples');
 
   const library = page.getByRole('navigation', { name: 'Test memories' });
   await expect(library.getByRole('button')).toHaveCount(3);
@@ -83,7 +83,7 @@ test('an undecodable artifact photo leaves the note, soundtrack, and ending usab
       return fetchAsset(input, init);
     };
   });
-  await page.goto('/');
+  await page.goto('/examples');
   const { photo, note, closing } = controls(page);
   await visitArtifact(page, 0);
   await expect(page.getByRole('alert')).toContainText('photo could not be opened');
@@ -106,7 +106,7 @@ test('switching memories pauses the old soundtrack and releases its photo and au
       revoke(url);
     };
   });
-  await page.goto('/');
+  await page.goto('/examples');
   await visitArtifact(page, 0);
   const image = page.getByRole('img');
   await expect(image).toHaveAttribute('src', /^blob:/);

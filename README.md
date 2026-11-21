@@ -13,7 +13,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite. Choose a fictional memory from the library, drag to orbit, and scroll or pinch to zoom. Select both numbered objects or use the artifact buttons to reveal the illustration and entry excerpt. Then choose **Finish memory**. **Play soundtrack** starts the audio and its scene motion. The viewer respects reduced motion. The static preview keeps the artifact and audio controls available if WebGL is unavailable.
+Open the local URL printed by Vite to reach the title menu. **New Game → From a prompt** builds a walkable world from a description; press Esc to pause, save, or quit, and use **Continue** or **Load Game** to resume. **Examples** opens the fictional memory library: drag to orbit, and scroll or pinch to zoom. Select both numbered objects or use the artifact buttons to reveal the illustration and entry excerpt. Then choose **Finish memory**. **Play soundtrack** starts the audio and its scene motion. The viewer respects reduced motion. The static preview keeps the artifact and audio controls available if WebGL is unavailable.
 
 Choose **Create a memory** to validate a date, journal entry, photos, and an authorized audio excerpt. Select **Generate memory** to open the generated scene. Generation runs in the browser and works offline after the app loads. Use **Save to archive** to keep the memory in this browser. Use **Export ZIP** and **Import ZIP** to move a copy to another browser.
 

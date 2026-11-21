@@ -292,3 +292,61 @@ button:focus-visible { outline: 2px solid #e7bb84; outline-offset: 4px; }
 .closing-card button { margin-top: 10px; }
 @media (pointer: coarse) { .walk-pad { display: grid; } }
 @media (prefers-reduced-motion: reduce) { .walk-prompt { transition: none; } }
+
+/* Menus, prompt worlds and pause (MW-017/019) */
+.menu-list { display: grid; gap: 10px; list-style: none; margin: 26px 0; padding: 0; }
+.menu-item {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid #535a4d;
+  border-radius: 6px;
+  color: #ede7db;
+  background: #202620;
+  font-size: 1.1rem;
+  text-decoration: none;
+}
+.menu-item span { color: #bdbfb0; font-size: .86rem; }
+a.menu-item:hover, a.menu-item:focus-visible { border-color: #ddb987; background: #2b3128; outline: none; }
+.menu-item[aria-disabled="true"] { opacity: .6; }
+.menu a { color: #e7bb84; }
+.menu fieldset { margin-top: 16px; }
+.menu input[type="range"] { width: min(100%, 320px); }
+.prompt-game textarea { width: 100%; }
+.field-hint { margin: 6px 0 0; color: #bdbfb0; font-size: .86rem; }
+.prompt-result { margin-top: 26px; }
+.prompt-result h2 { margin: 0 0 8px; font: 400 1.8rem Georgia, serif; }
+.prompt-actions { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; }
+.prompt-actions a { color: #e7bb84; }
+.interpretation { margin-top: 10px; padding: 12px 14px; border: 1px solid #444940; border-radius: 6px; background: #1d221e; font-size: .92rem; }
+.interpretation p { margin: 6px 0; }
+.interpretation-summary { color: #e7bb84; text-transform: capitalize; }
+.interpretation-missing { color: #ffc0ab; }
+.interpretation-note { color: #bdbfb0; font-size: .84rem; }
+.interpretation-details { margin-top: 18px; }
+.interpretation-details summary { cursor: pointer; color: #e7bb84; }
+.game-session { padding: 32px 0; }
+.game-header { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+.game-header .memory-context { margin: 0; }
+.artifact-card > blockquote { margin: 4px 14px 14px; }
+.soundtrack-note { color: #bdbfb0; font-size: .86rem; }
+.pause-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 12, 10, .72);
+  z-index: 10;
+}
+.pause-menu {
+  display: grid;
+  gap: 10px;
+  width: min(100% - 40px, 360px);
+  padding: 24px;
+  border: 1px solid #8e8064;
+  border-radius: 8px;
+  background: #23281f;
+}
+.pause-menu h3 { margin: 0 0 6px; font: 1.6rem Georgia, serif; }
+.pause-menu p { margin: 4px 0; }
+.pause-menu [role="alert"] { color: #ffc0ab; }

@@ -3,6 +3,13 @@ import { Archive, SavedMemory } from './data/Archive';
 import { createInMemoryStore } from './data/repository';
 import { fixtures, loadFixture } from './fixtures/memories';
 import { CreateMemoryForm } from './intake/CreateMemoryForm';
+import { LoadGameMenu } from './menus/LoadGameMenu';
+import { NewGameMenu } from './menus/NewGameMenu';
+import { SettingsMenu } from './menus/SettingsMenu';
+import { TitleMenu } from './menus/TitleMenu';
+import { installVolumeSetting } from './menus/settings';
+import { NewPromptGame } from './world/NewPromptGame';
+import { SavedGame } from './world/SavedGame';
 import { MemoryViewer } from './scene/MemoryViewer';
 import { createViewerProps } from './shared/memory-viewer';
 import type { MemoryViewerProps } from './shared/memory-viewer';
@@ -12,23 +19,37 @@ type FixtureState =
   | { status: 'ready'; viewer: MemoryViewerProps };
 
 const store = createInMemoryStore();
+installVolumeSetting();
 
 export function App() {
   const path = window.location.pathname.replace(/\/$/, '') || '/';
   const memoryPath = path.match(/^\/memory\/([^/]+)$/);
+  const playPath = path.match(/^\/play\/([^/]+)$/);
+  const pages: Record<string, () => React.JSX.Element> = {
+    '/': () => <TitleMenu />,
+    '/examples': () => <FixtureLibrary />,
+    '/new': () => <NewGameMenu />,
+    '/new/prompt': () => <NewPromptGame />,
+    '/create': () => <CreateMemoryForm />,
+    '/archive': () => <Archive />,
+    '/load': () => <LoadGameMenu />,
+    '/settings': () => <SettingsMenu />,
+  };
 
   return (
     <main className="shell">
       <header className="masthead">
         <span className="wordmark">Memory Worlds</span>
         <nav className="site-nav" aria-label="Main">
-          <a href="/" aria-current={path === '/' ? 'page' : undefined}>Fixture library</a>
+          <a href="/" aria-current={path === '/' ? 'page' : undefined}>Main menu</a>
+          <a href="/examples" aria-current={path === '/examples' ? 'page' : undefined}>Examples</a>
           <a href="/create" aria-current={path === '/create' ? 'page' : undefined}>Create a memory</a>
           <a href="/archive" aria-current={path === '/archive' ? 'page' : undefined}>Archive</a>
         </nav>
       </header>
-      {path === '/create' ? <CreateMemoryForm /> : path === '/archive' ? <Archive />
-        : memoryPath ? <SavedMemory key={memoryPath[1]} id={memoryPath[1]} /> : <FixtureLibrary />}
+      {memoryPath ? <SavedMemory key={memoryPath[1]} id={memoryPath[1]} />
+        : playPath ? <SavedGame key={playPath[1]} id={playPath[1]} />
+        : (pages[path] ?? pages['/'])()}
     </main>
   );
 }

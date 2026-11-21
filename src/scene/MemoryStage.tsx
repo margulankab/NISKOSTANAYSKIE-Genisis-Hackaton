@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Color, SRGBColorSpace, Vector3 } from 'three';
 import type { Group } from 'three';
+import { readSettings, subscribeToSettings } from '../menus/settings';
 import type { MemoryScene } from '../shared/memory-schema';
 import { ArtifactModel, artifactNames } from './ArtifactModel';
 import { EnvironmentBackdrop } from './EnvironmentBackdrop';
@@ -63,11 +64,17 @@ const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
 export function subscribeToReducedMotion(update: () => void) {
   const preference = window.matchMedia(reducedMotionQuery);
   preference.addEventListener('change', update);
-  return () => preference.removeEventListener('change', update);
+  const unsubscribe = subscribeToSettings(update);
+  return () => {
+    preference.removeEventListener('change', update);
+    unsubscribe();
+  };
 }
 
+/** The Settings menu can override the device preference. */
 export function prefersReducedMotion() {
-  return window.matchMedia(reducedMotionQuery).matches;
+  const { reducedMotion } = readSettings();
+  return reducedMotion === 'system' ? window.matchMedia(reducedMotionQuery).matches : reducedMotion === 'on';
 }
 
 export function SoundtrackMotion({ activeAudio, models, music, parameters }: {

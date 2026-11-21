@@ -34,7 +34,7 @@ function submit(page: Page) {
 }
 
 test('validates a local draft from the fixture-library link with the browser offline', async ({ page, context }) => {
-  await page.goto('/');
+  await page.goto('/examples');
   await page.getByRole('link', { name: 'Create a memory' }).click();
   await expect(page).toHaveURL(/\/create$/);
   await expect(page.getByLabel('Date', { exact: true })).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
