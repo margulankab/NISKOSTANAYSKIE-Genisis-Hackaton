@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { readSettings, writeSettings } from './settings';
+import { atmospheres, readSettings, writeSettings } from './settings';
 import type { Settings } from './settings';
 
 export function SettingsMenu() {
@@ -14,7 +14,7 @@ export function SettingsMenu() {
   }
 
   return (
-    <section className="intake menu">
+    <section className="intake menu" data-win="settings.exe">
       <h1>Settings</h1>
       <form onSubmit={(event) => event.preventDefault()}>
         <label htmlFor={volumeId}>Soundtrack volume: {Math.round(settings.volume * 100)}%</label>
@@ -30,6 +30,20 @@ export function SettingsMenu() {
             </label>
           ))}
         </fieldset>
+        <fieldset>
+          <legend>Atmosphere</legend>
+          {(['auto', ...Object.keys(atmospheres)] as Settings['theme'][]).map((value) => (
+            <label key={value} className="permission">
+              <input type="radio" name="theme" value={value} checked={settings.theme === value}
+                onChange={() => update({ ...settings, theme: value })} />
+              {value === 'auto' ? 'Auto: follow the world you are in' : `${atmospheres[value].name}: ${atmospheres[value].note}`}
+            </label>
+          ))}
+        </fieldset>
+        <label className="permission">
+          <input type="checkbox" checked={settings.pixel} onChange={(event) => update({ ...settings, pixel: event.target.checked })} />
+          Pixel filter on 3D worlds (also lighter on older devices)
+        </label>
       </form>
       {saved && <p role="status">Settings saved in this browser.</p>}
       <p><a href="/">Back to main menu</a></p>

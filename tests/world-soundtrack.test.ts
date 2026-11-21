@@ -27,5 +27,12 @@ test('ties are stable, repeats have no extra weight, and unavailable or unsuitab
   expect(selectWorldSoundtrack({ setting: ['city'] }, []).record.kind).toBe('silent');
   expect(selectWorldSoundtrack({ setting: ['spaceship'] }).record.kind).toBe('silent');
   expect(selectWorldSoundtrack({ setting: ['market'] }, ['coastal-light']).record.kind).toBe('silent');
-  expect(new Set(soundtrackCatalog.map(({ id }) => id)).size).toBe(3);
+  expect(new Set(soundtrackCatalog.map(({ id }) => id)).size).toBe(5);
+});
+
+test('a described song steers the choice toward the matching new compositions', () => {
+  expect(selectWorldSoundtrack({ mood: ['nostalgic', 'peaceful'], energy: ['gentle'] }).record)
+    .toMatchObject({ trackId: 'warm-tape' });
+  expect(selectWorldSoundtrack({ mood: ['lively'], setting: ['night'], energy: ['high', 'bright'] }).record)
+    .toMatchObject({ trackId: 'night-drive' });
 });

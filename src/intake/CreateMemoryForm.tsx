@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { saveDayProgress } from '../data/indexed-memory-repository';
 import { MemoryActions } from '../data/MemoryActions';
 import { MemoryViewer } from '../scene/MemoryViewer';
 import type { DayBundle } from '../shared/memory-schema';
 import { createViewerProps } from '../shared/memory-viewer';
 import type { MemoryViewerProps } from '../shared/memory-viewer';
 import { generateMemory } from './generate-memory';
+import { SongOfTheDay } from '../music/SongOfTheDay';
+import type { Song } from '../music/song';
 import { validateDayDraft } from './validate-day-draft';
 import type { DayDraftInput, DraftErrors, ValidatedDayDraft } from './validate-day-draft';
 
@@ -20,12 +23,17 @@ function isSelectedFile(value: FormDataEntryValue | null): value is File {
 }
 
 export function CreateMemoryForm() {
+  const form = useRef<HTMLFormElement>(null);
   const [errors, setErrors] = useState<DraftErrors>({});
   const [draft, setDraft] = useState<ValidatedDayDraft>();
   const [pending, setPending] = useState<'validation' | 'generation'>();
   const [failure, setFailure] = useState(false);
   const [generationFailed, setGenerationFailed] = useState(false);
   const [preview, setPreview] = useState<{ bundle: DayBundle; viewer: MemoryViewerProps }>();
+  const [song, setSong] = useState<Song | null>(null);
+  useEffect(() => {
+    if (!pending && Object.values(errors).some(Boolean)) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  }, [errors, pending]);
 
   function clearPreview() {
     setPreview(undefined);
@@ -71,7 +79,8 @@ export function CreateMemoryForm() {
     setPending('generation');
     clearPreview();
     try {
-      const bundle = await generateMemory(draft);
+      const generated = await generateMemory(draft);
+      const bundle: DayBundle = song ? { ...generated, song } : generated;
       setPreview({ bundle, viewer: createViewerProps(bundle, () => {}) });
     } catch {
       setGenerationFailed(true);
@@ -81,10 +90,10 @@ export function CreateMemoryForm() {
   }
 
   return (
-    <section className="intake">
+    <section className="intake" data-win="day_memory.exe">
       <h1>Create a memory</h1>
       <p>Your entry and files stay in this browser. This draft lasts while the page is open.</p>
-      <form onSubmit={submit} noValidate aria-busy={Boolean(pending)}>
+      <form ref={form} onSubmit={submit} noValidate aria-busy={Boolean(pending)}>
         <fieldset disabled={Boolean(pending)} aria-label="Memory details">
           <label htmlFor="date">Date</label>
           <input id="date" name="date" type="date" defaultValue={localDate()} required
@@ -116,6 +125,8 @@ export function CreateMemoryForm() {
           <p id="audio-help" className="form-help">MP3 or WAV. 1–90 seconds, up to 10 MiB.</p>
           {errors.audio && <p id="audio-error" role="alert">{errors.audio}</p>}
 
+          <SongOfTheDay value={song} onChange={setSong} legend="Where to hear the song" />
+
           <label className="permission">
             <input name="hasPermission" type="checkbox" required
               aria-invalid={Boolean(errors.hasPermission)}
@@ -145,7 +156,7 @@ export function CreateMemoryForm() {
         <div className="generated-memory">
           <p role="status">{preview.bundle.manifest.generation.fallbackReason === 'no-keyword-match'
             ? 'Local draft with neutral mood and setting.' : 'Memory preview ready.'}</p>
-          <MemoryViewer {...preview.viewer} />
+          <MemoryViewer {...preview.viewer} game={{ save: (progress) => saveDayProgress(preview.bundle, progress) }} />
           <MemoryActions bundle={preview.bundle} />
         </div>
       )}

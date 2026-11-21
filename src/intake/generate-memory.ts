@@ -1,4 +1,7 @@
-import { analyzePhoto } from '../media/photo-analysis';
+import { composeWorld } from '../world/compose-world';
+import { composeSceneTemplate } from '../world/compose-scene-template';
+import { PROMPT_MAX } from '../world/layout-schema';
+import { analyzePhoto, photoThumbnail } from '../media/photo-analysis';
 import { dayBundleSchema, resolvePresentation } from '../shared/memory-schema';
 import type { DayBundle, MemoryScene } from '../shared/memory-schema';
 import type { ValidatedDayDraft } from './validate-day-draft';
@@ -118,8 +121,13 @@ export async function generateMemory(draft: ValidatedDayDraft): Promise<DayBundl
   }
   const firstPhoto = photoFeatures[0];
   if (!firstPhoto) throw new Error('The draft is missing a photo.');
+  const thumbnail = await photoThumbnail(photos[0].blob).catch(() => undefined);
   const availableProps = photoProps[environment];
 
+  const locationText = entryText.slice(0, PROMPT_MAX);
+  const composed = composeSceneTemplate(locationText, { id: entryId });
+  const placed = composed.ok ? composed : composeWorld(locationText, { id: entryId, seed });
+  const world = placed.ok ? { layout: placed.world.layout, interpretation: placed.world.interpretation } : undefined;
   return dayBundleSchema.parse({
     manifest: {
       id: entryId,
@@ -145,7 +153,9 @@ export async function generateMemory(draft: ValidatedDayDraft): Promise<DayBundl
       presentation: resolvePresentation(firstPhoto, mood, music.meanEnergy),
     },
     entryText,
+    ...(world && { world }),
     photos,
+    ...(thumbnail && { thumbnail }),
     audio,
     rights,
   });

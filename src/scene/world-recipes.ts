@@ -50,7 +50,7 @@ const coveRecipes = {
     terms: ['hill', 'bluff', 'headland'],
     approach: [0, 1.95],
     parts: [
-      { at: [0, 0.22, 0], size: [3, 0.44, 2.6], color: '#737557', solid: true },
+      { at: [0, 0.22, 0], size: [3, 0.44, 2.6], color: '#737557', solid: true, accent: true },
       { at: [-0.35, 0.58, -0.14], size: [2, 0.38, 1.85], color: '#828364' },
     ],
   },
@@ -86,7 +86,7 @@ const coveRecipes = {
     terms: ['pier', 'dock', 'jetty'],
     approach: [0, 0],
     parts: [
-      { at: [0, -0.069, 0], size: [1.5, 0.16, 3.4], color: '#8b6d52', walkable: true },
+      { at: [0, -0.069, 0], size: [1.5, 0.16, 3.4], color: '#8b6d52', walkable: true, accent: true },
       { at: [-0.65, -0.22, -1.46], size: [0.16, 0.84, 0.16], color: '#56483e', solid: true },
       { at: [0.65, -0.22, -1.46], size: [0.16, 0.84, 0.16], color: '#56483e', solid: true },
       { at: [-0.65, 0.19, -0.5], size: [0.12, 0.38, 2], color: '#69534a', solid: true },
@@ -156,7 +156,7 @@ const marketRecipes = {
     approach: [0, 0.78],
     parts: [
       { at: [0, 1.1, 0], size: [0.18, 2.2, 0.18], color: '#645046', solid: true },
-      { at: [0, 2.27, 0], size: [0.44, 0.44, 0.44], color: '#f0c586', emissive: true },
+      { at: [0, 2.27, 0], size: [0.44, 0.44, 0.44], color: '#f0c586', emissive: true, accent: true },
       { at: [0, 2.52, 0], size: [0.56, 0.12, 0.56], color: '#765949' },
     ],
   },
@@ -180,6 +180,9 @@ export type WorldPlacement = {
   recipe: WorldRecipeId;
   at: WorldPoint;
   heading: Heading;
+  height?: number;
+  sizeScale?: number;
+  paint?: string;
   variant?: 'standard' | 'compact' | 'large';
   accent?: 'red' | 'blue' | 'green' | 'gold';
 };
@@ -201,10 +204,14 @@ export function getWorldRecipe(id: WorldRecipeId): Recipe {
   return worldRecipes[id];
 }
 
+export function placementScale(placement: WorldPlacement) {
+  return placement.sizeScale ?? worldVariants[placement.variant ?? 'standard'];
+}
+
 function toWorld(point: WorldPoint, placement: WorldPlacement): WorldPoint {
   const [x, z] = point;
   const turned = [[x, z], [z, -x], [-x, -z], [-z, x]][placement.heading];
-  const scale = worldVariants[placement.variant ?? 'standard'];
+  const scale = placementScale(placement);
   return [placement.at[0] + turned[0] * scale, placement.at[1] + turned[1] * scale];
 }
 
@@ -222,7 +229,7 @@ export function getWorldWalkableSurfaces(placement: WorldPlacement): WorldBounds
 }
 
 function getPartBounds(placement: WorldPlacement, include: (part: Part) => boolean): WorldBounds[] {
-  const scale = worldVariants[placement.variant ?? 'standard'];
+  const scale = placementScale(placement);
   const sideways = placement.heading % 2 !== 0;
   return getWorldRecipe(placement.recipe).parts.filter(include).map(({ at, size }) => {
     const [x, z] = toWorld([at[0], at[2]], placement);

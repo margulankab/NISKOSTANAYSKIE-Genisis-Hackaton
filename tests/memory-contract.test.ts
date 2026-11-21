@@ -12,10 +12,10 @@ beforeAll(async () => {
 });
 
 describe('MW-000 / AT-02', () => {
-  it('accepts three distinct complete fixtures and resolves their replay data', async () => {
-    expect(new Set(bundles.map(({ manifest }) => manifest.id)).size).toBe(3);
-    expect(bundles.map(({ manifest }) => manifest.mood.primary)).toEqual(['nostalgic', 'tense', 'calm']);
-    expect(bundles.map(({ manifest }) => manifest.context.environment)).toEqual(['park', 'room', 'city']);
+  it('accepts five distinct complete fixtures and resolves their replay data', async () => {
+    expect(new Set(bundles.map(({ manifest }) => manifest.id)).size).toBe(5);
+    expect(bundles.map(({ manifest }) => manifest.mood.primary)).toEqual(['nostalgic', 'tense', 'calm', 'joyful', 'nostalgic']);
+    expect(bundles.map(({ manifest }) => manifest.context.environment)).toEqual(['park', 'room', 'city', 'park', 'room']);
     for (const bundle of bundles) {
       const { manifest } = dayBundleSchema.parse(bundle);
       const viewer = createViewerProps(bundle, () => {});

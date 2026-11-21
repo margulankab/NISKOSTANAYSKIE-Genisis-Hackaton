@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import { captureScene } from './scene-capture';
+import { settledShot } from './walk';
 
 test('world preview renders resolved geometry and responds to gesture-started catalog playback', async ({ page }, testInfo) => {
   await page.goto('/');
@@ -18,6 +19,7 @@ test('world preview renders resolved geometry and responds to gesture-started ca
 
   await page.getByLabel('Soundtrack', { exact: true }).selectOption('lantern-market');
   await expect(page.getByText('Selected by the player.')).toBeVisible();
+  await settledShot(canvas);
   const rest = await captureScene(canvas);
   await preview.click();
   await expect.poll(() => audio.evaluate((player: HTMLAudioElement) => player.currentTime)).toBeGreaterThan(0);

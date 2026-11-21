@@ -1,4 +1,5 @@
-import { recipes } from './recipes';
+import { placementHeight, recipes } from './recipes';
+import { blocked } from '../gameplay/controller';
 import type { RecipeId } from './recipes';
 import { parsePrompt } from './parse-prompt';
 import { routeProblems } from './route';
@@ -25,9 +26,10 @@ const palette: Record<NonNullable<Term['color']>, [number, number, number]> = {
   red: [196, 64, 52], orange: [222, 132, 54], yellow: [232, 196, 82], green: [86, 150, 84], blue: [70, 118, 190],
   purple: [128, 86, 168], pink: [222, 142, 170], white: [236, 232, 222], black: [44, 44, 48], brown: [120, 84, 56], grey: [130, 132, 136],
 };
+export const termPaint = (term: Term) => term.color ? palette[term.color] : null;
 const outdoorOnly = new Set<RecipeId>(['lighthouse', 'tower', 'house', 'stall', 'bridge', 'pier', 'hill', 'gate', 'boat', 'tree', 'lamp']);
 /** Large or spread-out structures make poor discoveries: their center is not where the player stands. */
-const notDiscoverable = new Set<RecipeId>(['hill', 'bridge', 'pier', 'gate']);
+const notDiscoverable = new Set<RecipeId>(['hill', 'bridge', 'pier', 'gate', 'canopy']);
 /** Rough top height of each recipe, used to raise objects described as above another. */
 const heights: Partial<Record<RecipeId, number>> = { stall: 2, house: 2.6, bridge: 2.4, tree: 2.1, table: 0.8, tower: 3.4, lighthouse: 4 };
 
@@ -40,7 +42,7 @@ export function seedFromPrompt(prompt: string) {
   return hash >>> 0;
 }
 
-function random(seed: number) {
+export function seededRandom(seed: number) {
   let state = seed >>> 0;
   return () => {
     state = (state + 0x6d2b79f5) >>> 0;
@@ -95,12 +97,22 @@ interface Draft {
   counters: Map<RecipeId, number>;
 }
 
-function compose(prompt: string, interpretation: Interpretation, seed: number, attempt: number): WorldLayout | string {
-  const rand = random(seed + attempt * 7919);
+export interface TemplatePlacement {
+  ending: number;
+  discoveries: readonly [number, number];
+  surfaces: readonly (Term['zone'] | 'deck' | 'pool' | 'sand' | 'floor' | 'rock')[];
+  size: 'small' | 'medium' | 'large';
+}
+
+export function composeLayout(prompt: string, interpretation: Interpretation, seed: number, attempt: number,
+  plan?: TemplatePlacement): WorldLayout | string {
+  const rand = seededRandom(seed + attempt * 7919);
   const { terms, relations, setting } = interpretation;
   const usable = terms.map((t, index) => ({ ...t, index })).filter((t) => t.status !== 'unsupported');
-  const hasWater = usable.some((t) => t.zone === 'water' || (t.recipe && recipes[t.recipe].aquatic));
-  const bounds = setting === 'indoor' ? INDOOR_ONLY : OUTDOOR;
+  const hasWater = plan?.surfaces.includes('water') || usable.some((t) => t.zone === 'water' || (t.recipe && recipes[t.recipe].aquatic));
+  const base = setting === 'indoor' ? INDOOR_ONLY : OUTDOOR;
+  const scale = plan?.size === 'small' ? .94 : plan?.size === 'large' ? 1.05 : 1;
+  const bounds = { ...base, minX: base.minX * scale, maxX: base.maxX * scale, minZ: base.minZ * scale };
   const waterSide: 1 | -1 = rand() < 0.5 ? 1 : -1;
   const shoreX = waterSide * 3.6;
   const draft: Draft = {
@@ -132,6 +144,7 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
   const countFor = (t: Term) => attempt >= 3 ? 1 : attempt >= 2 ? Math.ceil(t.count / 2) : t.count;
   const zoneOf = (t: { span: { start: number }; recipe?: RecipeId | null }): 'indoor' | 'outdoor' => {
     if (setting !== 'mixed') return setting === 'indoor' ? 'indoor' : 'outdoor';
+    if (plan && 'index' in t && typeof t.index === 'number') return plan.surfaces[t.index] === 'floor' ? 'indoor' : 'outdoor';
     if (t.recipe && outdoorOnly.has(t.recipe)) return 'outdoor';
     const before = terms.filter((z) => z.kind === 'zone' && z.span.start <= t.span.start).at(-1);
     return before?.zone === 'indoor' ? 'indoor' : 'outdoor';
@@ -161,7 +174,7 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
       scale: 1, color, term, ...extra,
     };
     draft.placements.push(placement);
-    draft.occupied.push({ x: placement.x, z: placement.z, r: Math.max(recipes[recipe].radius, recipe === 'bridge' || recipe === 'pier' ? 0 : 0.4) });
+    draft.occupied.push({ x: placement.x, z: placement.z, r: Math.max(recipes[recipe].radius, recipe === 'bridge' || recipe === 'pier' || recipe === 'canopy' ? 0 : 0.4) });
     return placement;
   }
 
@@ -190,7 +203,8 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
   }
 
   // 1 · Closing landmark: the highest-ranked structure, or a gate when the prompt names none.
-  const landmarkTerm = [...usable].filter((t) => t.recipe && recipes[t.recipe].role === 'structure' && t.recipe !== 'pier' && t.recipe !== 'hill')
+  const landmarkTerm = plan ? usable.find(({ index }) => index === plan.ending) :
+    [...usable].filter((t) => t.recipe && recipes[t.recipe].role === 'structure' && t.recipe !== 'pier' && t.recipe !== 'hill' && t.recipe !== 'canopy')
     .sort((a, b) => recipes[b.recipe!].landmarkRank - recipes[a.recipe!].landmarkRank || a.index - b.index)[0];
   const relationOf = (index: number) => relations.find((r) => r.status === 'applied' && r.subject === index);
   const placedFirst = new Map<number, Placement>();
@@ -199,13 +213,18 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
   if (landmarkTerm) {
     const relation = relationOf(landmarkTerm.index);
     const overWater = relation?.kind === 'above' && terms[relation.object!].zone === 'water' && draft.water;
-    const lx = overWater ? shoreX - draft.waterSide * 1.6 : landmarkTerm.recipe === 'bridge' ? 0 : (rand() - 0.5) * 3;
-    const lz = landmarkTerm.recipe === 'bridge' ? -5 : backZ;
+    const indoor = plan && zoneOf(landmarkTerm) === 'indoor' && draft.indoor;
+    const lx = indoor ? (indoor.area.minX + indoor.area.maxX) / 2 :
+      overWater ? shoreX - draft.waterSide * 1.6 : landmarkTerm.recipe === 'bridge' ? 0 : (rand() - 0.5) * 3;
+    const lz = indoor ? indoor.area.minZ + 1.6 : landmarkTerm.recipe === 'bridge' ? -5 : backZ;
+    let rise = 0;
     if (overWater || terms.some((t) => t.recipe === 'hill' && relations.some((r) => r.subject === landmarkTerm.index && r.object === terms.indexOf(t)))) {
       const hillTerm = terms.findIndex((t) => t.recipe === 'hill');
-      placedFirst.set(hillTerm, add('hill', lx, lz, hillTerm >= 0 ? hillTerm : null, { scale: 1.6 }));
+      const hill = add('hill', lx, lz, hillTerm >= 0 ? hillTerm : null, { scale: 1.25 });
+      placedFirst.set(hillTerm, hill);
+      rise = (placementHeight('hill') ?? 0) * hill.scale;
     }
-    landmark = add(landmarkTerm.recipe!, lx, lz, landmarkTerm.index);
+    landmark = add(landmarkTerm.recipe!, lx, lz, landmarkTerm.index, { y: rise });
     placedFirst.set(landmarkTerm.index, landmark);
   } else {
     landmark = add('gate', 0, backZ, null);
@@ -213,6 +232,7 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
 
   // 2 · Supporting structures that other objects refer to, then everything else in prompt order.
   const referenced = new Set(relations.filter((r) => r.status === 'applied').map((r) => r.object));
+  if (plan) for (const item of usable) if (item.recipe === 'pier' || item.recipe === 'stall') referenced.add(item.index);
   const order = usable.filter((t) => t.kind === 'object' && !placedFirst.has(t.index) && t.recipe !== 'hill')
     .sort((a, b) => Number(referenced.has(b.index)) - Number(referenced.has(a.index)) || a.index - b.index);
   if (usable.some((t) => t.recipe === 'hill') && !placedFirst.has(terms.findIndex((t) => t.recipe === 'hill'))) {
@@ -230,16 +250,28 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
     const count = countFor(term);
     let first: Placement | undefined;
 
-    if (recipe === 'pier' && draft.water) {
+    if (draft.indoor && setting === 'mixed' && (recipe === 'airlock' || recipe === 'doorway')) {
+      first = add(recipe, draft.indoor.door.x, draft.indoor.door.z, term.index, { rotation: Math.PI / 2 });
+    } else if (recipe === 'pier' && draft.water) {
       const z = -3 + rand() * 4;
-      first = add('pier', shoreX + draft.waterSide * 1.6, z, term.index);
+      first = add('pier', shoreX + draft.waterSide * 1.32, z, term.index, { rotation: -draft.waterSide * Math.PI / 2 });
       draft.occupied.push({ x: shoreX - draft.waterSide * 0.6, z, r: 0.8 });
+    } else if (recipe === 'boat' && plan && draft.water && !target && placedFirst.size) {
+      const deck = [...placedFirst.values()].find(p => p.recipe === 'pier');
+      if (deck) first = add('boat', deck.x + draft.waterSide * .27, deck.z + 1.45, term.index, { rotation: Math.PI / 2, scale: .8 });
+    } else if (recipe === 'canopy' && plan && !target) {
+      const stalls = draft.placements.filter(p => p.recipe === 'stall');
+      for (const stall of stalls.slice(0, count)) {
+        const canopy = add('canopy', stall.x, stall.z, term.index, { rotation: stall.rotation, scale: stall.scale });
+        first ??= canopy;
+      }
+      if (first) { placedFirst.set(term.index, first); continue; }
     } else if (recipe === 'bridge') {
       first = add('bridge', 0, -4.5 + rand(), term.index);
     } else if (relation && target) {
       const r = Math.max(recipes[recipe].radius, 0.35);
       if (relation.kind === 'above' || (relation.kind === 'under' && target.recipe !== 'bridge')) {
-        const raised = relation.kind === 'above' ? heights[target.recipe] ?? 1.2 : 0;
+        const raised = relation.kind === 'above' ? target.y + (placementHeight(target.recipe) ?? heights[target.recipe] ?? 1.2) * target.scale : 0;
         if (raised > 0) {
           // "lanterns above the stalls": one per stall, cycling when there are more lanterns.
           const hosts = draft.placements.filter((p) => p.recipe === target.recipe);
@@ -265,12 +297,15 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
         if (first) { placedFirst.set(term.index, first); continue; }
       }
       if (!first && target.recipe === 'pier' && recipes[recipe].aquatic) {
-        const z = target.z + (rand() < 0.5 ? 1.25 : -1.25);
-        first = add(recipe, target.x + draft.waterSide * 0.5, z, term.index, { rotation: round(draft.waterSide * Math.PI / 2) });
+        const z = target.z + (rand() < 0.5 ? 1.4 : -1.4);
+        first = add(recipe, target.x + draft.waterSide * 0.3, z, term.index, { rotation: Math.PI / 2, scale: 0.8 });
       }
       if (!first) {
         const step = relation.kind === 'beyond' ? { x: 0, z: -3 } : relation.kind === 'front' ? { x: 0, z: 2.5 } : null;
-        const candidates = step ? [{ x: target.x + (rand() - 0.5), z: target.z + step.z }]
+        const candidates = step ? [
+          ...(target.recipe === 'airlock' && draft.indoor ? [{ x: target.x + Math.sign(target.x) * -1.7, z: target.z - .95 }] : []),
+          { x: target.x + (rand() - 0.5), z: target.z + step.z },
+        ]
           : Array.from({ length: 8 }, (_, k) => {
             const angle = (k / 8 + rand() * 0.1) * Math.PI * 2;
             const distance = Math.max(recipes[target.recipe].radius, 0.4) + r + 0.7;
@@ -290,6 +325,13 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
     for (let k = 1; k < count; k += 1) scatter(recipe, zone, term.index, first);
   }
 
+  // Cover the named market stalls with the catalog's open-sided canopy.
+  if (!plan && /\bcovered\s+(?:night\s+)?market\b/i.test(prompt)) {
+    for (const stall of draft.placements.filter(({ recipe }) => recipe === 'stall')) {
+      add('canopy', stall.x, stall.z, null, { rotation: stall.rotation, scale: stall.scale });
+    }
+  }
+
   // 3 · Two discoveries: prefer described props, especially colored or related ones.
   const score = (t: (typeof usable)[number]) => (recipes[t.recipe!].role === 'prop' ? 4 : 0) + (t.color ? 2 : 0)
     + (relations.some((r) => r.status === 'applied' && (r.subject === t.index || r.object === t.index)) ? 1 : 0) - t.index * 0.01;
@@ -297,13 +339,17 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
   const spots: Placement[] = [];
   const apart = (p: Placement) => spots.every((q) => Math.hypot(p.x - q.x, p.z - q.z) >= 2.6)
     && Math.hypot(p.x - landmark.x, p.z - landmark.z) >= 1.8;
-  for (const t of usable.filter((t) => t.recipe && !notDiscoverable.has(t.recipe) && placedFirst.has(t.index)).sort((a, b) => score(b) - score(a))) {
+  const eligible = plan ? plan.discoveries.flatMap(index => usable.filter(t => t.index === index))
+    : usable.filter((t) => t.recipe && !notDiscoverable.has(t.recipe) && placedFirst.has(t.index)).sort((a, b) => score(b) - score(a));
+  for (const t of eligible) {
+    if (!placedFirst.has(t.index)) continue;
     const placement = placedFirst.get(t.index)!;
-    if (chosen.length === 2 || placement === landmark || !apart(placement)) continue;
+    if (chosen.length === 2 || placement === landmark || (!plan && !apart(placement))) continue;
     spots.push(placement);
     chosen.push({ placementId: placement.id, excerpt: clauseAround(prompt, t.span.start, t.span.end) });
   }
   while (chosen.length < 2) {
+    if (plan) return 'The chosen discovery could not be placed.';
     let marker: Placement | undefined;
     for (let tries = 0; tries < 6 && (!marker || !apart(marker)); tries += 1) {
       if (marker) { draft.placements.pop(); draft.occupied.pop(); draft.counters.set('marker', (draft.counters.get('marker') ?? 1) - 1); }
@@ -323,32 +369,8 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
     chosen.push({ placementId: marker.id, excerpt });
   }
 
-  // 4 · Colliders from footprints, water and walls.
+  // Room boundaries supplement the footprints and floor surfaces from the geometry catalog.
   const solids: Solid[] = [];
-  for (const p of draft.placements) {
-    if (p.y > 0) continue;
-    if (p.recipe === 'bridge') {
-      solids.push({ shape: 'box', x: bounds.minX + 0.6, z: p.z, halfX: 0.4, halfZ: 0.4 }, { shape: 'box', x: bounds.maxX - 0.6, z: p.z, halfX: 0.4, halfZ: 0.4 });
-    } else if (recipes[p.recipe].radius > 0) {
-      solids.push({ shape: 'circle', x: p.x, z: p.z, radius: round(recipes[p.recipe].radius * p.scale) });
-    }
-  }
-  if (draft.water) {
-    const pier = draft.placements.find((p) => p.recipe === 'pier');
-    const w = draft.water;
-    const cx = (w.minX + w.maxX) / 2, hx = (w.maxX - w.minX) / 2;
-    if (pier) {
-      const pierStart = pier.z - 0.6, pierEnd = pier.z + 0.6;
-      const tipX = shoreX + draft.waterSide * 3.4;
-      solids.push({ shape: 'box', x: round(cx), z: round((w.minZ + pierStart) / 2), halfX: round(hx), halfZ: round((pierStart - w.minZ) / 2) });
-      solids.push({ shape: 'box', x: round(cx), z: round((pierEnd + w.maxZ) / 2), halfX: round(hx), halfZ: round((w.maxZ - pierEnd) / 2) });
-      // Water beyond the pier's tip.
-      const outerMin = Math.min(tipX, draft.waterSide > 0 ? w.maxX : w.minX), outerMax = Math.max(tipX, draft.waterSide > 0 ? w.maxX : w.minX);
-      if (outerMax - outerMin > 0.2) solids.push({ shape: 'box', x: round((outerMin + outerMax) / 2), z: pier.z, halfX: round((outerMax - outerMin) / 2), halfZ: 0.6 });
-    } else {
-      solids.push({ shape: 'box', x: round(cx), z: round((w.minZ + w.maxZ) / 2), halfX: round(hx), halfZ: round((w.maxZ - w.minZ) / 2) });
-    }
-  }
   if (draft.indoor && setting === 'mixed') {
     const { area, door } = draft.indoor;
     const t = 0.12;
@@ -360,6 +382,7 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
   }
 
   const layout: WorldLayout = {
+    geometryVersion: 2,
     bounds,
     spawn: draft.spawn,
     playerRadius: PLAYER_RADIUS,
@@ -371,6 +394,19 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
     discoveries: [chosen[0], chosen[1]],
     landmark: { placementId: landmark.id },
   };
+  if (plan) {
+    const walk = toWalkLayout(layout);
+    const points = [walk.artifacts[0], walk.artifacts[1], walk.landmark] as NonNullable<WorldLayout['approaches']>;
+    for (const [index, p] of [...spots, landmark].entries()) {
+      if (p.recipe === 'boat' || p.y > 0) continue;
+      const offset = Math.max(.7, recipes[p.recipe].radius + .46);
+      const approach = [[0, offset], [offset, 0], [-offset, 0], [0, -offset]]
+        .map(([x, z]) => ({ x: round(p.x + x), z: round(p.z + z) }))
+        .find(point => inside(bounds, point.x, point.z, .3) && !blocked(point, walk));
+      if (approach) points[index] = approach;
+    }
+    layout.approaches = points;
+  }
   const problems = routeProblems(toWalkLayout(layout));
   return problems.length ? problems.join(' ') : layout;
 }
@@ -388,10 +424,23 @@ export function composeWorld(prompt: string, { id, seed = seedFromPrompt(prompt)
   }
   let lastProblem = '';
   for (let attempt = 1; attempt <= ATTEMPTS; attempt += 1) {
-    const layout = compose(prompt, interpretation, seed, attempt);
+    const layout = composeLayout(prompt, interpretation, seed, attempt);
     if (typeof layout === 'string') { lastProblem = layout; continue; }
     const landmarkTerm = layout.placements.find((p) => p.id === layout.landmark.placementId)?.term;
     const fallback = landmarkTerm !== null && landmarkTerm !== undefined ? recipes[interpretation.terms[landmarkTerm].recipe!].label.split(' ')[0] : 'Prompt';
+    const reportedTerms = interpretation.terms.map((term, index): Term => {
+      if (term.kind !== 'object' || term.status === 'unsupported') return term;
+      const placed = layout.placements.filter((object) => object.term === index).length;
+      return placed === 0 ? { ...term, status: 'unsupported', note: 'No room in this layout.' }
+        : placed < term.count ? { ...term, status: 'approximated', note: `placed ${placed} of ${term.count}` }
+        : term;
+    });
+    const reportedRelations = interpretation.relations.map((relation) => {
+      if (relation.status !== 'applied' || ![relation.subject, relation.object].some(
+        (index) => index !== null && reportedTerms[index].status === 'unsupported',
+      )) return relation;
+      return { ...relation, status: 'unsupported' as const };
+    });
     const world = promptWorldSchema.safeParse({
       kind: 'prompt-world',
       id,
@@ -400,7 +449,7 @@ export function composeWorld(prompt: string, { id, seed = seedFromPrompt(prompt)
       seed,
       title: titleFromPrompt(prompt, fallback),
       prompt,
-      interpretation,
+      interpretation: { ...interpretation, terms: reportedTerms, relations: reportedRelations },
       layout,
       soundtrack: null,
     });

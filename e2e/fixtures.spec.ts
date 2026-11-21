@@ -24,7 +24,7 @@ test('three fixtures reveal exact source content, play audio, and close after bo
   await page.goto('/examples');
 
   const library = page.getByRole('navigation', { name: 'Test memories' });
-  await expect(library.getByRole('button')).toHaveCount(3);
+  await expect(library.getByRole('button')).toHaveCount(5);
   const { photo, note, closing } = controls(page);
   const diorama = page.getByRole('region', { name: 'Memory world' });
 

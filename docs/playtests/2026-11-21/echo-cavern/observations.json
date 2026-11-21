@@ -1,0 +1,51 @@
+{
+  "id": "echo-cavern",
+  "action": "Build memory",
+  "mood": "Unease and wonder",
+  "name": "Leena",
+  "choice": "One small detail.",
+  "prompt": "An eerie night in a cavern with four blue crystal clusters and two standing stones. I met Leena beside a lantern shrine. The lantern went out, but we could still hear it humming.",
+  "external": [],
+  "serverPlans": [],
+  "errors": [],
+  "preview": "Eerie Night in a Cavern\n\nBuilt privately\n\nCavern mouth · tense · Written locally\n\nIn the scene Cavern mouth, Crystal cluster, Standing stone, Lantern shrine, Lantern, Stone ruin, Rock\n\nout · missing · No compatible model or free catalog slot.\nWorld interpretation\nSoundtrack\nSilence\nCoastal Light\nLantern Market\nStill Rooms\n\nMatched cues: tense.\n\nMemory Worlds. Cleared for in-game playback, portable export, and demo use.\n\nPreview soundtrack\nMute soundtrack\nUpload an authorized soundtrack\nEnter world\nRevise prompt",
+  "coverageWarnings": [
+    "out · missing · No compatible model or free catalog slot."
+  ],
+  "interpretation": "Outdoor · Night\n\nBuilt “cavern” → Cavern mouth, “crystal clusters” → Crystal cluster ×4, “standing stones” → Standing stone ×2, “lantern shrine” → Lantern shrine, “lantern” → Lantern, Stone ruin, Rock ×3\n\nCoverage depends on the available builders. Revise the prompt to change what appears.",
+  "spawn": {
+    "x": 0,
+    "z": 5.6
+  },
+  "opening": [
+    "Take a walk around the cavern mouth. Stop at the crystal cluster and standing stone before meeting Leena."
+  ],
+  "track": "still-rooms",
+  "audio": {
+    "duration": 17.6,
+    "time": 0.337888,
+    "muted": false,
+    "readyState": 4
+  },
+  "approach1": {
+    "x": -4.34,
+    "z": 3.73
+  },
+  "discovery1": "2\nStanding stone\nFound\ntwo standing stones\n\nThink of what you would notice about the standing stone if you came back tomorrow.",
+  "approach2": {
+    "x": -1.28,
+    "z": 3.18
+  },
+  "discovery2": "1\nCrystal cluster\nFound\nfour blue crystal clusters\n\nImagine stopping beside the crystal cluster long enough to see how the light falls around it.",
+  "landmark": {
+    "x": 0.12,
+    "z": -5.43
+  },
+  "conversation": "Leena\n\nYou made it to the cavern mouth. What will you take with you when you leave?\n\nOne small detail.\nThe way it felt to be here.",
+  "ending": "Memory complete\n\nLeena: Sometimes that is all it takes to find your way back here.\n\nLet the scene fade when you are ready to leave.\n\nReplay visit",
+  "restored": {
+    "x": 0.12,
+    "z": -5.43
+  },
+  "completed": true
+}

@@ -2,7 +2,7 @@
 
 ## Exploration game plan
 
-The current prototype is a walkable low-poly diary with two nearby artifact reveals, an in-world ending, soundtrack playback, and a local archive. The planned game builds worlds from free-form prompts using reusable terrain, structure, and prop builders. It adds automatic soundtrack selection for prompt games and title/pause menus with save, load, and resume. The case workflow keeps the player's journal, photo, and associated song. [Active development plan](docs/game_development_plan.md#active-delivery-plan--2026-11-21).
+Memory Worlds is a walkable low-poly diary and prompt game. Each visit has two discoveries, a closing landmark, a soundtrack and local saves. Start with `park` or `water park` to see generated scenery, or create a day from a journal entry, original photos and its associated song. [Current implementation plan](docs/memory_worlds_implementation_plan.md).
 
 ## Run the prototype
 
@@ -15,9 +15,23 @@ npm run dev
 
 Open the local URL printed by Vite to reach the title menu. **New Game → From a prompt** builds a walkable world from a description; press Esc to pause, save, or quit, and use **Continue** or **Load Game** to resume. Choose **Examples** for the fictional memory library. Walk with WASD, the arrow keys, or the touch controls. Approach both objects and press **E** or **Interact** to reveal the illustration and entry excerpt, then interact with the closing landmark. **Play soundtrack** starts the audio and its scene motion. The viewer respects reduced motion. If WebGL is unavailable, the static preview provides artifact, ending, and audio controls.
 
+Outdoor worlds are about four times larger than before: the walk starts on the approach to the scene. Hold **Shift** to run, and follow the compass in the top-right corner to the next discovery and then to the ending.
+
+**Song of the day.** In **From a prompt** and **Create a memory**, paste a link from Spotify, Apple Music, YouTube Music, Yandex Music, SoundCloud, Deezer, TIDAL, Bandcamp or VK. You can add the artist, song, style and year, or press **Tap the beat** while the song plays in your music app. The world picks its cleared in-game score from those details, and lanterns pulse at the song's tempo. **Open in …** takes you back to your app. The link is stored without its sharing code, and nothing is sent to the music service.
+
+**Atmospheres.** Use **◐ View** in the header, or **Settings**, to choose GENESIS, Nebula, Daylight or Fog. With **Auto**, the interface follows the time of day and weather of the world you are in. The pixel filter renders 3D worlds at half resolution for the retro look, and it is also lighter on older devices.
+
 Choose **World preview** to orbit the foggy cove or covered night market and try the local soundtracks. Use the landmark buttons to inspect the route and **Overview** to reset the camera. Track choices and mute carry through world switches until you leave the page. These curated examples preview content for the planned prompt-generated game.
 
 Choose **Create a memory** to validate a date, journal entry, photos, and an authorized audio excerpt. Select **Generate memory** to open the generated scene. Generation runs in the browser and works offline after the app loads. Use **Save to archive** to keep the memory in this browser. Use **Export ZIP** and **Import ZIP** to move a copy to another browser.
+
+### Play a short memory
+
+Open **New Game → From a prompt → Build memory**. Describe a person, a place, and a few details. Try “At dusk I met Mira near a lighthouse above a foggy cove with a red rowboat beside a pier.” Walk to the two marked objects, then approach Mira and choose a reply. You can save before choosing and return to the conversation later. Use **Build world** for the original exploration mode.
+
+Gemini is optional for a local developer demo. Put `GEMINI_API_KEY` in the ignored `.env.local` file at the repository root, then restart `npm run dev`. The default is `gemini-3.1-flash-lite`. Set `GEMINI_MODEL` in the same file if your project uses another compatible Gemini model. In a loopback browser tab, enter a wholly fictional description, select **Send this fictional prompt to Google Gemini**, and choose **Build memory** or **Build world**. The preview shows **Planned with Gemini** after a validated result. [Gemini structured outputs](https://aistudio.google.com/docs/structured-output) · [Gemini API keys](https://aistudio.google.com/docs/api-key) · [Gemini data terms](https://aistudio.google.com/docs/terms#data-use-unpaid)
+
+Both modes compose scenes from the same catalog and validated template. Static builds use private generation. Journal entries, photos, associated songs and saved games are processed on-device. If the optional planner fails, choose **Try again** or **Build privately** with the description intact.
 
 ```powershell
 npm run typecheck
@@ -28,6 +42,8 @@ npm run test:browser
 ```
 
 The build writes static output to `dist/`. The browser tests use an installed Microsoft Edge. See the [architecture](ARCHITECTURE.md), [milestone checks](PROGRESS.md), and [3D dependency licenses](public/3d-licenses.txt).
+
+Build the local case artifacts with `node scripts/package-case.mjs` after `npm run build`. The script uses Microsoft Edge and FFmpeg and writes into the ignored `submission-output/` folder. [Case package and verification](docs/submission.md).
 
 The [Egypt demo](egypt-demo.local/README.md) runs as a separate development preview. The production build uses the main application entry point.
 

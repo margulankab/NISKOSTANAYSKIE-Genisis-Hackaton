@@ -3,6 +3,22 @@ import type { MemoryScene } from '../shared/memory-schema';
 export type PhotoFeatures = Omit<MemoryScene['photos'][number], 'assetId' | 'caption'>;
 type RGB = PhotoFeatures['palette'][number];
 
+export async function photoThumbnail(blob: Blob) {
+  const image = await createImageBitmap(blob);
+  try {
+    const scale = Math.min(1, 384 / Math.max(image.width, image.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(image.width * scale));
+    canvas.height = Math.max(1, Math.round(image.height * scale));
+    const context = canvas.getContext('2d');
+    if (!context) return undefined;
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return await new Promise<Blob | undefined>(resolve => canvas.toBlob(value => resolve(value ?? undefined), 'image/png'));
+  } finally {
+    image.close();
+  }
+}
+
 export async function analyzePhoto(blob: Blob): Promise<PhotoFeatures> {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(blob.type) || blob.size > 5 * 1024 ** 2) {
     throw new Error('Choose a JPEG, PNG, or WebP photo up to 5 MiB.');

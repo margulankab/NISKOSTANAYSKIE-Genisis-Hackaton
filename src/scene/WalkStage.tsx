@@ -73,7 +73,8 @@ function Landmark({ layout, ready, accent, rail }: { layout: WalkLayout; ready: 
   );
 }
 
-function WalkWorld({ manifest, style, layout, revealed, position, input, targetRef, activeAudio, motionModels, playerGroup, hud, onTarget }: {
+function WalkWorld({ manifest, style, layout, revealed, position, input, targetRef, activeAudio, motionModels, playerGroup, hud, onTarget, paused }: {
+  paused: boolean;
   manifest: MemoryScene;
   style: SceneStyle;
   layout: WalkLayout;
@@ -108,7 +109,7 @@ function WalkWorld({ manifest, style, layout, revealed, position, input, targetR
   }, [camera, position]);
 
   useFrame((_, dt) => {
-    const next = stepPlayer(position.current, input.current, dt, layout);
+    const next = paused ? position.current : stepPlayer(position.current, input.current, dt, layout);
     position.current = next;
     playerGroup.current?.position.set(next.x, 0, next.z);
     const k = reducedMotion ? 1 : 1 - Math.exp(-dt * 6);
@@ -179,7 +180,10 @@ function promptFor(target: Target | null, manifest: MemoryScene, revealed: Reado
   return revealed.has(artifact.id) ? name + ' · already revealed' : 'Press E to look at the ' + name.toLowerCase() + '.';
 }
 
-export function WalkStage({ manifest, style, revealed, activeAudio, onReveal, onFinish, onUnavailable }: {
+export function WalkStage({ manifest, style, revealed, activeAudio, onReveal, onFinish, onUnavailable,
+  playerPosition, paused = false }: {
+  playerPosition?: RefObject<Point>;
+  paused?: boolean;
   manifest: MemoryScene;
   style: SceneStyle;
   revealed: ReadonlySet<string>;
@@ -189,7 +193,8 @@ export function WalkStage({ manifest, style, revealed, activeAudio, onReveal, on
   onUnavailable: () => void;
 }) {
   const layout = useRef(createWalkLayout(style)).current;
-  const position = useRef<Point>(layout.spawn);
+  const localPosition = useRef<Point>(layout.spawn);
+  const position = playerPosition ?? localPosition;
   const input = useRef<Input>({ x: 0, z: 0 });
   const keys = useRef(new Set<Direction>());
   const pad = useRef(new Set<Direction>());
@@ -209,14 +214,15 @@ export function WalkStage({ manifest, style, revealed, activeAudio, onReveal, on
 
   const interact = useCallback(() => {
     const t = targetRef.current;
-    if (!t) return;
+    if (!t || paused) return;
     if (t.kind === 'artifact') onReveal(manifest.artifacts[t.index].id);
     else if (t.ready) onFinish();
-  }, [manifest, onFinish, onReveal]);
+  }, [manifest, onFinish, onReveal, paused]);
   const interactRef = useRef(interact);
   interactRef.current = interact;
 
   useEffect(() => {
+    if (paused) return;
     const down = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey || typingTarget(event.target)) return;
       const key = event.key.toLowerCase();
@@ -243,7 +249,7 @@ export function WalkStage({ manifest, style, revealed, activeAudio, onReveal, on
       document.removeEventListener('visibilitychange', release);
       keys.current.clear(); pad.current.clear(); input.current = { x: 0, z: 0 };
     };
-  }, [syncInput]);
+  }, [paused, syncInput]);
 
   const [supported] = useState(webglAvailable);
   const [lost, setLost] = useState(false);
@@ -257,6 +263,7 @@ export function WalkStage({ manifest, style, revealed, activeAudio, onReveal, on
       type="button"
       className={'walk-pad-' + direction}
       aria-label={label}
+      disabled={paused}
       onPointerDown={(event) => {
         event.currentTarget.setPointerCapture?.(event.pointerId);
         pad.current.add(direction); syncInput();
@@ -279,8 +286,8 @@ export function WalkStage({ manifest, style, revealed, activeAudio, onReveal, on
             fallback={<Preview />}>
             <ContextMonitor onLost={loseContext} />
             <WalkWorld manifest={manifest} style={style} layout={layout} revealed={revealed} position={position}
-              input={input} targetRef={targetRef} activeAudio={activeAudio} motionModels={motionModels}
-              playerGroup={playerGroup} hud={hud} onTarget={setTarget} />
+              input={input} targetRef={targetRef} activeAudio={paused ? null : activeAudio} motionModels={motionModels}
+              playerGroup={playerGroup} hud={hud} onTarget={setTarget} paused={paused} />
           </Canvas>
           <p className="walk-prompt" role="status">{promptFor(target, manifest, revealed)}</p>
           <div className="walk-pad" aria-label="Touch movement controls">
@@ -289,11 +296,11 @@ export function WalkStage({ manifest, style, revealed, activeAudio, onReveal, on
             {padButton('right', 'Walk right', '▶')}
             {padButton('down', 'Walk back', '▼')}
           </div>
-          <button type="button" className="walk-interact" disabled={!canInteract} onClick={interact}>Interact</button>
+          <button type="button" className="walk-interact" disabled={!canInteract || paused} onClick={interact}>Interact</button>
         </div>
         <div className="stage-toolbar">
           <span>WASD or arrow keys to walk · E to interact</span>
-          <button type="button" onClick={() => { position.current = layout.spawn; }}>Reset position</button>
+          <button type="button" disabled={paused} onClick={() => { position.current = layout.spawn; }}>Reset position</button>
         </div>
       </StageBoundary>
     </section>

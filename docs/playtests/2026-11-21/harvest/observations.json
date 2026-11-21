@@ -1,0 +1,53 @@
+{
+  "id": "harvest",
+  "action": "Build memory",
+  "mood": "Joy and relief",
+  "name": "Ada",
+  "choice": "One small detail.",
+  "prompt": "A joyful dawn at the farm, after the first harvest. I met Ada at the windmill. We raced past three haystacks and a red bench, then laughed by the well because the baskets had split.",
+  "external": [],
+  "serverPlans": [],
+  "errors": [],
+  "preview": "Joyful Dawn at the Farm\n\nBuilt privately\n\nBarn · joyful · Written locally\n\nIn the scene Barn, Roofed well, Windmill, Haystack, Bench, Crate, Picket fence\n\nharvest · missing · No compatible model or free catalog slot.\nbecause · missing · No compatible model or free catalog slot.\nsplit · missing · No compatible model or free catalog slot.\nWorld interpretation\nSoundtrack\nSilence\nCoastal Light\nLantern Market\nStill Rooms\n\nMatched cues: joyful.\n\nMemory Worlds. Cleared for in-game playback, portable export, and demo use.\n\nPreview soundtrack\nMute soundtrack\nUpload an authorized soundtrack\nEnter world\nRevise prompt",
+  "coverageWarnings": [
+    "harvest · missing · No compatible model or free catalog slot.",
+    "because · missing · No compatible model or free catalog slot.",
+    "split · missing · No compatible model or free catalog slot."
+  ],
+  "interpretation": "Outdoor · Dawn\n\nBuilt “windmill” → Windmill, “haystacks” → Haystack ×3, “bench” → Bench (red), “well” → Roofed well, “baskets” → Crate ×3, Barn, Picket fence ×3\n\nPlaced bench by well\n\nCoverage depends on the available builders. Revise the prompt to change what appears.",
+  "spawn": {
+    "x": 0,
+    "z": 5.6
+  },
+  "opening": [
+    "Take a walk around the barn. Stop at the windmill and haystack before meeting Ada."
+  ],
+  "track": "lantern-market",
+  "audio": {
+    "duration": 7.68,
+    "time": 0.71533,
+    "muted": false,
+    "readyState": 4
+  },
+  "approach1": {
+    "x": -1.54,
+    "z": -4.23
+  },
+  "discovery1": "1\nWindmill\nFound\nI met Ada at the windmill\n\nImagine stopping beside the windmill long enough to see how the light falls around it.",
+  "approach2": {
+    "x": -3.98,
+    "z": -6.98
+  },
+  "discovery2": "2\nHaystack\nFound\nWe raced past three haystacks\n\nThink of what you would notice about the haystack if you came back tomorrow.",
+  "landmark": {
+    "x": -0.73,
+    "z": -5.36
+  },
+  "conversation": "Ada\n\nYou made it to the barn. What will you take with you when you leave?\n\nOne small detail.\nThe way it felt to be here.",
+  "ending": "Memory complete\n\nAda: Sometimes that is all it takes to find your way back here.\n\nLet the scene fade when you are ready to leave.\n\nReplay visit",
+  "restored": {
+    "x": -0.73,
+    "z": -5.36
+  },
+  "completed": true
+}

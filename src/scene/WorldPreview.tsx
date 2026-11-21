@@ -1,4 +1,5 @@
 import { OrbitControls } from '@react-three/drei';
+import { useStageDpr } from '../chrome/use-pixel';
 import { Canvas, useThree } from '@react-three/fiber';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { ComponentRef } from 'react';
@@ -51,6 +52,7 @@ function ExamplePreview({ exampleId, override, onChange, muted, onMutedChange }:
   const [activeAudio, setActiveAudio] = useState<HTMLAudioElement | null>(null);
   const [contextLost, setContextLost] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  const dpr = useStageDpr();
   const viewport = useId();
   const ready = cameraReady && !contextLost;
   const anchors = [...example.layout.discoveries, example.layout.ending];
@@ -62,9 +64,9 @@ function ExamplePreview({ exampleId, override, onChange, muted, onMutedChange }:
       <div id={viewport} className="stage-viewport world-preview-viewport" role="region" aria-label={example.title}>
         {contextLost ? fallback : (
           <StageBoundary fallback={fallback}>
-            <Canvas camera={{ fov: 49 }} frameloop="demand" dpr={[1, 1.5]} fallback={fallback}>
+            <Canvas camera={{ fov: 49 }} frameloop="demand" dpr={dpr} fallback={fallback}>
               <ContextMonitor onLost={() => setContextLost(true)} />
-              <WorldScenery layout={example.layout} atmosphere={example.atmosphere} activeAudio={activeAudio}
+              <WorldScenery placements={example.layout.placements} atmosphere={example.atmosphere} activeAudio={activeAudio}
                 music={choice.record.kind === 'silent' ? undefined : choice.record.music} />
               <PreviewCamera view={view} setReady={setCameraReady} />
             </Canvas>

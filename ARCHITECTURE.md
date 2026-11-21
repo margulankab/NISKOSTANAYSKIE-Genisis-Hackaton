@@ -1,5 +1,56 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Song of the day, larger worlds and interface atmospheres — 2026-11-21
+
+Implemented on `claude/keen-bell-fkqitv` over `dedf7ad`. Saved worlds and day bundles from earlier builds stay valid, because every new field is optional or defaulted.
+
+**B · Song of the day (music apps).** [`src/music/song.ts`](src/music/song.ts) recognizes links from Spotify, Apple Music, YouTube Music, YouTube, Yandex Music, SoundCloud, Deezer, TIDAL, Bandcamp and VK. It accepts exact hosts only, over HTTPS without credentials or ports, at most 300 characters. It removes sharing codes (`si`, `utm_*`, `feature` …) before saving. The player can also describe the song (artist, title, style, year) and tap its tempo; `bpmFromTaps` takes the median of the latest run of at least four taps. A validated `song` (Zod, `songSchema`) is stored as:
+
+- `PromptWorld.song` (optional) in IndexedDB worlds;
+- `DayBundle.song` (optional) in IndexedDB days, included in the duplicate-import fingerprint, and exported as `song.json` in the day ZIP (8 KiB import limit).
+
+The app never embeds a third-party player, downloads a track or calls a music service. **Open in …** / **Find in …** links open the player's own app on click. This follows AGENTS.md and the Spotify policy note: in-game playback stays with the cleared catalog or an authorized upload.
+
+**C · How the song shapes the world.** `songCues` maps style, tempo and year to the catalog's mood and energy tags with readable reasons. For example, jazz suggests nostalgic and gentle, 72 BPM is slow, and a year before 1995 reads as nostalgic. `promptSoundtrack` now selects from the song's cues plus the setting first, and falls back to the world's generic cues only if nothing matches. Two original compositions, *Warm Tape* and *Night Drive*, widen the catalog to five. Parks add a `park` setting cue, and night scenes add `night`. In the 3D view, lanterns and the ambient light pulse on the song's half-time beat, scaled by its energy, unless motion is reduced.
+
+**A + C · Larger outdoor worlds.** [`extendOutdoorLayout`](src/world/extend-world.ts) runs in `composeSceneTemplate` before `addRouteDressing`:
+
+- **Land added:** 8 m on each side, 12 m in front and 6 m behind every outdoor composed scene. Typical bounds grow from about 17 × 18 m to 35 × 36 m. Interior and mixed indoor scenes keep their composed size.
+- **Untouched:** placements, attachments (pier to shore, boat beside pier) and approaches stay exactly where the composer put them. Saved placements still match the accepted scene plan.
+- **Extended:** water rectangles grow to the new edge on their side. Water parks get four walkable `drySurfaces` margins. The spawn moves outward, so the walkways the route code generates now begin with an approach to the entrance.
+- **Scenery:** ground-detail density scales with area (88 to 240 instances), and side tree lines frame wider worlds. Fog distances increased for every atmosphere.
+- **Movement:** Shift runs at 1.75× speed (`RUN_MULTIPLIER`).
+- **Compass:** the HUD compass points to the next unfound discovery, then to the ending, with its distance in metres. It is updated from the render loop without React state.
+
+**Interface atmospheres.** Settings gained `theme` (`auto`, `genesis`, `nebula`, `daylight`, `fog`) and `pixel` (default on), both with defaults so older settings still parse. `applyAppearance` writes `data-ui`, `data-motion` and `data-pixel` on `<html>` before the first render. While a world is open, `setWorldAtmosphere` passes it an atmosphere from the world's time of day and weather. With the pixel filter on, 3D canvases render at DPR 0.5 and are scaled up with `image-rendering: pixelated`. See [docs/design_system.md](docs/design_system.md).
+
+## Composed scene layouts and catalog
+
+Both prompt actions preserve the exact source and use [the scene composer](src/world/compose-scene-template.ts). The private path generates intent from local evidence and selects compatible catalog entries. The optional fictional loopback endpoint asks Gemini for an intent and then a template from a shortlist of up to 48 asset IDs. The gateway and the browser check references, source evidence, supported surfaces, exclusions, meaningful anchors and an actual walking route. One corrective template request shares the 20-second model budget. Story text is authored locally around the resulting discoveries and landmark.
+
+Layout and catalog version 3 stores the accepted intent and template, actual coverage, seed, resolved placements, safe approaches and path polylines. The park compiler reserves an entrance lane, a walkable approach to the gazebo and recognizable park features. The water park compiler reserves a dry circuit around the pool. The shared generic composer handles coastlines, bridge passages, interiors and mixed indoor/outdoor places. The renderer draws the resolved layout on reopen. The v1/v2 prompt layouts, v1 story records and v1 diary ZIP reader remain supported.
+
+The [catalog](src/world/catalog.ts) indexes 108 new original models plus 19 previous builders. Original models share low-poly primitive batches and palette slots. The v3 stage adds controller-backed sight checks, camera clearance, route dressing and decoration instancing. A composed diary uses a local image texture bounded to 1,024 px and a separate 384 px archive thumbnail. Its original photo and associated song remain in the diary bundle and ZIP. [Resource ledger](docs/resource_ledger.md).
+
+## Planning baseline for model-led worlds
+
+The next prompt-world release plans a pipeline from original text to structured intent, catalog retrieval, a validated scene template, and deterministic placement in the shared renderer. Both prompt actions use the same planner. The planned release requires at least 100 eligible models and successful park and water-park benchmarks. Diary and private processing stay local. Planned contracts and provider deployment gates are in the [implementation plan](docs/memory_worlds_implementation_plan.md#generation-and-saved-scene-contracts). The sections below describe the existing implementation and earlier design.
+
+## Short prompt memory experience
+
+**Build memory** adds a story to the prompt-world flow. The player explores two existing discovery objects, then approaches a locally constructed character near the closing landmark. The scene fades in on arrival, the camera frames the character during the conversation, and the view dims after the player chooses a reply. Reduced motion disables interpolation and fades. The original prompt world and the journal/photo/song flow use their existing gameplay paths.
+
+`memory-story-schema.ts` defines bounded scene text, atmosphere, a character and outfit, discovery writing, and one conversation. The local option derives a story from the playable layout and prompt. The optional Vite dev middleware accepts an explicit fictional text submission from a loopback tab and requests one Gemini JSON response with a server-side key and a timeout. The client validates the response again and composes its scene description through the existing catalog, placement, collision, and route checks. The mood contributes to local soundtrack selection. The static build uses the local option. The game interprets a fixed sequence of discovery, conversation, reply, and ending events. The model supplies data for this sequence.
+
+Prompt worlds may include story version 1 and retain the original user description. Checkpoints may include an open conversation or the chosen reply. Earlier checkpoints and worlds continue to load without those optional fields. Reload uses the stored story and assets. Gemini is a developer-only fictional demo path. Changes to billing, hosted access, and processing real memories require a separate decision under the active privacy rules.
+
+## Integrated gameplay, scenery and local saves
+
+- Prompt worlds and new days with supported journal details render through [WorldStage](src/world/WorldStage.tsx). The prompt composer uses [the recipe catalog](src/world/recipes.ts) to place scenery from recognized objects and relationships. The catalog combines C's reusable geometry with the remaining starter builders. Geometry version 2 shares dimensions between rendering and collision, checks dry land and pier deck support, and validates reachable discoveries and ending with A's controller.
+- New prompt records use parser version 1 and layout and recipe catalog version 2. Earlier prompt layouts use their stored version 1 placements and solids. Both use the same checkpoint validation path. Day memories use the first 600 characters of the journal for placement cues and retain the full original journal, photo, and song. Days without a usable composed layout use the deterministic day renderer.
+- [Game storage](src/data/game-repository.ts) uses the existing IndexedDB version 2 stores. A prompt save commits the world, selected track record, playable blob, mute preference, and checkpoint together. Earlier raw world records remain readable. Day saves commit the validated day, its media, and the day checkpoint together. Continue chooses the latest checkpoint across both flows, and Load Game also lists days that start at spawn.
+- New day ZIPs include `world.json` when a composed layout is available. The reader also accepts v1 archives without that member. Local checkpoints stay in IndexedDB. Prompt music selection, synthesis, analysis, and playback work locally, and saved audio starts after a player gesture.
+
 ## Planned procedural worlds and game saves — 2026-11-21
 
 The [expanded plan](docs/game_development_plan.md#prompt-generated-worlds-soundtrack-selection-and-game-menus) replaces environment-specific layout selection for new worlds. B owns prompt parsing and manifest validation, C owns low-poly geometry and soundtrack catalogs, and A owns gameplay and checkpoint fields. The current renderer, seed-based variation, media analysis, and archive provide the baseline.

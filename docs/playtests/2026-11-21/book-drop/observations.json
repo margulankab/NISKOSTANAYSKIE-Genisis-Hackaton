@@ -1,0 +1,48 @@
+{
+  "id": "book-drop",
+  "action": "Build world",
+  "mood": "Calm after a storm",
+  "prompt": "A quiet library after the storm, at dawn. Two bookcases, a floor lamp, an armchair beside the window, and no tables. The rain has stopped and the first light reaches the returned books.",
+  "external": [],
+  "serverPlans": [],
+  "errors": [],
+  "preview": "Quiet Library After the Storm\n\nBuilt privately\n\nIn the scene Freestanding window, Bookcase, Floor lamp, Armchair, Cupboard, Dining chair, Woven rug\n\nafter · missing · No compatible model or free catalog slot.\nreaches · missing · No compatible model or free catalog slot.\nbooks · missing · No compatible model or free catalog slot.\nWorld interpretation\nSoundtrack\nSilence\nCoastal Light\nLantern Market\nStill Rooms\n\nMatched cues: room, indoors.\n\nMemory Worlds. Cleared for in-game playback, portable export, and demo use.\n\nPreview soundtrack\nMute soundtrack\nUpload an authorized soundtrack\nEnter world\nRevise prompt",
+  "coverageWarnings": [
+    "after · missing · No compatible model or free catalog slot.",
+    "reaches · missing · No compatible model or free catalog slot.",
+    "books · missing · No compatible model or free catalog slot."
+  ],
+  "interpretation": "Indoor · Dawn · Rain\n\nBuilt “bookcases” → Bookcase ×2, “floor lamp” → Floor lamp, “armchair” → Armchair, “window” → Freestanding window, Cupboard, Dining chair ×2, Woven rug, “library” → Indoor room\n\nPlaced armchair beside window\n\nCoverage depends on the available builders. Revise the prompt to change what appears.",
+  "spawn": {
+    "x": 0,
+    "z": 3.6
+  },
+  "opening": [],
+  "track": "still-rooms",
+  "audio": {
+    "duration": 17.6,
+    "time": 0.333088,
+    "muted": false,
+    "readyState": 4
+  },
+  "approach1": {
+    "x": 4.98,
+    "z": -0.22
+  },
+  "discovery1": "1\nBookcase\nFound\nTwo bookcases",
+  "approach2": {
+    "x": 1.91,
+    "z": 0.17
+  },
+  "discovery2": "2\nFloor lamp\nFound\na floor lamp",
+  "landmark": {
+    "x": 0.6,
+    "z": -3.69
+  },
+  "ending": "World complete\n\nQuiet Library After the Storm\n\nReplay visit",
+  "restored": {
+    "x": 0.6,
+    "z": -3.69
+  },
+  "completed": true
+}

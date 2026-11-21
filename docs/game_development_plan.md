@@ -2,6 +2,8 @@
 
 ## Active delivery plan — 2026-11-21
 
+The [Memory Worlds implementation plan](memory_worlds_implementation_plan.md) specifies the current prompt-world product direction. It adds an LLM scene planner, a 100-model release floor, and park and water-park benchmarks. The case deadline and private diary flow have a separate delivery track. The earlier expansion decisions and gate estimates follow below.
+
 ### Prompt-generated worlds, soundtrack selection, and game menus
 
 Park, room, and city become regression examples. The player writes a free-form prompt and can enter a generated, walkable scene without supplying media. The generator assembles terrain, structures, paths, lighting, and props from reusable low-poly builders. It reads described places and objects, counts, cue words for time and atmosphere, and supported relationships such as “beside” and “beyond.” It can combine indoor and outdoor areas in one world. A prompt about a lighthouse above a foggy cove with a red rowboat beside a pier should produce the hill, tower, shore, pier and boat, with a walkable route and an ending. Its layout and recognizable objects should differ from a prompt about a night market under a railway bridge. Coverage grows as new builders and vocabulary are added. If an important description cannot be rendered, show the missing or approximated detail and let the player revise the retained prompt. Explain that exact coverage depends on the available builders.

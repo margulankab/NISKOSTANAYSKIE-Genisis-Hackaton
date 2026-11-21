@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { SoundtrackChoice } from '../media/world-soundtrack';
 import { localGames } from '../data/game-repository';
 import { restoreCheckpoint } from './checkpoint';
 import type { GameState } from './checkpoint';
@@ -7,7 +8,7 @@ import type { PromptWorld } from './world-schema';
 
 type Opened =
   | { status: 'loading' | 'missing' | 'error' }
-  | { status: 'ready'; world: PromptWorld; initial: GameState | null; problem: string | null };
+  | { status: 'ready'; world: PromptWorld; soundtrack: SoundtrackChoice; initial: GameState | null; problem: string | null };
 
 /** Reopen a saved prompt world from its stored layout and checkpoint, without re-parsing the prompt. */
 export function SavedGame({ id }: { id: string }) {
@@ -21,8 +22,8 @@ export function SavedGame({ id }: { id: string }) {
       if (!saved) { setOpened({ status: 'missing' }); return; }
       const restored = saved.checkpoint === undefined ? null : restoreCheckpoint(saved.world, saved.checkpoint);
       setOpened(restored?.ok
-        ? { status: 'ready', world: saved.world, initial: restored.state, problem: null }
-        : { status: 'ready', world: saved.world, initial: null, problem: restored ? restored.reason : 'No saved progress was found.' });
+        ? { status: 'ready', world: saved.world, soundtrack: saved.soundtrack, initial: restored.state, problem: null }
+        : { status: 'ready', world: saved.world, soundtrack: saved.soundtrack, initial: null, problem: restored ? restored.reason : 'No saved progress was found.' });
     }, () => { if (!disposed) setOpened({ status: 'error' }); });
     return () => { disposed = true; };
   }, [id]);
@@ -42,5 +43,5 @@ export function SavedGame({ id }: { id: string }) {
       </section>
     );
   }
-  return <GameSession world={opened.world} initial={opened.initial} saved />;
+  return <GameSession world={opened.world} initial={opened.initial} initialSoundtrack={opened.soundtrack} />;
 }

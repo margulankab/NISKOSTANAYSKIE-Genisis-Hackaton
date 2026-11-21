@@ -4,9 +4,29 @@ import { MemoryViewer } from '../scene/MemoryViewer';
 import type { DayBundle } from '../shared/memory-schema';
 import { createViewerProps } from '../shared/memory-viewer';
 import type { MemoryViewerProps } from '../shared/memory-viewer';
-import { localMemories } from './indexed-memory-repository';
+import { dayCheckpointTarget, restoreCheckpoint } from '../world/checkpoint';
+import type { GameState } from '../world/checkpoint';
+import { loadDayCheckpoint } from './game-repository';
+import { localMemories, saveDayProgress } from './indexed-memory-repository';
 import { MemoryActions } from './MemoryActions';
 import type { DaySummary } from './repository';
+
+function ArchiveCard({ id, title, date, palette, thumbnail }: DaySummary) {
+  const [preview, setPreview] = useState<string>();
+  useEffect(() => {
+    if (!thumbnail || !(thumbnail instanceof Blob)) { setPreview(undefined); return; }
+    const url = URL.createObjectURL(thumbnail);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [thumbnail]);
+  const colors = palette?.map(color => `rgb(${color.join(' ')})`) ?? ['#88755e', '#535d51', '#303933'];
+  return <li><a href={`/memory/${id}`} className="day-card">
+    <span className="day-card-image" aria-hidden="true" style={{ backgroundImage: `linear-gradient(138deg, ${colors.join(',')})` }}>
+      {preview && <img src={preview} alt="" onError={() => setPreview(undefined)} />}
+    </span>
+    <span className="day-card-caption"><time dateTime={date}>{date}</time><strong>{title}</strong></span>
+  </a></li>;
+}
 
 export function Archive() {
   const [memories, setMemories] = useState<DaySummary[]>();
@@ -53,7 +73,7 @@ export function Archive() {
   }
 
   return (
-    <section className="intake archive">
+    <section className="intake archive" data-win="archive.exe">
       <h1>Archive</h1>
       <p>Memories are stored in this browser. Export a ZIP to keep a portable copy.</p>
       <form className="archive-import" onSubmit={upload} aria-busy={importing}>
@@ -67,23 +87,31 @@ export function Archive() {
         !memories ? <p role="status">Opening the archive…</p>
           : memories.length === 0 ? <p>No saved memories yet.</p>
           : <ul className="archive-list" aria-label="Saved memories">
-            {memories.map(({ id, title, date }) => (
-              <li key={id}><a href={`/memory/${id}`}><span>{title}</span><time dateTime={date}>{date}</time></a></li>
-            ))}
+            {memories.map(memory => <ArchiveCard key={memory.id} {...memory} />)}
           </ul>
       )}
     </section>
   );
 }
 
-type LoadedMemory = { bundle: DayBundle; viewer: MemoryViewerProps };
+type LoadedMemory = {
+  bundle: DayBundle; viewer: MemoryViewerProps; initial?: GameState; checkpointProblem?: string;
+};
 
 export function SavedMemory({ id }: { id: string }) {
   const [memory, setMemory] = useState<LoadedMemory | 'missing' | 'error'>();
+  const [restart, setRestart] = useState(false);
   useEffect(() => {
     let active = true;
-    localMemories.load(id).then((bundle) => {
-      if (active) setMemory(bundle ? { bundle, viewer: createViewerProps(bundle, () => {}) } : 'missing');
+    Promise.all([localMemories.load(id), loadDayCheckpoint(id)]).then(([bundle, checkpoint]) => {
+      if (!active) return;
+      if (!bundle) { setMemory('missing'); return; }
+      const restored = checkpoint === undefined ? undefined : restoreCheckpoint(dayCheckpointTarget(bundle), checkpoint);
+      setMemory({
+        bundle, viewer: createViewerProps(bundle, () => {}),
+        initial: restored?.ok ? restored.state : undefined,
+        checkpointProblem: restored && !restored.ok ? restored.reason : undefined,
+      });
     }).catch(() => { if (active) setMemory('error'); });
     return () => { active = false; };
   }, [id]);
@@ -94,8 +122,15 @@ export function SavedMemory({ id }: { id: string }) {
       {!memory ? <p role="status">Opening saved memory…</p>
         : memory === 'missing' ? <p role="alert">This memory was not found in this browser.</p>
         : memory === 'error' ? <p role="alert">This saved memory could not be opened.</p>
-        : <div className="generated-memory">
-          <MemoryViewer {...memory.viewer} />
+        : memory.checkpointProblem && !restart ? (
+          <div>
+            <h1>{memory.bundle.manifest.title}</h1>
+            <p role="alert">{memory.checkpointProblem}</p>
+            <button type="button" onClick={() => setRestart(true)}>Restart from the beginning</button>
+            <p><a href="/load">Back to Load Game</a></p>
+          </div>
+        ) : <div className="generated-memory">
+          <MemoryViewer {...memory.viewer} game={{ initial: memory.initial, save: (state) => saveDayProgress(memory.bundle, state) }} />
           <MemoryActions bundle={memory.bundle} archived />
         </div>}
     </section>

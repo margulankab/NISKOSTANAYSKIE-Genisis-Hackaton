@@ -83,15 +83,17 @@ test('AT-17: touch pad and Interact button complete a visit, and cancelled touch
     await expect(world(page).locator('canvas')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
     const { spawn, artifacts, reach } = await targets(page);
-    const pad = async (name: string, ms: number) => {
-      const box = (await page.getByRole('button', { name }).boundingBox())!;
+    const pad = async (name: string, ms: number, cancelled = false) => {
+      const control = page.getByRole('button', { name });
+      await control.scrollIntoViewIfNeeded();
+      const box = (await control.boundingBox())!;
       const client = await page.context().newCDPSession(page);
       const point = { x: Math.round(box.x + box.width / 2), y: Math.round(box.y + box.height / 2) };
       await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
       await page.waitForTimeout(ms);
-      await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await client.send('Input.dispatchTouchEvent', { type: cancelled ? 'touchCancel' : 'touchEnd', touchPoints: [] });
     };
-    await pad('Walk left', 300);
+    await pad('Walk left', 300, true);
     const moved = await playerAt(page);
     expect(moved.x).toBeLessThan(spawn.x - 0.3);
     await page.waitForTimeout(300);

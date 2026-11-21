@@ -1,0 +1,52 @@
+{
+  "id": "last-train",
+  "action": "Build memory",
+  "mood": "Sadness and longing",
+  "name": "Noor",
+  "choice": "The way it felt to be here.",
+  "prompt": "A sad farewell at a train station at dusk in the rain. I met Noor by the ticket kiosk. She gave me the last ticket beside the street clock and walked out before I could say goodbye.",
+  "external": [],
+  "serverPlans": [],
+  "errors": [],
+  "preview": "Sad Farewell at a Train Station\n\nBuilt privately\n\nStation facade · nostalgic · Written locally\n\nIn the scene Station facade, Ticket kiosk, Street clock, Shopfront, Bus stop, Street lamp, Mailbox, Apartment block\n\nfarewell · missing · No compatible model or free catalog slot.\nticket · missing · No compatible model or free catalog slot.\n\nSome requested positions could not be matched. Try changing the relationship or naming additional space around the object.\n\nWorld interpretation\nSoundtrack\nSilence\nCoastal Light\nLantern Market\nStill Rooms\n\nMatched cues: city.\n\nMemory Worlds. Cleared for in-game playback, portable export, and demo use.\n\nPreview soundtrack\nMute soundtrack\nUpload an authorized soundtrack\nEnter world\nRevise prompt",
+  "coverageWarnings": [
+    "farewell · missing · No compatible model or free catalog slot.",
+    "ticket · missing · No compatible model or free catalog slot."
+  ],
+  "interpretation": "Outdoor · Dusk · Rain\n\nBuilt “train station” → Station facade, “ticket kiosk” → Ticket kiosk, “street clock” → Street clock, Shopfront ×2, Bus stop, Street lamp ×3, Mailbox, Apartment block ×3, “station” → Paved ground\n\nNot built yet “beside” (placement)\n\nCoverage depends on the available builders. Revise the prompt to change what appears.",
+  "spawn": {
+    "x": 0,
+    "z": 5.6
+  },
+  "opening": [
+    "Take a walk around the station facade. Stop at the ticket kiosk and street clock before meeting Noor."
+  ],
+  "track": "lantern-market",
+  "audio": {
+    "duration": 7.68,
+    "time": 0.344417,
+    "muted": false,
+    "readyState": 4
+  },
+  "approach1": {
+    "x": -2.88,
+    "z": -5.09
+  },
+  "discovery1": "1\nTicket kiosk\nFound\nI met Noor by the ticket kiosk\n\nImagine stopping beside the ticket kiosk long enough to see how the light falls around it.",
+  "approach2": {
+    "x": -3.32,
+    "z": 0.96
+  },
+  "discovery2": "2\nStreet clock\nFound\nShe gave me the last ticket beside the street clock\n\nThink of what you would notice about the street clock if you came back tomorrow.",
+  "landmark": {
+    "x": -0.8,
+    "z": -5.49
+  },
+  "conversation": "Noor\n\nYou made it to the station facade. What will you take with you when you leave?\n\nOne small detail.\nThe way it felt to be here.",
+  "ending": "Memory complete\n\nNoor: Then stay another breath. There is no hurry.\n\nLet the scene fade when you are ready to leave.\n\nReplay visit",
+  "restored": {
+    "x": -0.8,
+    "z": -5.49
+  },
+  "completed": true
+}
