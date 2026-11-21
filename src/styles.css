@@ -72,6 +72,29 @@ button:focus-visible { outline: 2px solid #e7bb84; outline-offset: 4px; }
 }
 .preview button:disabled { opacity: .55; cursor: default; }
 .play { min-width: 150px; }
+.world-soundtrack {
+  display: grid;
+  justify-items: start;
+  gap: 0.6rem;
+}
+.world-soundtrack p { margin: 0; }
+.world-soundtrack details > label { display: block; margin-top: 0.6rem; }
+.world-preview > label { margin-inline-end: 0.75rem; }
+.world-preview select {
+  font: inherit;
+  color: inherit;
+  background: #202620;
+  border: 1px solid #727568;
+  border-radius: 5px;
+  padding: 0.4rem 0.6rem;
+}
+.shell:has(> .world-preview) { width: min(100% - 40px, 1320px); }
+.stage-viewport.world-preview-viewport { height: clamp(280px, 62vh, 650px); aspect-ratio: auto; }
+.world-preview-controls { color: #bdbfb0; font-size: 0.85rem; }
+.world-preview-views { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 0.8rem 1.4rem; }
+.world-preview-views button { color: inherit; background: #202620; border-color: #727568; }
+.world-preview-views button:hover:not(:disabled) { background: #30382f; }
+.world-preview { padding-block-end: 2rem; }
 
 .site-nav { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: .9rem; }
 .site-nav a { color: #ede7db; text-underline-offset: .23em; }

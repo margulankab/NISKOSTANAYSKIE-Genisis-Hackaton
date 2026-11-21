@@ -15,6 +15,8 @@ npm run dev
 
 Open the local URL printed by Vite. Choose a fictional memory from the library, drag to orbit, and scroll or pinch to zoom. Select both numbered objects or use the artifact buttons to reveal the illustration and entry excerpt. Then choose **Finish memory**. **Play soundtrack** starts the audio and its scene motion. The viewer respects reduced motion. The static preview keeps the artifact and audio controls available if WebGL is unavailable.
 
+Choose **World preview** to orbit the foggy cove or covered night market and try the local soundtracks. Use the landmark buttons to follow each route and **Overview** to reset the camera. Track choices and mute carry through world switches until you leave the page. The page shows curated examples while prompt generation and walking are being integrated.
+
 Choose **Create a memory** to validate a date, journal entry, photos, and an authorized audio excerpt. Select **Generate memory** to open the generated scene. Generation runs in the browser and works offline after the app loads. Use **Save to archive** to keep the memory in this browser. Use **Export ZIP** and **Import ZIP** to move a copy to another browser.
 
 ```powershell

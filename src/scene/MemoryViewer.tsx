@@ -1,42 +1,13 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import type { MemoryScene } from '../shared/memory-schema';
 import type { MemoryViewerProps } from '../shared/memory-viewer';
 import { artifactNames } from './ArtifactModel';
+import { AudioPlayer } from './AudioPlayer';
+import { useAssetUrl } from './use-asset-url';
+import type { ResolveAsset } from './use-asset-url';
 import { MemoryStage } from './MemoryStage';
 import { SceneExplanation } from './SceneExplanation';
 import { getSceneStyle } from './scene-style';
-
-type AssetUrl = { status: 'loading' | 'error' } | { status: 'ready'; url: string };
-type ResolveAsset = MemoryViewerProps['resolveAsset'];
-
-function useAssetUrl(id: string, resolveAsset: ResolveAsset): AssetUrl {
-  const [result, setResult] = useState<AssetUrl>({ status: 'loading' });
-
-  useEffect(() => {
-    let disposed = false;
-    let url: string | undefined;
-    setResult({ status: 'loading' });
-
-    async function open() {
-      try {
-        const blob = await resolveAsset(id);
-        if (disposed) return;
-        url = URL.createObjectURL(blob);
-        setResult({ status: 'ready', url });
-      } catch {
-        if (!disposed) setResult({ status: 'error' });
-      }
-    }
-
-    void open();
-    return () => {
-      disposed = true;
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [id, resolveAsset]);
-
-  return result;
-}
 
 function ArtifactPhoto({ photo, resolveAsset }: { photo: MemoryScene['photos'][number]; resolveAsset: ResolveAsset }) {
   const media = useAssetUrl(photo.assetId, resolveAsset);
@@ -59,78 +30,6 @@ function ArtifactPhoto({ photo, resolveAsset }: { photo: MemoryScene['photos'][n
 
   if (media.status === 'loading') return <p role="status">Opening photo…</p>;
   return <p role="alert">This artifact’s photo could not be opened.</p>;
-}
-
-function AudioPlayer({ url, onActiveAudio }: {
-  url: string;
-  onActiveAudio: (player: HTMLAudioElement | null) => void;
-}) {
-  const audio = useRef<HTMLAudioElement>(null);
-  const [playing, setPlaying] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    const player = audio.current;
-    return () => {
-      player?.pause();
-      onActiveAudio(null);
-    };
-  }, [onActiveAudio]);
-
-  function updateActivePlayback(player: HTMLAudioElement) {
-    onActiveAudio(!player.paused && !player.ended && player.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA
-      ? player
-      : null);
-  }
-
-  async function toggle() {
-    const player = audio.current;
-    if (!player) return;
-    setFailed(false);
-    if (!player.paused) {
-      player.pause();
-      return;
-    }
-    try {
-      await player.play();
-    } catch {
-      setFailed(true);
-      setPlaying(false);
-      onActiveAudio(null);
-    }
-  }
-
-  return (
-    <>
-      <audio
-        ref={audio}
-        src={url}
-        preload="metadata"
-        onPlay={() => setPlaying(true)}
-        onPlaying={({ currentTarget }) => updateActivePlayback(currentTarget)}
-        onWaiting={() => onActiveAudio(null)}
-        onSeeking={() => onActiveAudio(null)}
-        onSeeked={({ currentTarget }) => updateActivePlayback(currentTarget)}
-        onPause={() => {
-          setPlaying(false);
-          onActiveAudio(null);
-        }}
-        onEnded={() => {
-          setPlaying(false);
-          onActiveAudio(null);
-        }}
-        onError={() => {
-          setFailed(true);
-          setPlaying(false);
-          onActiveAudio(null);
-        }}
-      />
-      <button type="button" className="play" onClick={toggle}>
-        {playing ? 'Pause soundtrack' : 'Play soundtrack'}
-      </button>
-      {failed && <p role="alert">The soundtrack could not play.</p>}
-    </>
-  );
 }
 
 function MemoryAudio({ id, resolveAsset, onActiveAudio }: {

@@ -8,11 +8,12 @@ import type { MemoryScene } from '../shared/memory-schema';
 import { ArtifactModel, artifactNames } from './ArtifactModel';
 import { EnvironmentBackdrop } from './EnvironmentBackdrop';
 import { getMusicMotion } from './music-motion';
+import { prefersReducedMotion, subscribeToReducedMotion } from './reduced-motion';
 import type { SceneStyle } from './scene-style';
 
 const initialCamera = { position: [3.8, 3.1, 6.4] as [number, number, number], fov: 37 };
 
-class StageBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
+export class StageBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
   state = { failed: false };
 
   static getDerivedStateFromError() {
@@ -24,7 +25,7 @@ class StageBoundary extends Component<{ children: ReactNode; fallback: ReactNode
   }
 }
 
-function ContextMonitor({ onLost }: { onLost: () => void }) {
+export function ContextMonitor({ onLost }: { onLost: () => void }) {
   const canvas = useThree(({ gl }) => gl.domElement);
   useEffect(() => {
     canvas.addEventListener('webglcontextlost', onLost);
@@ -52,18 +53,6 @@ function ProjectArtifactMarkers({ spacing, markers }: {
   });
 
   return null;
-}
-
-const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
-
-function subscribeToReducedMotion(update: () => void) {
-  const preference = window.matchMedia(reducedMotionQuery);
-  preference.addEventListener('change', update);
-  return () => preference.removeEventListener('change', update);
-}
-
-function prefersReducedMotion() {
-  return window.matchMedia(reducedMotionQuery).matches;
 }
 
 function SoundtrackMotion({ activeAudio, models, music, parameters }: {
