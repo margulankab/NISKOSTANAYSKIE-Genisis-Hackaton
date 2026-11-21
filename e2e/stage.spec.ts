@@ -2,11 +2,22 @@ import { expect, test } from '@playwright/test';
 
 test('3D controls orbit, zoom, and reset the rendered diorama', async ({ page }) => {
   await page.goto('/');
-  const canvas = page.getByRole('region', { name: 'Memory diorama' }).locator('canvas');
+  const stage = page.getByRole('region', { name: 'Memory diorama' });
+  const canvas = stage.locator('canvas');
+  const marker = stage.locator('.stage-marker').first();
   await expect(canvas).toBeVisible();
+  await expect(marker).toBeVisible();
   const viewport = await canvas.boundingBox();
   if (!viewport) throw new Error('The stage has no visible canvas.');
-  const initial = await canvas.screenshot();
+  const markerPosition = () => marker.evaluate((element) => ({
+    x: (element as HTMLElement).offsetLeft,
+    y: (element as HTMLElement).offsetTop,
+  }));
+  const movedFrom = async (position: { x: number; y: number }) => {
+    const current = await markerPosition();
+    return Math.hypot(current.x - position.x, current.y - position.y);
+  };
+  const initial = await markerPosition();
   const x = viewport.x + viewport.width * 0.25;
   const y = viewport.y + viewport.height * 0.55;
 
@@ -14,13 +25,13 @@ test('3D controls orbit, zoom, and reset the rendered diorama', async ({ page })
   await page.mouse.down();
   await page.mouse.move(x + 110, y - 25, { steps: 8 });
   await page.mouse.up();
-  await expect.poll(async () => (await canvas.screenshot()).equals(initial)).toBe(false);
+  await expect.poll(() => movedFrom(initial)).toBeGreaterThan(8);
 
-  const orbited = await canvas.screenshot();
+  const orbited = await markerPosition();
   await page.mouse.wheel(0, -150);
-  await expect.poll(async () => (await canvas.screenshot()).equals(orbited)).toBe(false);
+  await expect.poll(() => movedFrom(orbited)).toBeGreaterThan(3);
   await page.getByRole('button', { name: 'Reset view' }).click();
-  await expect.poll(async () => (await canvas.screenshot()).equals(initial)).toBe(true);
+  await expect.poll(() => movedFrom(initial)).toBeLessThan(2);
 });
 
 test('a touch drag orbits the stage at a narrow viewport', async ({ browser }) => {
@@ -31,6 +42,9 @@ test('a touch drag orbits the stage at a narrow viewport', async ({ browser }) =
     await canvas.scrollIntoViewIfNeeded();
     const viewport = await canvas.boundingBox();
     if (!viewport) throw new Error('The touch stage has no visible canvas.');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+    await page.getByRole('button', { name: 'Reveal Photo frame in the diorama' }).tap();
+    await expect(page.getByText('1 of 2 artifacts revealed')).toBeVisible();
     const initial = await canvas.screenshot();
     const client = await page.context().newCDPSession(page);
     const x = Math.round(viewport.x + viewport.width * 0.26);
@@ -59,4 +73,20 @@ test('the scene supplies a labeled preview without WebGL', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByText('Static preview', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'The last light in the park' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reset view' })).toHaveCount(0);
+  await page.getByRole('button', { name: /^1 Photo frame/ }).press('Enter');
+  await page.getByRole('button', { name: /^2 Note/ }).press('Enter');
+  await page.getByRole('button', { name: 'Finish memory' }).press('Enter');
+  await expect(page.getByRole('heading', { name: 'Memory complete' })).toBeVisible();
+});
+
+test('losing the renderer keeps the current reveal and makes the preview playable', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Reveal Photo frame in the diorama' }).click();
+  await page.locator('canvas').dispatchEvent('webglcontextlost');
+  await expect(page.getByText('Static preview', { exact: true })).toBeVisible();
+  await expect(page.getByText('1 of 2 artifacts revealed')).toBeVisible();
+  await page.getByRole('button', { name: /^2 Note/ }).click();
+  await page.getByRole('button', { name: 'Finish memory' }).click();
+  await expect(page.getByRole('heading', { name: 'Memory complete' })).toBeVisible();
 });

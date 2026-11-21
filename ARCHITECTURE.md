@@ -1,5 +1,14 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Developer A viewer handoff — 2026-11-21
+
+The root Vite app opens three fictional fixture memories from Developer B's committed MW-000 scaffold. The active zero-cost direction is deterministic browser-local processing and static hosting. Retained sections below describe the original planning baseline.
+
+- [Shared schema](src/shared/memory-schema.ts) owns bounded v1 manifests, source references, presentation formulas, and rule provenance. [Viewer props](src/shared/memory-viewer.ts) pass the validated manifest, original entry text, local Blob resolver, and completion callback. The viewer consumes saved parameters through this existing interface.
+- [MemoryViewer](src/scene/MemoryViewer.tsx) owns one opening per manifest ID. It uses original geometry and saved colors/lightness/warmth/spacing. Both the in-scene targets and their accessible buttons reveal by artifact ID. The photo uses the corresponding Blob and the excerpt uses the original string's half-open range. Reveal state survives renderer loss. Finishing after both reveals calls the provided completion callback once.
+- The renderer uses on-demand WebGL frames, bounded orbit and zoom, a 1.5 DPR cap, and a labeled static fallback. The DOM handles the reveal cards and gesture-started audio independently. The viewer pauses on unmount, revokes Blob URLs on cleanup, and reports individual media failures inline.
+- Pinned 3D libraries and their MIT notices appear in [3D dependency licenses](public/3d-licenses.txt). Fixture illustrations and tones are original project test assets with per-asset provenance in the bundles. Full visual variants, playback interpolation and measured music-driven motion are MW-005/006.
+
 **Verified:** no application is implemented in this checkout. **Assumed:** every interface, limit, path and design below is the approved target, not an existing API. This amendment supersedes the historical Next.js/FastAPI/Pydantic/Supabase design. Trace: MIN-01–05/07, VIS-01–10, ETH-01/02/05/06, USR-01–04; [requirements](docs/00_case_requirements.md).
 
 ## Research findings

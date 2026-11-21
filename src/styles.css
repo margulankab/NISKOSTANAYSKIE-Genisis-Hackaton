@@ -79,6 +79,7 @@ button:focus-visible { outline: 2px solid #e7bb84; outline-offset: 4px; }
 .memory-stage { margin: 0 0 20px; }
 .stage-viewport {
   position: relative;
+  width: 100%;
   aspect-ratio: 16 / 10;
   min-height: 240px;
   overflow: hidden;
@@ -120,3 +121,77 @@ button:focus-visible { outline: 2px solid #e7bb84; outline-offset: 4px; }
   background: #423e33;
 }
 .stage-swatch i { width: 26px; height: 20px; border: 1px solid #bdab8d; border-radius: 3px; }
+
+.stage-overlay { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.preview .stage-marker {
+  position: absolute;
+  visibility: hidden;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid #dcc39d;
+  border-radius: 50%;
+  color: #f3e8d8;
+  background: #262824;
+  font-weight: 700;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+.preview .stage-marker[aria-pressed="true"],
+.preview .stage-marker:hover { background: #ddb987; color: #211b14; }
+.memory-actions {
+  display: flex;
+  gap: 10px 20px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+}
+.memory-actions button { min-height: 42px; }
+.memory-actions p { margin: 0; color: #bdbfb0; }
+.artifact-grid { display: grid; gap: 10px; }
+.artifact-card {
+  min-width: 0;
+  border: 1px solid #545a4e;
+  border-radius: 7px;
+  background: #202620;
+}
+.preview .artifact-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 49px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: #ede7db;
+  text-align: left;
+}
+.preview .artifact-toggle:hover { background: #30372d; }
+.artifact-number {
+  display: grid;
+  place-items: center;
+  flex: 0 0 25px;
+  height: 25px;
+  border: 1px solid #968668;
+  border-radius: 50%;
+  color: #e7cba2;
+}
+.artifact-state { margin-inline-start: auto; color: #cfbd9f; font-size: .82rem; }
+.artifact-content { padding: 4px 14px 14px; }
+.artifact-content img { width: auto; max-width: 100%; max-height: 300px; object-fit: contain; }
+.artifact-content figcaption { padding-top: 8px; color: #cecab9; font-size: .9rem; }
+.artifact-content blockquote { margin: 7px 0 2px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.memory-ending { margin-top: 20px; }
+.closing-card {
+  margin-top: 12px;
+  padding: 20px;
+  border: 1px solid #8e8064;
+  border-radius: 7px;
+  background: #2d3128;
+}
+.closing-card h3 { margin: 0 0 6px; font: 1.55rem Georgia, serif; }
+.closing-card p { margin: 0; color: #d6c8b0; }

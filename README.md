@@ -1,5 +1,28 @@
 # Memory Worlds — researched planning package
 
+## Run the playable fixture library
+
+Use Node.js 20.19+ on the 20.x line or Node.js 22.12 or later. This worktree was verified with Node.js 24.17.0.
+
+```sh
+npm ci
+npm run dev
+```
+
+Open the local URL printed by Vite. Choose a fictional memory from the library, drag to orbit, and scroll or pinch to zoom. Select the two numbered objects or use the artifact buttons to reveal the illustration and an excerpt from the entry. Once both are open, choose **Finish memory**. **Play test tone** controls the fixture audio. If WebGL is unavailable, the labeled static preview preserves the artifact and audio controls.
+
+```powershell
+npm run typecheck
+npm test
+npm run build
+$env:PLAYWRIGHT_CHANNEL = 'msedge'
+npm run test:browser
+```
+
+The build writes static output to `dist/`. The browser command uses an installed Microsoft Edge. See the [viewer handoff](ARCHITECTURE.md#developer-a-viewer-handoff--2026-11-21), [milestone checks](PROGRESS.md), and [3D dependency licenses](public/3d-licenses.txt).
+
+## Planning baseline
+
 **Verified — 2026-11-20:** this checkout contains project documentation, not a playable game. The initial seven files all had existing edits; the audit preserves their full original content below active amendments. No application build, tests, deployed prototype or generated day examples are claimed. The source of case requirements is the supplied [case brief](reference/document_en.md); its independent organizer authenticity is unverified.
 
 **Verified — audit reconciliation:** `docs/game_development_plan.md` now exists with the schedule and AT-01–16 definitions. Concurrent organization moved three supporting documents into `docs/planning/`; those moves and the milestone-testing gate are preserved. Historical text below retains its original paths.

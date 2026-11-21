@@ -1,5 +1,15 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-21 — Developer A · MW-002 playable fixture loop
+
+Local viewer acceptance passed on `A_development` (USR-01 and AT-10). Both manifest artifacts reveal their own source content. Opening the same artifact twice leaves the ending locked. The closing card is available after both reveals and sends one completion event per opening. Switching fixtures resets the loop, pauses audio and revokes the old media URLs. The labeled static preview preserves the loop if WebGL fails at startup or during play.
+
+- `npm run typecheck` and `npm test` passed. All 32 contract tests passed.
+- `$env:PLAYWRIGHT_CHANNEL = 'msedge'; npm run test:browser -- --repeat-each=3` passed all 21 runs of seven scenarios. Coverage includes all three fixtures, each reveal order, mouse and keyboard reveals, emulated mobile tap/orbit/pinch, ending gating, camera reset, context loss, corrupt photo handling, and media cleanup. The first pass exposed an intermittent missing marker and a brittle pixel comparison. The repeat run passed after projecting both markers into one DOM overlay and checking their camera-relative positions.
+- `npm run build` and `git diff --check` passed. The static build contains the 3D license file. Vite emitted two Zod annotation warnings and a JavaScript chunk-size warning (371 kB gzip).
+- `npm exec -- vite preview --host 127.0.0.1 --port 4191 --strictPort`: Edge smoke and screenshot review covered direct 3D object selection, a projected marker, the closing card, the device-pixel-ratio cap, and zero external requests. A narrow-screen overflow found during review was fixed. The production build then fit both 320 px and 390 px touch-emulated viewports.
+- Physical-device touch/audio and public deployment are pending. Next for Developer A is MW-005, followed by MW-006.
+
 ## 2026-11-21 — Developer A · MW-001 diorama foundation
 
 The fixture library mounts the same original 3D platform for all three days. Saved palette, lightness, warmth and artifact spacing drive the static composition. Bounded orbit/zoom, camera reset and a labeled WebGL fallback are available. The desktop Edge browser suite passed four tests covering mouse orbit/zoom/reset, emulated mobile touch drag/pinch, no-WebGL fallback, and the three fixture media flows.
