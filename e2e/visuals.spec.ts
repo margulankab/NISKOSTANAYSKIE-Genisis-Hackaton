@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { settledShot } from './walk';
 
 test('analyzes local photo pixels, including transparent and corrupt input', async ({ page }) => {
   await page.goto('/');
@@ -39,7 +40,7 @@ test('analyzes local photo pixels, including transparent and corrupt input', asy
 
 test('each fixture keeps the shared framing and explains the treatment it renders', async ({ page }, testInfo) => {
   await page.goto('/');
-  const stage = page.getByRole('region', { name: 'Memory diorama' });
+  const stage = page.getByRole('region', { name: 'Memory world' });
   const examples = [
     { name: /nostalgic.*park/i, setting: 'Park.', treatment: 'Layered photo mounts' },
     { name: /tense.*room/i, setting: 'Room.', treatment: 'Angled mounts' },
@@ -49,14 +50,14 @@ test('each fixture keeps the shared framing and explains the treatment it render
   let stageSize: { width: number; height: number } | undefined;
   for (const { name, setting, treatment } of examples) {
     await page.getByRole('navigation').getByRole('button', { name }).click();
-    await expect(stage.getByRole('button', { name: /Photo frame in the diorama/i })).toBeVisible();
-    await expect(stage.getByRole('button', { name: /Note in the diorama/i })).toBeVisible();
+    await expect(stage.locator('canvas')).toBeVisible();
     await page.getByText('Why this scene?', { exact: true }).click();
     const explanation = page.locator('.scene-explanation');
     await expect(explanation).toContainText(setting);
     await expect(explanation).toContainText(treatment);
     await expect(explanation).toContainText('measured audio energy');
     const canvas = stage.locator('canvas');
+    await settledShot(canvas);
     const box = await canvas.boundingBox();
     if (!box) throw new Error('Missing fixture canvas.');
     const { width, height } = box;
@@ -70,10 +71,10 @@ test('each fixture keeps the shared framing and explains the treatment it render
 
 test('changing only fixture context or photo features changes its rendered stage', async ({ page }) => {
   await page.goto('/');
-  const stage = page.getByRole('region', { name: 'Memory diorama' });
-  const marker = stage.getByRole('button', { name: /Photo frame in the diorama/i });
+  const stage = page.getByRole('region', { name: 'Memory world' });
+  const marker = stage.locator('canvas');
   await expect(marker).toBeVisible();
-  const original = await stage.locator('canvas').screenshot();
+  const original = await settledShot(stage.locator('canvas'));
   await page.evaluate(async () => {
     const path = '/src/fixtures/memories.ts';
     const { fixtures } = await import(path) as typeof import('../src/fixtures/memories');

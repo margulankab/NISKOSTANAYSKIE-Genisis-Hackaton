@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
+import { visitArtifact } from './walk';
 import type { Page } from '@playwright/test';
 import { unzipSync, zipSync } from 'fflate';
 import { createTestTone } from '../src/fixtures/test-tone';
@@ -79,11 +80,11 @@ test('saves duplicate titles, reloads the archive, and reopens the stored bundle
   await expect(choices.nth(0)).toHaveAttribute('href', second);
   await expect(choices.nth(1)).toHaveAttribute('href', first);
   await choices.nth(0).click();
-  await page.getByRole('button', { name: /^2 Note/ }).click();
+  await visitArtifact(page, 1);
   await expect(page.locator('blockquote')).toHaveText(secondEntry);
   await page.getByRole('link', { name: 'Back to archive' }).click();
   await choices.nth(1).click();
-  await page.getByRole('button', { name: /^2 Note/ }).click();
+  await visitArtifact(page, 1);
   await expect(page.locator('blockquote')).toHaveText(firstEntry);
   expect(unzipSync(await download(page))).toEqual(original);
 });
@@ -129,7 +130,7 @@ test('imports a deflated ZIP into a fresh profile, reopens it, and rejects inval
     }
 
     await choices.first().click();
-    await other.getByRole('button', { name: /^2 Note/ }).click();
+    await visitArtifact(other, 1);
     await expect(other.locator('blockquote')).toHaveText(firstEntry);
     await other.getByRole('button', { name: 'Play soundtrack' }).click();
     await expect.poll(() => other.locator('audio').evaluate((audio: HTMLAudioElement) => audio.currentTime)).toBeGreaterThan(0);
@@ -151,7 +152,7 @@ test('a quota failure preserves the preview, allows ZIP export, and rolls back t
   await page.getByRole('button', { name: 'Save to archive' }).click();
   await expect(page.getByRole('alert')).toContainText('archive storage is full');
   await expect(page.getByRole('link', { name: 'Open saved memory' })).toHaveCount(0);
-  await page.getByRole('button', { name: /^2 Note/ }).click();
+  await visitArtifact(page, 1);
   await expect(page.locator('blockquote')).toHaveText(firstEntry);
   inspect(await download(page));
   await page.getByRole('link', { name: 'Archive', exact: true }).click();

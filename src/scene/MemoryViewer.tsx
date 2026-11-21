@@ -1,8 +1,8 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { MemoryScene } from '../shared/memory-schema';
 import type { MemoryViewerProps } from '../shared/memory-viewer';
 import { artifactNames } from './ArtifactModel';
-import { MemoryStage } from './MemoryStage';
+import { WalkStage } from './WalkStage';
 import { SceneExplanation } from './SceneExplanation';
 import { getSceneStyle } from './scene-style';
 
@@ -154,6 +154,8 @@ function MemoryOpening({ manifest, entryText, resolveAsset, onComplete }: Memory
   const [revealed, setRevealed] = useState<ReadonlySet<string>>(() => new Set());
   const [complete, setComplete] = useState(false);
   const [activeAudio, setActiveAudio] = useState<HTMLAudioElement | null>(null);
+  const [staticMode, setStaticMode] = useState(false);
+  const [visit, setVisit] = useState(0);
   const finished = useRef(false);
   const allRevealed = revealed.size === manifest.artifacts.length;
   const style = getSceneStyle(manifest);
@@ -169,13 +171,26 @@ function MemoryOpening({ manifest, entryText, resolveAsset, onComplete }: Memory
     onComplete();
   }
 
+  function replay() {
+    finished.current = false;
+    setRevealed(new Set());
+    setComplete(false);
+    setVisit((count) => count + 1);
+  }
+
+  const useStatic = useCallback(() => setStaticMode(true), []);
+
   return (
     <article className="preview" aria-labelledby={headingId}>
       <header>
         <time dateTime={manifest.date}>{manifest.date}</time>
         <h2 id={headingId}>{manifest.title}</h2>
       </header>
-      <MemoryStage manifest={manifest} style={style} revealed={revealed} onReveal={reveal} activeAudio={activeAudio} />
+      {staticMode && (
+        <p className="static-note" role="status">Static preview — the 3D world is unavailable here. Reveal each object from the list below.</p>
+      )}
+      <WalkStage key={visit} manifest={manifest} style={style} revealed={revealed} activeAudio={activeAudio}
+        onReveal={reveal} onFinish={finish} onUnavailable={useStatic} />
       <SceneExplanation manifest={manifest} style={style} />
       <div className="memory-actions">
         <p role="status">{revealed.size} of {manifest.artifacts.length} artifacts revealed</p>
@@ -193,11 +208,12 @@ function MemoryOpening({ manifest, entryText, resolveAsset, onComplete }: Memory
                 className="artifact-toggle"
                 aria-controls={panelId}
                 aria-expanded={open}
+                disabled={!staticMode && !open}
                 onClick={() => reveal(id)}
               >
                 <span className="artifact-number">{index + 1}</span>
                 <span>{artifactNames[kind]}</span>
-                <span className="artifact-state">{open ? 'Revealed' : 'Reveal'}</span>
+                <span className="artifact-state">{open ? 'Revealed' : staticMode ? 'Reveal' : 'Find it in the world'}</span>
               </button>
               <div id={panelId} className="artifact-content" hidden={!open}>
                 {open && photo && <ArtifactPhoto key={photo.assetId} photo={photo} resolveAsset={resolveAsset} />}
@@ -208,11 +224,14 @@ function MemoryOpening({ manifest, entryText, resolveAsset, onComplete }: Memory
         })}
       </div>
       <footer className="memory-ending">
-        <button type="button" disabled={!allRevealed || complete} onClick={finish}>Finish memory</button>
+        {staticMode && !complete && (
+          <button type="button" disabled={!allRevealed} onClick={finish}>Finish memory</button>
+        )}
         {complete && (
           <div className="closing-card" role="status">
             <h3>Memory complete</h3>
             <p>{manifest.title}</p>
+            <button type="button" onClick={replay}>Replay visit</button>
           </div>
         )}
       </footer>
