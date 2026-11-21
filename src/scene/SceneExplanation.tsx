@@ -10,6 +10,18 @@ const treatments: Record<SceneStyle['treatment'], string> = {
 
 const percent = (value: number) => Math.round(value * 100) + '%';
 
+function SoundtrackExplanation({ rule }: { rule: MemoryScene['presentation']['appliedRules'][1] }) {
+  return (
+    <div>
+      <dt>Soundtrack motion</dt>
+      <dd>
+        Measured audio energy {percent(rule.source.meanEnergy)} sets movement to {rule.result.motionSpeed.toFixed(3)} cycles per second.
+        {' '}During playback, peaks in measured energy move the artifacts and increase their scale by up to {percent(rule.result.pulseGain)}.
+      </dd>
+    </div>
+  );
+}
+
 export function SceneExplanation({ manifest, style }: { manifest: MemoryScene; style: SceneStyle }) {
   const [photo, music, mood] = manifest.presentation.appliedRules;
   const environment = environmentDetails[style.environment];
@@ -43,6 +55,7 @@ export function SceneExplanation({ manifest, style }: { manifest: MemoryScene; s
             {' '}{treatments[style.treatment]}
           </dd>
         </div>
+        <SoundtrackExplanation rule={music} />
       </dl>
     </details>
   );

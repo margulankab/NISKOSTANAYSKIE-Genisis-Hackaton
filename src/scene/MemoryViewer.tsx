@@ -61,15 +61,27 @@ function ArtifactPhoto({ photo, resolveAsset }: { photo: MemoryScene['photos'][n
   return <p role="alert">This artifact’s photo could not be opened.</p>;
 }
 
-function AudioPlayer({ url }: { url: string }) {
+function AudioPlayer({ url, onActiveAudio }: {
+  url: string;
+  onActiveAudio: (player: HTMLAudioElement | null) => void;
+}) {
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const player = audio.current;
-    return () => player?.pause();
-  }, []);
+    return () => {
+      player?.pause();
+      onActiveAudio(null);
+    };
+  }, [onActiveAudio]);
+
+  function updateActivePlayback(player: HTMLAudioElement) {
+    onActiveAudio(!player.paused && !player.ended && player.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA
+      ? player
+      : null);
+  }
 
   async function toggle() {
     const player = audio.current;
@@ -83,6 +95,8 @@ function AudioPlayer({ url }: { url: string }) {
       await player.play();
     } catch {
       setFailed(true);
+      setPlaying(false);
+      onActiveAudio(null);
     }
   }
 
@@ -92,24 +106,42 @@ function AudioPlayer({ url }: { url: string }) {
         ref={audio}
         src={url}
         preload="metadata"
-        onPlaying={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={() => setPlaying(false)}
-        onError={() => setFailed(true)}
+        onPlay={() => setPlaying(true)}
+        onPlaying={({ currentTarget }) => updateActivePlayback(currentTarget)}
+        onWaiting={() => onActiveAudio(null)}
+        onSeeking={() => onActiveAudio(null)}
+        onSeeked={({ currentTarget }) => updateActivePlayback(currentTarget)}
+        onPause={() => {
+          setPlaying(false);
+          onActiveAudio(null);
+        }}
+        onEnded={() => {
+          setPlaying(false);
+          onActiveAudio(null);
+        }}
+        onError={() => {
+          setFailed(true);
+          setPlaying(false);
+          onActiveAudio(null);
+        }}
       />
       <button type="button" className="play" onClick={toggle}>
-        {playing ? 'Pause test tone' : 'Play test tone'}
+        {playing ? 'Pause soundtrack' : 'Play soundtrack'}
       </button>
-      {failed && <p role="alert">The test tone could not play.</p>}
+      {failed && <p role="alert">The soundtrack could not play.</p>}
     </>
   );
 }
 
-function MemoryAudio({ id, resolveAsset }: { id: string; resolveAsset: ResolveAsset }) {
+function MemoryAudio({ id, resolveAsset, onActiveAudio }: {
+  id: string;
+  resolveAsset: ResolveAsset;
+  onActiveAudio: (player: HTMLAudioElement | null) => void;
+}) {
   const media = useAssetUrl(id, resolveAsset);
-  if (media.status === 'ready') return <AudioPlayer key={media.url} url={media.url} />;
+  if (media.status === 'ready') return <AudioPlayer key={media.url} url={media.url} onActiveAudio={onActiveAudio} />;
   if (media.status === 'error') return <p role="alert">The memory audio could not be opened.</p>;
-  return <button type="button" className="play" disabled>Play test tone</button>;
+  return <button type="button" className="play" disabled>Play soundtrack</button>;
 }
 
 export function MemoryViewer(props: MemoryViewerProps) {
@@ -121,6 +153,7 @@ function MemoryOpening({ manifest, entryText, resolveAsset, onComplete }: Memory
   const artifactGroupId = useId();
   const [revealed, setRevealed] = useState<ReadonlySet<string>>(() => new Set());
   const [complete, setComplete] = useState(false);
+  const [activeAudio, setActiveAudio] = useState<HTMLAudioElement | null>(null);
   const finished = useRef(false);
   const allRevealed = revealed.size === manifest.artifacts.length;
   const style = getSceneStyle(manifest);
@@ -142,11 +175,11 @@ function MemoryOpening({ manifest, entryText, resolveAsset, onComplete }: Memory
         <time dateTime={manifest.date}>{manifest.date}</time>
         <h2 id={headingId}>{manifest.title}</h2>
       </header>
-      <MemoryStage manifest={manifest} style={style} revealed={revealed} onReveal={reveal} />
+      <MemoryStage manifest={manifest} style={style} revealed={revealed} onReveal={reveal} activeAudio={activeAudio} />
       <SceneExplanation manifest={manifest} style={style} />
       <div className="memory-actions">
         <p role="status">{revealed.size} of {manifest.artifacts.length} artifacts revealed</p>
-        <MemoryAudio id={manifest.source.audioId} resolveAsset={resolveAsset} />
+        <MemoryAudio id={manifest.source.audioId} resolveAsset={resolveAsset} onActiveAudio={setActiveAudio} />
       </div>
       <div className="artifact-grid">
         {manifest.artifacts.map(({ id, kind, photoId, excerpt }, index) => {

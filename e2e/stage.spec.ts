@@ -76,6 +76,9 @@ test('the scene supplies a labeled preview without WebGL', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Reset view' })).toHaveCount(0);
   await page.getByText('Why this scene?', { exact: true }).click();
   await expect(page.locator('.scene-explanation')).toContainText('Low trees and a path');
+  await page.getByRole('button', { name: 'Play soundtrack' }).click();
+  await expect.poll(() => page.locator('audio').evaluate((element: HTMLAudioElement) => element.currentTime)).toBeGreaterThan(0);
+  await page.getByRole('button', { name: 'Pause soundtrack' }).click();
   await page.getByRole('button', { name: /^1 Photo frame/ }).press('Enter');
   await page.getByRole('button', { name: /^2 Note/ }).press('Enter');
   await page.getByRole('button', { name: 'Finish memory' }).press('Enter');

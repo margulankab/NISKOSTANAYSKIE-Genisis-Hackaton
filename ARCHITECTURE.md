@@ -1,5 +1,10 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Developer A audio analysis and playback motion (MW-006)
+
+- [Audio analysis](src/media/audio-analysis.ts) exports browser-only `analyzeAudio(blob): Promise<MemoryScene['music']>` (MIN-03, AT-03/04). Call it from MW-004 with the WAV or MP3 Blob returned by validated intake. An offline decoder produces 16 kHz PCM. The analyzer averages channels to mono and measures `min(1, 4 × RMS)` in each 100 ms window, including the final partial window. The mean is the arithmetic average of the envelope. Duration is bounded to 1–90 seconds. Decode and analysis failures reject so the caller can preserve the draft and report the failing audio. BPM and key remain null. [Web Audio API](https://www.w3.org/TR/webaudio-1.0/)
+- The viewer replays the saved measurements using the gesture-started media element's current time. The models use linear envelope interpolation, `scale = 1 + pulseGain × energy`, and a vertical displacement of `0.10 × energy × sin(2π × motionSpeed × time)` scene units. Mount positions and reveal markers stay fixed. The demand-rendered scene stops requesting playback frames and resets the models at rest on pause, buffering, seek, end, error, or reduced motion. The static fallback keeps the player and both reveals available. Existing v1 manifests and viewer props work with this path.
+
 ## Developer A visual rules and photo analysis — 2026-11-21
 
 - MW-005 uses one platform, camera and artifact layout. Saved environment and seed select and vary the decorative park, room or city geometry. Saved palette, image brightness, warmth and artifact spacing drive accents, lighting and placement. Mood selects angular mounts, layered photo mounts or softer lighting.

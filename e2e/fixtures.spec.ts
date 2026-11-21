@@ -66,11 +66,11 @@ test('three fixtures reveal exact source content, play audio, and close after bo
     const audio = page.locator('audio');
     await expect(audio).toHaveAttribute('src', /^blob:/);
     await expect.poll(() => audio.evaluate((element) => (element as HTMLAudioElement).duration)).toBe(4);
-    await page.getByRole('button', { name: 'Play test tone' }).click();
-    await expect(page.getByRole('button', { name: 'Pause test tone' })).toBeVisible();
+    await page.getByRole('button', { name: 'Play soundtrack' }).click();
+    await expect(page.getByRole('button', { name: 'Pause soundtrack' })).toBeVisible();
     await expect.poll(() => audio.evaluate((element) => (element as HTMLAudioElement).currentTime)).toBeGreaterThan(0);
-    await page.getByRole('button', { name: 'Pause test tone' }).click();
-    await expect(page.getByRole('button', { name: 'Play test tone' })).toBeVisible();
+    await page.getByRole('button', { name: 'Pause soundtrack' }).click();
+    await expect(page.getByRole('button', { name: 'Play soundtrack' })).toBeVisible();
 
     await expect(page.getByText('2 of 2 artifacts revealed')).toBeVisible();
     await finish.focus();
@@ -103,8 +103,8 @@ test('an undecodable artifact photo leaves the note, soundtrack, and ending usab
   await expect(finish).toBeDisabled();
   await note.click();
   await expect(page.locator('blockquote')).toHaveText(memories[0].excerpt);
-  await page.getByRole('button', { name: 'Play test tone' }).click();
-  await expect(page.getByRole('button', { name: 'Pause test tone' })).toBeVisible();
+  await page.getByRole('button', { name: 'Play soundtrack' }).click();
+  await expect(page.getByRole('button', { name: 'Pause soundtrack' })).toBeVisible();
   await finish.click();
   await expect(closing).toBeVisible();
 });
@@ -128,8 +128,8 @@ test('switching memories pauses the old soundtrack and releases its photo and au
   await expect(audio).toHaveAttribute('src', /^blob:/);
   const audioUrl = await audio.getAttribute('src');
   const player = await audio.elementHandle();
-  await page.getByRole('button', { name: 'Play test tone' }).click();
-  await expect(page.getByRole('button', { name: 'Pause test tone' })).toBeVisible();
+  await page.getByRole('button', { name: 'Play soundtrack' }).click();
+  await expect(page.getByRole('button', { name: 'Pause soundtrack' })).toBeVisible();
   await page.getByRole('navigation').getByRole('button', { name: new RegExp(memories[1].title) }).click();
   await expect.poll(() => player.evaluate((element) => (element as HTMLAudioElement).paused)).toBe(true);
   const revoked = await page.evaluate(() => (window as Window & { revokedMemoryUrls?: string[] }).revokedMemoryUrls);

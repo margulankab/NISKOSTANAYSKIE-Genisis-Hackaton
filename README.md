@@ -9,7 +9,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite. Choose a fictional memory from the library, drag to orbit, and scroll or pinch to zoom. Select the two numbered objects or use the artifact buttons to reveal the illustration and an excerpt from the entry. Once both are open, choose **Finish memory**. **Play test tone** controls the fixture audio. If WebGL is unavailable, the labeled static preview preserves the artifact and audio controls.
+Open the local URL printed by Vite. Choose a fictional memory from the library, drag to orbit, and scroll or pinch to zoom. Select the two numbered objects or use the artifact buttons to reveal the illustration and an excerpt from the entry. Once both are open, choose **Finish memory**. **Play soundtrack** starts the fixture audio and its scene motion. The viewer respects your reduced-motion preference. If WebGL is unavailable, the labeled static preview preserves the artifact and audio controls.
 
 ```powershell
 npm run typecheck

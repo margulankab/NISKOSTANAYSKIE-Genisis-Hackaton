@@ -1,5 +1,23 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-21 — Developer A · MW-006 soundtrack analysis and motion
+
+The browser-local audio analyzer is ready for MW-004. The fixture viewer now plays its saved soundtrack on demand and uses the saved energy envelope to drive the artifacts' motion. **Why this scene?** shows the relationship between the soundtrack and the composition.
+
+With journal, photo, context and seed held fixed, Edge measured the following from two original tones at 220 Hz and a silent control.
+
+| Clip | Mean energy | Motion speed (cycles/s) | Mount spacing (scene units) |
+|---|---:|---:|---:|
+| Lower energy | 0.162 | 0.371 | 2.592 |
+| Higher energy | 0.862 | 0.897 | 2.381 |
+| Silence | 0.000 | 0.250 | 2.640 |
+
+- `npm run typecheck`, `npm test` (37 checks), `npm run build`, and `git diff --check` passed. Vitest verifies mono RMS, the partial window, silence, duration and PCM errors, exact pulse interpolation at known timestamps, and speed-dependent lift. Vite still reports two Zod annotation warnings and a main-chunk size warning (374 kB gzip).
+- With `$env:PLAYWRIGHT_CHANNEL = 'msedge'`, `npm run test:browser -- --reporter=list,json` passed all 13 cases in headless Edge 158 on Windows. The browser check validated WAV and MP3 results against the v1 schema, rejected corrupt audio, compared soundtrack-only changes to spacing, and verified playback through buffering, pause, end, reduced motion, and static fallback. The reveal loop, camera, media cleanup and three-environment checks passed again. Compared the resting and playing stage screenshots. The test MP3 is the original three-second intake tone encoded with FFmpeg and libmp3lame. It is test-only and requires no FFmpeg installation to run.
+- The repeat run initially could not bind port 4173. On port 4184, `npm run test:browser -- --config=test-results/playwright-repeat.config.ts e2e/soundtrack.spec.ts --repeat-each=3` passed all nine runs with a temporary Git-ignored Playwright config using the same suite.
+
+AT-03's controlled soundtrack comparison passed. The browser portion of AT-04 passed, including gesture-started playback. Physical-device audibility and mobile performance remain unverified. MW-004 still needs to call the analyzer in the creation flow. Next for A is MW-008.
+
 ## 2026-11-21 — Developer A · MW-005 visual rules and photo analysis
 
 Park, room and city now share one stage and interaction layout. Saved context and seed drive backdrop geometry. Photo accents and brightness, warmth and spacing drive the presentation. **Why this scene?** explains those values and the mood treatment, including in the static preview.
