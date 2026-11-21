@@ -1,3 +1,5 @@
+import { composeWorld } from '../world/compose-world';
+import { PROMPT_MAX } from '../world/layout-schema';
 import { analyzePhoto } from '../media/photo-analysis';
 import { dayBundleSchema, resolvePresentation } from '../shared/memory-schema';
 import type { DayBundle, MemoryScene } from '../shared/memory-schema';
@@ -120,6 +122,8 @@ export async function generateMemory(draft: ValidatedDayDraft): Promise<DayBundl
   if (!firstPhoto) throw new Error('The draft is missing a photo.');
   const availableProps = photoProps[environment];
 
+  const placed = composeWorld(entryText.slice(0, PROMPT_MAX), { id: entryId, seed });
+  const world = placed.ok ? { layout: placed.world.layout, interpretation: placed.world.interpretation } : undefined;
   return dayBundleSchema.parse({
     manifest: {
       id: entryId,
@@ -145,6 +149,7 @@ export async function generateMemory(draft: ValidatedDayDraft): Promise<DayBundl
       presentation: resolvePresentation(firstPhoto, mood, music.meanEnergy),
     },
     entryText,
+    ...(world && { world }),
     photos,
     audio,
     rights,

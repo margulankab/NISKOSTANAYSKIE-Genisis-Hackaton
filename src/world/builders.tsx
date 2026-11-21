@@ -1,4 +1,5 @@
 import { Color } from 'three';
+import { gatePostX, starterBoxes, starterRadii } from './recipes';
 import type { RecipeId } from './recipes';
 
 /**
@@ -38,7 +39,7 @@ const wood = '#6d5139';
 const stone = '#8d8a83';
 const paper = '#e7d9bd';
 
-export const builders: Record<RecipeId, (props: BuilderProps) => React.JSX.Element> = {
+export const builders: Record<Exclude<RecipeId, 'canopy'>, (props: BuilderProps) => React.JSX.Element> = {
   lighthouse: ({ main, accent, lit }) => (
     <group>
       <Cylinder at={[0, 1.6, 0]} top={0.45} bottom={0.75} height={3.2} color={main} />
@@ -50,14 +51,14 @@ export const builders: Record<RecipeId, (props: BuilderProps) => React.JSX.Eleme
   ),
   tower: ({ main, accent }) => (
     <group>
-      <Box at={[0, 1.5, 0]} size={[1.4, 3, 1.4]} color={main} />
+      <Box at={[0, 1.5, 0]} size={starterBoxes.tower} color={main} />
       {[-0.5, 0, 0.5].map((x) => <Box key={x} at={[x, 3.15, 0.55]} size={[0.3, 0.3, 0.3]} color={main} />)}
       <Box at={[0, 2, 0.71]} size={[0.4, 0.6, 0.02]} color={accent} />
     </group>
   ),
   house: ({ main, accent, lit }) => (
     <group>
-      <Box at={[0, 0.8, 0]} size={[2, 1.6, 1.6]} color={main} />
+      <Box at={[0, 0.8, 0]} size={starterBoxes.house} color={main} />
       <Cone at={[0, 2.05, 0]} radius={1.55} height={0.9} color={accent} segments={4} />
       <Box at={[0, 0.5, 0.81]} size={[0.5, 1, 0.02]} color={wood} />
       <Box at={[0.6, 1.05, 0.81]} size={[0.4, 0.4, 0.02]} color="#ffe2a3" glow={lit ? 1 : 0.1} />
@@ -94,7 +95,7 @@ export const builders: Record<RecipeId, (props: BuilderProps) => React.JSX.Eleme
   ),
   gate: ({ main, accent, lit }) => (
     <group>
-      {[-0.85, 0.85].map((x) => <Box key={x} at={[x, 0.8, 0]} size={[0.38, 1.6, 0.38]} color={main} />)}
+      {[-gatePostX, gatePostX].map((x) => <Box key={x} at={[x, 0.8, 0]} size={starterBoxes.gate} color={main} />)}
       <Box at={[0, 1.7, 0]} size={[2.2, 0.26, 0.4]} color={main} />
       <mesh position={[0, 1.2, 0]}>
         <icosahedronGeometry args={[0.2, 0]} />
@@ -111,7 +112,7 @@ export const builders: Record<RecipeId, (props: BuilderProps) => React.JSX.Eleme
   ),
   tree: ({ main }) => (
     <group>
-      <Cylinder at={[0, 0.5, 0]} top={0.09} bottom={0.13} height={1} color={wood} />
+      <Cylinder at={[0, 0.5, 0]} top={0.09} bottom={starterRadii.tree} height={1} color={wood} />
       <mesh position={[0, 1.45, 0]}>
         <icosahedronGeometry args={[0.65, 0]} />
         <meshStandardMaterial color={main} flatShading roughness={0.9} />
@@ -120,7 +121,7 @@ export const builders: Record<RecipeId, (props: BuilderProps) => React.JSX.Eleme
   ),
   lantern: ({ main, lit }) => (
     <group>
-      <Box at={[0, 0.22, 0]} size={[0.22, 0.3, 0.22]} color={main} glow={lit ? 1.3 : 0.25} />
+      <Box at={[0, 0.22, 0]} size={starterBoxes.lantern} color={main} glow={lit ? 1.3 : 0.25} />
       <Box at={[0, 0.42, 0]} size={[0.26, 0.06, 0.26]} color={wood} />
     </group>
   ),
@@ -132,21 +133,21 @@ export const builders: Record<RecipeId, (props: BuilderProps) => React.JSX.Eleme
   ),
   bench: ({ main }) => (
     <group>
-      <Box at={[0, 0.42, 0]} size={[1.2, 0.08, 0.4]} color={main} />
+      <Box at={[0, 0.42, 0]} size={starterBoxes.bench} color={main} />
       <Box at={[0, 0.72, -0.18]} size={[1.2, 0.35, 0.06]} color={main} />
       {[-0.5, 0.5].map((x) => <Box key={x} at={[x, 0.2, 0]} size={[0.08, 0.4, 0.35]} color="#3b3d40" />)}
     </group>
   ),
   rock: ({ main }) => (
     <mesh position={[0, 0.25, 0]} scale={[1, 0.7, 0.9]}>
-      <dodecahedronGeometry args={[0.42, 0]} />
+      <dodecahedronGeometry args={[starterRadii.rock, 0]} />
       <meshStandardMaterial color={main} flatShading roughness={0.95} />
     </mesh>
   ),
-  crate: ({ main }) => <Box at={[0, 0.3, 0]} size={[0.6, 0.6, 0.6]} color={main} />,
+  crate: ({ main }) => <Box at={[0, 0.3, 0]} size={starterBoxes.crate} color={main} />,
   table: ({ main, accent }) => (
     <group>
-      <Box at={[0, 0.75, 0]} size={[1.1, 0.08, 0.7]} color={main} />
+      <Box at={[0, 0.75, 0]} size={starterBoxes.table} color={main} />
       {[[-0.45, -0.28], [0.45, -0.28], [-0.45, 0.28], [0.45, 0.28]].map(([x, z]) => <Box key={x + ':' + z} at={[x, 0.37, z]} size={[0.07, 0.74, 0.07]} color={main} />)}
       <Cylinder at={[0.2, 0.85, 0]} top={0.07} bottom={0.06} height={0.14} color={accent} />
       <Box at={[-0.2, 0.8, 0.05]} size={[0.3, 0.02, 0.22]} color={paper} />
@@ -164,14 +165,14 @@ export const builders: Record<RecipeId, (props: BuilderProps) => React.JSX.Eleme
   ),
   marker: ({ main, accent }) => (
     <group>
-      <Box at={[0, 0.45, 0]} size={[0.5, 0.9, 0.22]} color={main} />
+      <Box at={[0, 0.45, 0]} size={starterBoxes.marker} color={main} />
       <Box at={[0, 0.6, 0.12]} size={[0.3, 0.3, 0.02]} color={accent} glow={0.3} />
     </group>
   ),
 };
 
 /** Default colors per recipe when the prompt names none. */
-export const defaultColors: Record<RecipeId, string> = {
+export const defaultColors: Record<Exclude<RecipeId, 'canopy'>, string> = {
   lighthouse: '#efe9dc', tower: '#9c968b', house: '#d9c7a4', stall: '#b8573f', bridge: '#7d756c', pier: '#8a6a4a',
   hill: '#6f8a57', gate: '#5d5a52', boat: '#c9b48c', tree: '#4f7a47', lantern: '#f2b45a', lamp: '#ffe2a3', bench: '#8a6a4a',
   rock: '#8d8a83', crate: '#9a7550', table: '#8a6a4a', flower: '#d77a8f', marker: '#a9a397',

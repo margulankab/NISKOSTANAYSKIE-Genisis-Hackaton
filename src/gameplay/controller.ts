@@ -17,8 +17,17 @@ function overlaps(p: Point, r: number, s: Solid) {
   return Math.hypot(dx, dz) < r;
 }
 
+const supportSamples = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-0.707, -0.707],
+  [0.707, -0.707], [-0.707, 0.707], [0.707, 0.707]];
+
 export function blocked(p: Point, layout: WalkLayout) {
-  return layout.solids.some((s) => overlaps(p, layout.playerRadius, s));
+  const { solids, playerRadius, walkable } = layout;
+  return solids.some((s) => overlaps(p, playerRadius, s))
+    || (walkable !== undefined && supportSamples.some(([dx, dz]) => {
+      const x = p.x + dx * playerRadius;
+      const z = p.z + dz * playerRadius;
+      return !walkable.some(({ minX, maxX, minZ, maxZ }) => x >= minX && x <= maxX && z >= minZ && z <= maxZ);
+    }));
 }
 
 /** Move by input for dt seconds; axes resolve separately so the player slides along solids. */

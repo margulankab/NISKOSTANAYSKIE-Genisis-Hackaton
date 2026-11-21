@@ -1,5 +1,20 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Short prompt memory experience
+
+**Build memory** adds a story to the prompt-world flow. The player explores two existing discovery objects, then approaches a locally constructed character near the closing landmark. The scene fades in on arrival, the camera frames the character during the conversation, and the view dims after the player chooses a reply. Reduced motion disables interpolation and fades. The original prompt world and the journal/photo/song flow use their existing gameplay paths.
+
+`memory-story-schema.ts` defines bounded scene text, atmosphere, a character and outfit, discovery writing, and one conversation. The local option derives a story from the playable layout and prompt. The optional Vite dev middleware accepts an explicit fictional text submission from a loopback tab and requests one Gemini JSON response with a server-side key and a timeout. The client validates the response again and composes its scene description through the existing catalog, placement, collision, and route checks. The mood contributes to local soundtrack selection. The static build uses the local option. The game interprets a fixed sequence of discovery, conversation, reply, and ending events. The model supplies data for this sequence.
+
+Prompt worlds may include story version 1 and retain the original user description. Checkpoints may include an open conversation or the chosen reply. Earlier checkpoints and worlds continue to load without those optional fields. Reload uses the stored story and assets. Gemini is a developer-only fictional demo path. Changes to billing, hosted access, and processing real memories require a separate decision under the active privacy rules.
+
+## Integrated gameplay, scenery and local saves
+
+- Prompt worlds and new days with supported journal details render through [WorldStage](src/world/WorldStage.tsx). The prompt composer uses [the recipe catalog](src/world/recipes.ts) to place scenery from recognized objects and relationships. The catalog combines C's reusable geometry with the remaining starter builders. Geometry version 2 shares dimensions between rendering and collision, checks dry land and pier deck support, and validates reachable discoveries and ending with A's controller.
+- New prompt records use parser version 1 and layout and recipe catalog version 2. Earlier prompt layouts use their stored version 1 placements and solids. Both use the same checkpoint validation path. Day memories use the first 600 characters of the journal for placement cues and retain the full original journal, photo, and song. Days without a usable composed layout use the deterministic day renderer.
+- [Game storage](src/data/game-repository.ts) uses the existing IndexedDB version 2 stores. A prompt save commits the world, selected track record, playable blob, mute preference, and checkpoint together. Earlier raw world records remain readable. Day saves commit the validated day, its media, and the day checkpoint together. Continue chooses the latest checkpoint across both flows, and Load Game also lists days that start at spawn.
+- New day ZIPs include `world.json` when a composed layout is available. The reader also accepts v1 archives without that member. Local checkpoints stay in IndexedDB. Prompt music selection, synthesis, analysis, and playback work locally, and saved audio starts after a player gesture.
+
 ## Planned procedural worlds and game saves — 2026-11-21
 
 The [expanded plan](docs/game_development_plan.md#prompt-generated-worlds-soundtrack-selection-and-game-menus) replaces environment-specific layout selection for new worlds. B owns prompt parsing and manifest validation, C owns low-poly geometry and soundtrack catalogs, and A owns gameplay and checkpoint fields. The current renderer, seed-based variation, media analysis, and archive provide the baseline.

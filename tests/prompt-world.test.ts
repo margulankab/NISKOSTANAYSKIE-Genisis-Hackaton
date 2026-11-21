@@ -51,6 +51,11 @@ describe('AT-23 prompt worlds', () => {
     expect(recipesOf(world)).toEqual(expect.arrayContaining(['boat', 'hill', 'lighthouse', 'pier']));
     expect(world.layout.water).not.toBeNull();
     expect(world.interpretation.weather).toBe('fog');
+    const layout = toWalkLayout(world.layout);
+    const water = world.layout.water!;
+    expect(blocked({ x: (water.minX + water.maxX) / 2, z: 5 }, layout)).toBe(true);
+    const pierCenter = placement(world, 'pier');
+    expect(blocked(pierCenter, layout)).toBe(false);
     const boat = placement(world, 'boat'), pier = placement(world, 'pier');
     expect(boat.color).toEqual([196, 64, 52]);
     expect(Math.hypot(boat.x - pier.x, boat.z - pier.z)).toBeLessThan(2);
@@ -63,7 +68,7 @@ describe('AT-23 prompt worlds', () => {
   it('builds a night market under a bridge that differs in objects, layout and route', () => {
     const night = build(market), coast = build(lighthouse);
     expect(night.interpretation.timeOfDay).toBe('night');
-    expect(recipesOf(night)).toEqual(expect.arrayContaining(['bridge', 'stall', 'lantern', 'bench', 'lamp']));
+    expect(recipesOf(night)).toEqual(expect.arrayContaining(['bridge', 'stall', 'lantern', 'bench', 'lamp', 'canopy']));
     const bridge = placement(night, 'bridge');
     const stalls = night.layout.placements.filter((p) => p.recipe === 'stall');
     expect(stalls).toHaveLength(4);
@@ -148,9 +153,25 @@ describe('AT-25 checkpoints', () => {
     expect(restored).toEqual({ ok: true, state: { position: { x: 0.5, z: 3 }, revealed: new Set([first]), ended: false } });
   });
 
+  it('reopens the earlier stored layout and preserves its checkpoint identity', () => {
+    const old = build('A garden with a wooden bench and a lantern.');
+    const { geometryVersion: _version, ...layout } = old.layout;
+    const legacy = promptWorldSchema.parse({
+      ...old,
+      versions: { ...old.versions, layout: 1, catalog: 1 },
+      layout,
+    });
+    const saved = createCheckpoint(legacy, {
+      position: layout.spawn, revealed: new Set([layout.discoveries[0].placementId]), ended: false,
+    });
+    expect(saved.layoutKey).toBe(`${legacy.id}:1:1:${legacy.seed}`);
+    expect(toWalkLayout(legacy.layout).solids).toEqual(layout.solids);
+    expect(restoreCheckpoint(legacy, saved).ok).toBe(true);
+  });
+
   it('rejects stale, foreign, blocked and inconsistent checkpoints', () => {
     const checkpoint = createCheckpoint(world, state);
-    const solid = world.layout.solids.find((s) => s.shape === 'circle')!;
+    const solid = toWalkLayout(world.layout).solids[0];
     const cases = [
       { ...checkpoint, layoutKey: checkpoint.layoutKey.replace(/:\d+$/, ':1') },
       { ...checkpoint, worldId: '0d6c9a4e-1f2b-4c3d-8e5f-6a7b8c9d0e1f' },

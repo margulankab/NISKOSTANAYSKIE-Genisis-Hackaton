@@ -1,4 +1,4 @@
-import { recipes } from './recipes';
+import { placementHeight, recipes } from './recipes';
 import type { RecipeId } from './recipes';
 import { parsePrompt } from './parse-prompt';
 import { routeProblems } from './route';
@@ -27,7 +27,7 @@ const palette: Record<NonNullable<Term['color']>, [number, number, number]> = {
 };
 const outdoorOnly = new Set<RecipeId>(['lighthouse', 'tower', 'house', 'stall', 'bridge', 'pier', 'hill', 'gate', 'boat', 'tree', 'lamp']);
 /** Large or spread-out structures make poor discoveries: their center is not where the player stands. */
-const notDiscoverable = new Set<RecipeId>(['hill', 'bridge', 'pier', 'gate']);
+const notDiscoverable = new Set<RecipeId>(['hill', 'bridge', 'pier', 'gate', 'canopy']);
 /** Rough top height of each recipe, used to raise objects described as above another. */
 const heights: Partial<Record<RecipeId, number>> = { stall: 2, house: 2.6, bridge: 2.4, tree: 2.1, table: 0.8, tower: 3.4, lighthouse: 4 };
 
@@ -161,7 +161,7 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
       scale: 1, color, term, ...extra,
     };
     draft.placements.push(placement);
-    draft.occupied.push({ x: placement.x, z: placement.z, r: Math.max(recipes[recipe].radius, recipe === 'bridge' || recipe === 'pier' ? 0 : 0.4) });
+    draft.occupied.push({ x: placement.x, z: placement.z, r: Math.max(recipes[recipe].radius, recipe === 'bridge' || recipe === 'pier' || recipe === 'canopy' ? 0 : 0.4) });
     return placement;
   }
 
@@ -190,7 +190,7 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
   }
 
   // 1 · Closing landmark: the highest-ranked structure, or a gate when the prompt names none.
-  const landmarkTerm = [...usable].filter((t) => t.recipe && recipes[t.recipe].role === 'structure' && t.recipe !== 'pier' && t.recipe !== 'hill')
+  const landmarkTerm = [...usable].filter((t) => t.recipe && recipes[t.recipe].role === 'structure' && t.recipe !== 'pier' && t.recipe !== 'hill' && t.recipe !== 'canopy')
     .sort((a, b) => recipes[b.recipe!].landmarkRank - recipes[a.recipe!].landmarkRank || a.index - b.index)[0];
   const relationOf = (index: number) => relations.find((r) => r.status === 'applied' && r.subject === index);
   const placedFirst = new Map<number, Placement>();
@@ -201,11 +201,14 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
     const overWater = relation?.kind === 'above' && terms[relation.object!].zone === 'water' && draft.water;
     const lx = overWater ? shoreX - draft.waterSide * 1.6 : landmarkTerm.recipe === 'bridge' ? 0 : (rand() - 0.5) * 3;
     const lz = landmarkTerm.recipe === 'bridge' ? -5 : backZ;
+    let rise = 0;
     if (overWater || terms.some((t) => t.recipe === 'hill' && relations.some((r) => r.subject === landmarkTerm.index && r.object === terms.indexOf(t)))) {
       const hillTerm = terms.findIndex((t) => t.recipe === 'hill');
-      placedFirst.set(hillTerm, add('hill', lx, lz, hillTerm >= 0 ? hillTerm : null, { scale: 1.6 }));
+      const hill = add('hill', lx, lz, hillTerm >= 0 ? hillTerm : null, { scale: 1.25 });
+      placedFirst.set(hillTerm, hill);
+      rise = (placementHeight('hill') ?? 0) * hill.scale;
     }
-    landmark = add(landmarkTerm.recipe!, lx, lz, landmarkTerm.index);
+    landmark = add(landmarkTerm.recipe!, lx, lz, landmarkTerm.index, { y: rise });
     placedFirst.set(landmarkTerm.index, landmark);
   } else {
     landmark = add('gate', 0, backZ, null);
@@ -232,14 +235,14 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
 
     if (recipe === 'pier' && draft.water) {
       const z = -3 + rand() * 4;
-      first = add('pier', shoreX + draft.waterSide * 1.6, z, term.index);
+      first = add('pier', shoreX + draft.waterSide * 1.32, z, term.index, { rotation: -draft.waterSide * Math.PI / 2 });
       draft.occupied.push({ x: shoreX - draft.waterSide * 0.6, z, r: 0.8 });
     } else if (recipe === 'bridge') {
       first = add('bridge', 0, -4.5 + rand(), term.index);
     } else if (relation && target) {
       const r = Math.max(recipes[recipe].radius, 0.35);
       if (relation.kind === 'above' || (relation.kind === 'under' && target.recipe !== 'bridge')) {
-        const raised = relation.kind === 'above' ? heights[target.recipe] ?? 1.2 : 0;
+        const raised = relation.kind === 'above' ? target.y + (placementHeight(target.recipe) ?? heights[target.recipe] ?? 1.2) * target.scale : 0;
         if (raised > 0) {
           // "lanterns above the stalls": one per stall, cycling when there are more lanterns.
           const hosts = draft.placements.filter((p) => p.recipe === target.recipe);
@@ -265,8 +268,8 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
         if (first) { placedFirst.set(term.index, first); continue; }
       }
       if (!first && target.recipe === 'pier' && recipes[recipe].aquatic) {
-        const z = target.z + (rand() < 0.5 ? 1.25 : -1.25);
-        first = add(recipe, target.x + draft.waterSide * 0.5, z, term.index, { rotation: round(draft.waterSide * Math.PI / 2) });
+        const z = target.z + (rand() < 0.5 ? 1.4 : -1.4);
+        first = add(recipe, target.x + draft.waterSide * 0.3, z, term.index, { rotation: Math.PI / 2, scale: 0.8 });
       }
       if (!first) {
         const step = relation.kind === 'beyond' ? { x: 0, z: -3 } : relation.kind === 'front' ? { x: 0, z: 2.5 } : null;
@@ -288,6 +291,13 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
     if (!first) continue;
     placedFirst.set(term.index, first);
     for (let k = 1; k < count; k += 1) scatter(recipe, zone, term.index, first);
+  }
+
+  // Cover the named market stalls with the catalog's open-sided canopy.
+  if (/\bcovered\s+(?:night\s+)?market\b/i.test(prompt)) {
+    for (const stall of draft.placements.filter(({ recipe }) => recipe === 'stall')) {
+      add('canopy', stall.x, stall.z, null, { rotation: stall.rotation, scale: stall.scale });
+    }
   }
 
   // 3 · Two discoveries: prefer described props, especially colored or related ones.
@@ -323,32 +333,8 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
     chosen.push({ placementId: marker.id, excerpt });
   }
 
-  // 4 · Colliders from footprints, water and walls.
+  // Room boundaries supplement the footprints and floor surfaces from the geometry catalog.
   const solids: Solid[] = [];
-  for (const p of draft.placements) {
-    if (p.y > 0) continue;
-    if (p.recipe === 'bridge') {
-      solids.push({ shape: 'box', x: bounds.minX + 0.6, z: p.z, halfX: 0.4, halfZ: 0.4 }, { shape: 'box', x: bounds.maxX - 0.6, z: p.z, halfX: 0.4, halfZ: 0.4 });
-    } else if (recipes[p.recipe].radius > 0) {
-      solids.push({ shape: 'circle', x: p.x, z: p.z, radius: round(recipes[p.recipe].radius * p.scale) });
-    }
-  }
-  if (draft.water) {
-    const pier = draft.placements.find((p) => p.recipe === 'pier');
-    const w = draft.water;
-    const cx = (w.minX + w.maxX) / 2, hx = (w.maxX - w.minX) / 2;
-    if (pier) {
-      const pierStart = pier.z - 0.6, pierEnd = pier.z + 0.6;
-      const tipX = shoreX + draft.waterSide * 3.4;
-      solids.push({ shape: 'box', x: round(cx), z: round((w.minZ + pierStart) / 2), halfX: round(hx), halfZ: round((pierStart - w.minZ) / 2) });
-      solids.push({ shape: 'box', x: round(cx), z: round((pierEnd + w.maxZ) / 2), halfX: round(hx), halfZ: round((w.maxZ - pierEnd) / 2) });
-      // Water beyond the pier's tip.
-      const outerMin = Math.min(tipX, draft.waterSide > 0 ? w.maxX : w.minX), outerMax = Math.max(tipX, draft.waterSide > 0 ? w.maxX : w.minX);
-      if (outerMax - outerMin > 0.2) solids.push({ shape: 'box', x: round((outerMin + outerMax) / 2), z: pier.z, halfX: round((outerMax - outerMin) / 2), halfZ: 0.6 });
-    } else {
-      solids.push({ shape: 'box', x: round(cx), z: round((w.minZ + w.maxZ) / 2), halfX: round(hx), halfZ: round((w.maxZ - w.minZ) / 2) });
-    }
-  }
   if (draft.indoor && setting === 'mixed') {
     const { area, door } = draft.indoor;
     const t = 0.12;
@@ -360,6 +346,7 @@ function compose(prompt: string, interpretation: Interpretation, seed: number, a
   }
 
   const layout: WorldLayout = {
+    geometryVersion: 2,
     bounds,
     spawn: draft.spawn,
     playerRadius: PLAYER_RADIUS,
@@ -392,6 +379,19 @@ export function composeWorld(prompt: string, { id, seed = seedFromPrompt(prompt)
     if (typeof layout === 'string') { lastProblem = layout; continue; }
     const landmarkTerm = layout.placements.find((p) => p.id === layout.landmark.placementId)?.term;
     const fallback = landmarkTerm !== null && landmarkTerm !== undefined ? recipes[interpretation.terms[landmarkTerm].recipe!].label.split(' ')[0] : 'Prompt';
+    const reportedTerms = interpretation.terms.map((term, index): Term => {
+      if (term.kind !== 'object' || term.status === 'unsupported') return term;
+      const placed = layout.placements.filter((object) => object.term === index).length;
+      return placed === 0 ? { ...term, status: 'unsupported', note: 'No room in this layout.' }
+        : placed < term.count ? { ...term, status: 'approximated', note: `placed ${placed} of ${term.count}` }
+        : term;
+    });
+    const reportedRelations = interpretation.relations.map((relation) => {
+      if (relation.status !== 'applied' || ![relation.subject, relation.object].some(
+        (index) => index !== null && reportedTerms[index].status === 'unsupported',
+      )) return relation;
+      return { ...relation, status: 'unsupported' as const };
+    });
     const world = promptWorldSchema.safeParse({
       kind: 'prompt-world',
       id,
@@ -400,7 +400,7 @@ export function composeWorld(prompt: string, { id, seed = seedFromPrompt(prompt)
       seed,
       title: titleFromPrompt(prompt, fallback),
       prompt,
-      interpretation,
+      interpretation: { ...interpretation, terms: reportedTerms, relations: reportedRelations },
       layout,
       soundtrack: null,
     });

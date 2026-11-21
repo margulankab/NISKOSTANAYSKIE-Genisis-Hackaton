@@ -19,6 +19,14 @@ Choose **World preview** to orbit the foggy cove or covered night market and try
 
 Choose **Create a memory** to validate a date, journal entry, photos, and an authorized audio excerpt. Select **Generate memory** to open the generated scene. Generation runs in the browser and works offline after the app loads. Use **Save to archive** to keep the memory in this browser. Use **Export ZIP** and **Import ZIP** to move a copy to another browser.
 
+### Play a short memory
+
+Open **New Game → From a prompt → Build memory**. Describe a person, a place, and a few details. Try “At dusk I met Mira near a lighthouse above a foggy cove with a red rowboat beside a pier.” Walk to the two marked objects, then approach Mira and choose a reply. You can save before choosing and return to the conversation later. Use **Build world** for the original exploration mode.
+
+Gemini is optional for a local developer demo. Put `GEMINI_API_KEY` in the ignored `.env.local` file at the repository root, then restart `npm run dev`. The default is `gemini-3.1-flash-lite`. Set `GEMINI_MODEL` in the same file if your project uses another compatible Gemini model. In a loopback browser tab, enter a wholly fictional description, select **Send this fictional prompt to Google Gemini**, and choose **Build memory**. Look for **Written with Gemini** in the preview. `dist/` deployments use local generation. [Gemini API keys](https://aistudio.google.com/docs/api-key) · [Gemini data terms](https://aistudio.google.com/docs/terms#data-use-unpaid)
+
+Both modes compose assets from the bundled low-poly geometry and soundtrack library. The optional Gemini request contains fictional prompt text. Journal entries, photos, associated songs, and saved games are processed on-device. If Gemini is unavailable or the response cannot make a walkable scene, the same description is tried locally.
+
 ```powershell
 npm run typecheck
 npm test

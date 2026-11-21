@@ -1,4 +1,6 @@
+import { z } from 'zod';
 import { decodeAudio } from '../intake/validate-day-draft';
+import { AUDIO_BYTES_LIMIT, musicSchema } from '../shared/memory-schema';
 import type { MemoryScene } from '../shared/memory-schema';
 import { measureAudio, measureAudioBuffer } from './audio-analysis';
 import { encodeMonoWav } from './mono-wav';
@@ -53,22 +55,44 @@ export const soundtrackCatalog = catalogIds.map((id) => ({
   id, version: soundtrackCatalogVersion, title: compositions[id].title, tags: compositions[id].tags, rights: catalogRights,
 }));
 
-type TrackDetails = {
-  assetId: string;
-  title: string;
-  mime: 'audio/wav' | 'audio/mpeg';
-  rights: { source: string; credit: string; permission: string };
-  music: MemoryScene['music'];
-  reason: string;
+const trackDetails = {
+  assetId: z.string().regex(/^[a-z0-9-]{1,64}$/i),
+  title: z.string().min(1).max(255),
+  mime: z.enum(['audio/wav', 'audio/mpeg']),
+  rights: z.strictObject({
+    source: z.string().min(1).max(300), credit: z.string().min(1).max(300), permission: z.string().min(1).max(300),
+  }),
+  music: musicSchema,
+  reason: z.string().min(1).max(300),
 };
 
-export type WorldSoundtrackRecord = { kind: 'silent'; reason: string }
-  | (TrackDetails & ({ kind: 'catalog'; trackId: string; catalogVersion: number } | { kind: 'upload' }));
+const trackRecord = z.discriminatedUnion('kind', [
+  z.strictObject({ kind: z.literal('silent'), reason: trackDetails.reason }),
+  z.strictObject({
+    ...trackDetails, kind: z.literal('catalog'),
+    trackId: z.string().regex(/^[a-z0-9-]{1,40}$/), catalogVersion: z.int().positive(),
+  }),
+  z.strictObject({ ...trackDetails, kind: z.literal('upload') }),
+]);
 
-export type ResolvedWorldSoundtrack = {
-  record: WorldSoundtrackRecord;
-  blob: Blob | null;
-};
+export type WorldSoundtrackRecord = z.infer<typeof trackRecord>;
+export type ResolvedWorldSoundtrack = { record: WorldSoundtrackRecord; blob: Blob | null };
+export type SoundtrackChoice = ResolvedWorldSoundtrack & { muted: boolean };
+
+const storedChoice = z.strictObject({ record: trackRecord, blob: z.unknown(), muted: z.boolean() });
+
+export function silentSoundtrack(reason: string): SoundtrackChoice {
+  return { record: { kind: 'silent', reason }, blob: null, muted: false };
+}
+
+export function restoreSoundtrack(value: unknown): SoundtrackChoice {
+  const saved = storedChoice.safeParse(value);
+  if (!saved.success) return silentSoundtrack('The soundtrack choice is unavailable.');
+  const { record, blob, muted } = saved.data;
+  const playable = record.kind !== 'silent' && blob instanceof Blob && blob.type === record.mime
+    && blob.size > 0 && blob.size <= AUDIO_BYTES_LIMIT;
+  return { record, muted, blob: playable ? blob : null };
+}
 
 function voice(note: number, time: number, beat: number, softness: number) {
   const phase = 2 * Math.PI * 440 * 2 ** ((note - 69) / 12) * time;
@@ -139,9 +163,9 @@ export async function createUploadedSoundtrack(file: File, authorized: boolean):
   return {
     blob,
     record: {
-      kind: 'upload', assetId: crypto.randomUUID(), mime, title: file.name,
+      kind: 'upload', assetId: crypto.randomUUID(), mime, title: file.name.slice(0, 255) || 'Uploaded soundtrack',
       rights: {
-        source: 'Local file supplied by the player.', credit: file.name,
+        source: 'Local file supplied by the player.', credit: file.name.slice(0, 255) || 'Uploaded soundtrack',
         permission: 'Player confirmed permission for inclusion, playback, and portable export.',
       },
       reason: 'Uploaded by the player.', music: measureAudioBuffer(samples),

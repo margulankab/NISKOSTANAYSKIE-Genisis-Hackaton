@@ -22,7 +22,11 @@ function SoundtrackExplanation({ rule }: { rule: MemoryScene['presentation']['ap
   );
 }
 
-export function SceneExplanation({ manifest, style }: { manifest: MemoryScene; style: SceneStyle }) {
+export function SceneExplanation({ manifest, style, generated = false }: {
+  manifest: MemoryScene;
+  style: SceneStyle;
+  generated?: boolean;
+}) {
   const [photo, music, mood] = manifest.presentation.appliedRules;
   const environment = environmentDetails[style.environment];
 
@@ -32,7 +36,8 @@ export function SceneExplanation({ manifest, style }: { manifest: MemoryScene; s
       <dl>
         <div>
           <dt>Setting</dt>
-          <dd>{environment.name}. {environment.description}</dd>
+          <dd>{generated ? 'Objects, terrain, and their placement come from details in your journal.'
+            : `${environment.name}. ${environment.description}`}</dd>
         </div>
         <div>
           <dt>Photo palette</dt>
@@ -47,15 +52,17 @@ export function SceneExplanation({ manifest, style }: { manifest: MemoryScene; s
           </dd>
         </div>
         <div>
-          <dt>Mood and composition</dt>
-          <dd>
+          <dt>{generated ? 'Soundtrack motion' : 'Mood and composition'}</dt>
+          {generated ? (
+            <dd>Measured audio energy {percent(music.source.meanEnergy)} changes the light during playback.</dd>
+          ) : <dd>
             Warmth {percent(mood.result.lightWarmth)} sets the key light color. Tension {percent(mood.source.tension)}
             {' '}and measured audio energy {percent(music.source.meanEnergy)} set the mounts
             {' '}{mood.result.artifactSpacing.toFixed(2)} scene units apart.
             {' '}{treatments[style.treatment]}
-          </dd>
+          </dd>}
         </div>
-        <SoundtrackExplanation rule={music} />
+        {!generated && <SoundtrackExplanation rule={music} />}
       </dl>
     </details>
   );

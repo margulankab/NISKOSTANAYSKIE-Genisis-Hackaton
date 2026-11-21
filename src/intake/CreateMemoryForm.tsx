@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { saveDayProgress } from '../data/indexed-memory-repository';
 import { MemoryActions } from '../data/MemoryActions';
 import { MemoryViewer } from '../scene/MemoryViewer';
 import type { DayBundle } from '../shared/memory-schema';
@@ -145,7 +146,7 @@ export function CreateMemoryForm() {
         <div className="generated-memory">
           <p role="status">{preview.bundle.manifest.generation.fallbackReason === 'no-keyword-match'
             ? 'Local draft with neutral mood and setting.' : 'Memory preview ready.'}</p>
-          <MemoryViewer {...preview.viewer} />
+          <MemoryViewer {...preview.viewer} game={{ save: (progress) => saveDayProgress(preview.bundle, progress) }} />
           <MemoryActions bundle={preview.bundle} />
         </div>
       )}

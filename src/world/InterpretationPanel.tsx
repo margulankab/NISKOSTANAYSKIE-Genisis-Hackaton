@@ -33,7 +33,7 @@ export function InterpretationPanel({ prompt, interpretation }: { prompt: string
       {(missing.length > 0 || looseRelations.length > 0) && (
         <p className="interpretation-missing">
           <strong>Not built yet:</strong> {[
-            ...missing.map((t) => quote(t.span)),
+            ...missing.map((t) => `${quote(t.span)}${t.note ? ' ' + t.note : ''}`),
             ...looseRelations.map((r) => `${quote(r.span)} (placement)`),
           ].join(', ')}
         </p>

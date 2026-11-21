@@ -15,6 +15,7 @@ const nouns: Record<string, Noun> = {
   cafe: { recipe: 'house', note: 'shown as a house' }, shed: { recipe: 'house', note: 'shown as a small house' },
   stall: { recipe: 'stall' }, booth: { recipe: 'stall' }, kiosk: { recipe: 'stall' }, stand: { recipe: 'stall' },
   market: { recipe: 'stall', count: 4 }, bazaar: { recipe: 'stall', count: 4 }, fair: { recipe: 'stall', count: 3, note: 'shown as stalls' },
+  canopy: { recipe: 'canopy' }, awning: { recipe: 'canopy' }, shelter: { recipe: 'canopy' },
   bridge: { recipe: 'bridge' }, viaduct: { recipe: 'bridge' }, overpass: { recipe: 'bridge', note: 'shown as a bridge' },
   pier: { recipe: 'pier' }, dock: { recipe: 'pier' }, jetty: { recipe: 'pier' }, wharf: { recipe: 'pier' },
   boardwalk: { recipe: 'pier', note: 'shown as a pier' },

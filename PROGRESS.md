@@ -1,5 +1,28 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-21 — Short prompt memory experience
+
+**Build memory** composes a short visit with two discoveries, one low-poly character, two conversation replies, a camera transition, and a closing fade. Save and Continue restore an open conversation or its chosen reply. Prompt world and day-memory entry points retain their original flows and media. The scene and music draw from bundled assets. [Architecture](ARCHITECTURE.md#short-prompt-memory-experience) · [Demo setup](README.md#play-a-short-memory)
+
+`npm.cmd run typecheck`, `npm.cmd test` (75 tests), `npm.cmd run build`, and `git diff --check` passed. The build retained the existing dependency annotation and size warnings. The local gateway smoke check accepted a valid mocked Gemini response and rejected malformed output, missing fictional consent, and a foreign origin. A live request using an invented lighthouse scene returned a validated story. The static bundle contains neither the provider URL nor the key variable name.
+
+Edge passed all 40 browser tests on the final run with `PLAYWRIGHT_CHANNEL=msedge` and `npm.cmd run test:browser -- --config=.vite/memory-story-check.config.ts --workers=2 --retries=1 --reporter=list`. The temporary config uses an alternate loopback port. The new tests verify private 3D play with no Gemini request, both discoveries, a saved conversation, a persisted reply, replay, structured Gemini output, and recovery from malformed output with WebGL unavailable. The full run also covers the existing AT-17–20 and AT-23–25 browser flows, including v1 archive reopen and the original day media.
+
+**Open:** Hosted Gemini access and sending real client journals require the project’s separate privacy and billing decision. The automated playthrough confirms the story can be completed. Human playthrough duration around five minutes remains unmeasured.
+
+## 2026-11-21 — A/B/C gameplay integration from `4b045e0`
+
+Prompt worlds now render C's reusable scenery and use A's movement, collision, discoveries, and ending. The title and pause menus save and restore prompt and day checkpoints. Prompt tracks are selected locally and can be previewed, changed, or muted. New day layouts use the journal and preserve its original photo and song. The [architecture](ARCHITECTURE.md#integrated-gameplay-scenery-and-local-saves) documents the versions, IndexedDB records, and ZIP extension.
+
+- **AT-17–20:** Edge exercised keyboard walking, touch emulation and cancellation, collisions, reset, discovery gating, completion, replay, WebGL fallback, original media, and offline day generation. All three earlier fixtures and new day creation, save, export, and import passed. Reviewed generated cove, market, and mixed-scene captures for geometry and legible prompts.
+- **AT-21:** Browser checks covered keyboard focus, touch emulation, audio, reduced motion, and fallback. Physical touch and audible playback on hardware and the sustained 30 FPS measurement remain open.
+- **AT-22:** The existing ownership and delivery plan remains the scope reference. The architecture and this record identify the implemented storage and rendering boundaries and the remaining device gate.
+- **AT-23:** The foggy cove, covered night market, and combined kitchen and garden each completed both discoveries and the ending in Edge. Unit checks verified deterministic geometry, object counts, color and relationship edits, collisions and pier support, and route rejection. Failed prompts remained available to revise.
+- **AT-24:** Edge verified contrasting automatic music choices, original credits, gesture-started playback, visible motion, pause and mute, saved overrides, missing audio, and replacement. The original authorized case audio played after saving or importing a day.
+- **AT-25:** Continue and Load Game restored position and discovery state for prompt and day saves. Checks covered Save & Quit, switching between both kinds of saves, old prompt saves, v1 database upgrade and ZIP import, exporting a composed layout, invalid and stale checkpoints, and rollback under simulated quota errors. ZIP import in a fresh profile restored the layout and original media from spawn.
+
+`npm.cmd run typecheck` passed. `npm.cmd test` passed 75 tests. `npm.cmd run build` passed with the existing dependency annotation and bundle-size warnings. With `PLAYWRIGHT_CHANNEL=msedge`, `npm.cmd run test:browser -- --config=.vite/c-preview-polish.config.ts --workers=2 --reporter=list` passed all 38 tests on the alternate local port. During integration the browser route helper needed extra clearance at corners, and the animation check needed a settled baseline capture. The affected checks passed on the full rerun.
+
 ## 2026-11-21 — Developer B: prompt worlds, menus and saves (MW-017/019, AT-23/25)
 
 **Delivered on `B_development` (built on A's walk work, then merged with `main` after A's PR #1 and C's PR #2):** Gate 1 and the B part of Gate 2 for the expanded plan.

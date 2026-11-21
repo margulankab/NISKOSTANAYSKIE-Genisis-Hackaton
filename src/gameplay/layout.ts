@@ -15,6 +15,7 @@ export interface WalkLayout {
   spawn: Point;
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
   solids: Solid[];
+  walkable?: readonly WalkLayout['bounds'][];
   artifacts: [Point, Point];
   landmark: Point;
   playerRadius: number;

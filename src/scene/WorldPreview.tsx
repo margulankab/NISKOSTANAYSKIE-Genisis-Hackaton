@@ -64,7 +64,7 @@ function ExamplePreview({ exampleId, override, onChange, muted, onMutedChange }:
           <StageBoundary fallback={fallback}>
             <Canvas camera={{ fov: 49 }} frameloop="demand" dpr={[1, 1.5]} fallback={fallback}>
               <ContextMonitor onLost={() => setContextLost(true)} />
-              <WorldScenery layout={example.layout} atmosphere={example.atmosphere} activeAudio={activeAudio}
+              <WorldScenery placements={example.layout.placements} atmosphere={example.atmosphere} activeAudio={activeAudio}
                 music={choice.record.kind === 'silent' ? undefined : choice.record.music} />
               <PreviewCamera view={view} setReady={setCameraReady} />
             </Canvas>

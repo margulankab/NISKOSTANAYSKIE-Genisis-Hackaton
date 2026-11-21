@@ -349,10 +349,26 @@ a.menu-item:hover, a.menu-item:focus-visible { border-color: #ddb987; background
 .interpretation-details { margin-top: 18px; }
 .interpretation-details summary { cursor: pointer; color: #e7bb84; }
 .game-session { padding: 32px 0; }
+.intake .story-consent { display: flex; gap: 8px; align-items: start; font-weight: normal; }
+.story-consent input { margin-top: 4px; }
+.story-opening { color: #e4d2b6; max-width: 65ch; }
+.story-discovery { color: #e9c38c; margin-top: 0; max-width: 65ch; }
+.story-conversation { margin-bottom: 16px; }
+.story-conversation p + p { margin-top: 10px; }
+.story-stage { animation: memory-arrival 950ms ease-out both; }
+.story-stage .stage-viewport { transition: filter 1400ms ease-out; }
+.story-stage-ended .stage-viewport { filter: brightness(0.55) saturate(0.7); }
+@keyframes memory-arrival {
+  from { opacity: 0.25; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-stage { animation: none; }
+  .story-stage .stage-viewport { transition: none; }
+}
 .game-header { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
 .game-header .memory-context { margin: 0; }
 .artifact-card > blockquote { margin: 4px 14px 14px; }
-.soundtrack-note { color: #bdbfb0; font-size: .86rem; }
 .pause-backdrop {
   position: fixed;
   inset: 0;

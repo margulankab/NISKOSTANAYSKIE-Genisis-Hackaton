@@ -4,7 +4,10 @@ import { MemoryViewer } from '../scene/MemoryViewer';
 import type { DayBundle } from '../shared/memory-schema';
 import { createViewerProps } from '../shared/memory-viewer';
 import type { MemoryViewerProps } from '../shared/memory-viewer';
-import { localMemories } from './indexed-memory-repository';
+import { dayCheckpointTarget, restoreCheckpoint } from '../world/checkpoint';
+import type { GameState } from '../world/checkpoint';
+import { loadDayCheckpoint } from './game-repository';
+import { localMemories, saveDayProgress } from './indexed-memory-repository';
 import { MemoryActions } from './MemoryActions';
 import type { DaySummary } from './repository';
 
@@ -76,14 +79,24 @@ export function Archive() {
   );
 }
 
-type LoadedMemory = { bundle: DayBundle; viewer: MemoryViewerProps };
+type LoadedMemory = {
+  bundle: DayBundle; viewer: MemoryViewerProps; initial?: GameState; checkpointProblem?: string;
+};
 
 export function SavedMemory({ id }: { id: string }) {
   const [memory, setMemory] = useState<LoadedMemory | 'missing' | 'error'>();
+  const [restart, setRestart] = useState(false);
   useEffect(() => {
     let active = true;
-    localMemories.load(id).then((bundle) => {
-      if (active) setMemory(bundle ? { bundle, viewer: createViewerProps(bundle, () => {}) } : 'missing');
+    Promise.all([localMemories.load(id), loadDayCheckpoint(id)]).then(([bundle, checkpoint]) => {
+      if (!active) return;
+      if (!bundle) { setMemory('missing'); return; }
+      const restored = checkpoint === undefined ? undefined : restoreCheckpoint(dayCheckpointTarget(bundle), checkpoint);
+      setMemory({
+        bundle, viewer: createViewerProps(bundle, () => {}),
+        initial: restored?.ok ? restored.state : undefined,
+        checkpointProblem: restored && !restored.ok ? restored.reason : undefined,
+      });
     }).catch(() => { if (active) setMemory('error'); });
     return () => { active = false; };
   }, [id]);
@@ -94,8 +107,15 @@ export function SavedMemory({ id }: { id: string }) {
       {!memory ? <p role="status">Opening saved memory…</p>
         : memory === 'missing' ? <p role="alert">This memory was not found in this browser.</p>
         : memory === 'error' ? <p role="alert">This saved memory could not be opened.</p>
-        : <div className="generated-memory">
-          <MemoryViewer {...memory.viewer} />
+        : memory.checkpointProblem && !restart ? (
+          <div>
+            <h1>{memory.bundle.manifest.title}</h1>
+            <p role="alert">{memory.checkpointProblem}</p>
+            <button type="button" onClick={() => setRestart(true)}>Restart from the beginning</button>
+            <p><a href="/load">Back to Load Game</a></p>
+          </div>
+        ) : <div className="generated-memory">
+          <MemoryViewer {...memory.viewer} game={{ initial: memory.initial, save: (state) => saveDayProgress(memory.bundle, state) }} />
           <MemoryActions bundle={memory.bundle} archived />
         </div>}
     </section>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { localGames } from '../data/game-repository';
+import { gamePath, localGames } from '../data/game-repository';
 import type { GameSummary } from '../data/game-repository';
 
 const when = (iso: string) => new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
@@ -25,10 +25,10 @@ export function LoadGameMenu() {
       {Array.isArray(games) && games.length > 0 && (
         <ul className="menu-list" aria-label="Saved games">
           {games.map((game) => (
-            <li key={game.id}>
-              <a className="menu-item" href={(game.kind === 'day' ? '/memory/' : '/play/') + game.id}>
+            <li key={game.kind + ':' + game.id}>
+              <a className="menu-item" href={gamePath(game)}>
                 {game.title}
-                <span>{game.kind === 'day' ? game.status : `${game.status}${game.savedAt ? ' · saved ' + when(game.savedAt) : ''}`}</span>
+                <span>{`${game.status}${game.savedAt ? ' · saved ' + when(game.savedAt) : ''}`}</span>
               </a>
             </li>
           ))}

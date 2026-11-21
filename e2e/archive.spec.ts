@@ -1,8 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
-import { visitArtifact } from './walk';
+import { playerAt, targets, visitArtifact } from './walk';
 import type { Page } from '@playwright/test';
 import { unzipSync, zipSync } from 'fflate';
+import { startPromptGame } from './world-walk';
 import { createTestTone } from '../src/fixtures/test-tone';
 
 const firstEntry = 'I watched the last light drain from the river before walking home.';
@@ -54,9 +55,10 @@ function inspect(bytes: Uint8Array) {
   const manifest = JSON.parse(readText('manifest.json'));
   const credits = JSON.parse(readText('credits.json'));
   expect(Object.keys(entries).sort()).toEqual([
-    root + 'manifest.json', root + 'entry.txt', root + 'credits.json',
+    root + 'manifest.json', root + 'entry.txt', root + 'credits.json', root + 'world.json',
     root + `photos/${manifest.source.photoIds[0]}.png`, root + `audio/${manifest.source.audioId}.wav`,
   ].sort());
+  expect(JSON.parse(readText('world.json')).layout.geometryVersion).toBe(2);
   expect(credits).toMatchObject({ formatVersion: 1, photos: [{ filename: 'river.png', mime: 'image/png' }],
     audio: { filename: 'tone.wav', mime: 'audio/wav' } });
   expect(credits.rights).toHaveLength(2);
@@ -89,9 +91,10 @@ test('saves duplicate titles, reloads the archive, and reopens the stored bundle
   expect(unzipSync(await download(page))).toEqual(original);
 });
 
-test('imports a deflated ZIP into a fresh profile, reopens it, and rejects invalid variations atomically', async ({ page, browser }) => {
+test('imports a deflated v1 ZIP into a fresh profile, reopens it, and rejects invalid variations atomically', async ({ page, browser }) => {
   await generate(page);
   const original = inspect(await download(page));
+  delete original[`${root}world.json`];
   const withPreview: Record<string, Uint8Array> = { ...original, [`${root}preview.png`]: new Uint8Array(photoBytes) };
   const context = await browser.newContext();
   try {
@@ -135,6 +138,12 @@ test('imports a deflated ZIP into a fresh profile, reopens it, and rejects inval
     await other.getByRole('button', { name: 'Play soundtrack' }).click();
     await expect.poll(() => other.locator('audio').evaluate((audio: HTMLAudioElement) => audio.currentTime)).toBeGreaterThan(0);
     expect(unzipSync(await download(other))).toEqual(withPreview);
+    const savedPosition = await playerAt(other);
+    await other.getByRole('button', { name: 'Pause', exact: true }).click();
+    await other.getByRole('button', { name: 'Save & Quit' }).click();
+    await other.getByRole('link', { name: /Continue/ }).click();
+    await expect(other.getByText('1 of 2 artifacts revealed')).toBeVisible();
+    expect(await playerAt(other)).toEqual(savedPosition);
   } finally {
     await context.close();
   }
@@ -159,4 +168,58 @@ test('a quota failure preserves the preview, allows ZIP export, and rolls back t
   await expect(page.getByText('No saved memories yet.')).toBeVisible();
   await page.goto('/memory/80463325-9914-44c7-9008-fefa57d76bde');
   await expect(page.getByRole('alert')).toHaveText('This memory was not found in this browser.');
+});
+
+test('a generated day checkpoint resumes from Continue, and a ZIP carries the layout and original media', async ({ page, browser }) => {
+  test.setTimeout(60_000);
+  await startPromptGame(page, 'A quiet kitchen with a table and a garden with two trees.');
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'Save & Quit' }).click();
+  await expect(page).toHaveURL(/\/$/);
+
+  await generate(page);
+  const layout = await targets(page);
+  const portable = await download(page);
+  inspect(portable);
+  await visitArtifact(page, 1);
+  await expect(page.locator('blockquote')).toHaveText(firstEntry);
+  const position = await playerAt(page);
+
+  await page.getByRole('button', { name: 'Play soundtrack' }).click();
+  await expect.poll(() => page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.currentTime)).toBeGreaterThan(0);
+  await page.keyboard.press('Escape');
+  await expect.poll(() => page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.paused)).toBe(true);
+  await page.getByRole('button', { name: 'Save & Quit' }).click();
+
+  const resume = page.getByRole('link', { name: /Continue/ });
+  await expect(resume).toContainText(title);
+  await expect(resume).toContainText('1 of 2 discoveries');
+  await resume.click();
+  await expect(page.getByText('1 of 2 artifacts revealed')).toBeVisible();
+  await expect(page.locator('blockquote')).toHaveText(firstEntry);
+  expect(await playerAt(page)).toEqual(position);
+  expect(await targets(page)).toEqual(layout);
+  await expect.poll(() => page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.paused)).toBe(true);
+  await visitArtifact(page, 0);
+  await expect(page.getByRole('img', { name: 'Memory photo' })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Main menu', exact: true }).click();
+  await page.getByRole('link', { name: 'Load Game' }).click();
+  await expect(page.getByRole('list', { name: 'Saved games' }).getByRole('link')).toHaveCount(2);
+  await page.getByRole('list', { name: 'Saved games' }).locator('a[href^="/play/"]').click();
+  await expect(page.getByText('0 of 2 discoveries found')).toBeVisible();
+
+  const fresh = await browser.newContext();
+  try {
+    const other = await fresh.newPage();
+    await other.goto(new URL('/archive', page.url()).href);
+    await upload(other, portable);
+    await other.getByRole('link', { name: 'Open imported memory' }).click();
+    await expect(other.getByText('0 of 2 artifacts revealed')).toBeVisible();
+    expect(await targets(other)).toEqual(layout);
+    expect(await playerAt(other)).toEqual(layout.spawn);
+    expect(unzipSync(await download(other))).toEqual(unzipSync(portable));
+  } finally {
+    await fresh.close();
+  }
 });

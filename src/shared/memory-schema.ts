@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { checkWorldLayout, dayWorldSchema, PROMPT_MAX } from '../world/layout-schema';
 
 const id = z.uuid();
 const fraction = z.number().min(0).max(1);
@@ -36,7 +37,7 @@ const photoSchema = z.strictObject({
   caption: z.string().max(200).optional(),
 }).refine(({ width, height }) => width * height <= PHOTO_PIXELS_LIMIT, 'Photo exceeds 16 megapixels.');
 
-const musicSchema = z.strictObject({
+export const musicSchema = z.strictObject({
   durationSec: z.number().min(1).max(AUDIO_DURATION_LIMIT),
   sampleStepSec: z.literal(0.1),
   energyEnvelope: z.array(fraction).min(10).max(900),
@@ -212,6 +213,7 @@ const audioMedia = z.strictObject({
 export const dayBundleSchema = z.strictObject({
   manifest: memorySceneSchema,
   entryText: entryTextSchema,
+  world: dayWorldSchema.optional(),
   photos: z.array(photoMedia).min(1).max(3),
   audio: audioMedia,
   rights: z.array(z.strictObject({
@@ -223,7 +225,8 @@ export const dayBundleSchema = z.strictObject({
     (blob) => blob.type === 'image/png' && blob.size > 0 && blob.size <= 5 * 1024 ** 2,
     'Expected a PNG thumbnail within the photo size limit.',
   ).optional(),
-}).superRefine(({ manifest, entryText, photos, audio, rights }, ctx) => {
+}).superRefine(({ manifest, entryText, photos, audio, rights, world }, ctx) => {
+  if (world) checkWorldLayout(entryText.slice(0, PROMPT_MAX), world.interpretation, world.layout, ctx);
   const photoIds = new Set(photos.map(({ id }) => id));
   if (photos.length !== manifest.source.photoIds.length
       || manifest.source.photoIds.some((id) => !photoIds.has(id))

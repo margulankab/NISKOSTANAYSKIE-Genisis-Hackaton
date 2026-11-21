@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { latestGame, localGames } from '../data/game-repository';
+import { gamePath, latestGame, localGames } from '../data/game-repository';
 import type { GameSummary } from '../data/game-repository';
 
 export function TitleMenu() {
@@ -22,7 +22,7 @@ export function TitleMenu() {
       <nav aria-label="Title menu" className="menu-list">
         <a className="menu-item" href="/new">New Game</a>
         {canContinue
-          ? <a className="menu-item" href={'/play/' + latest.id}>Continue <span>{latest.title} · {latest.status}</span></a>
+          ? <a className="menu-item" href={gamePath(latest)}>Continue <span>{latest.title} · {latest.status}</span></a>
           : <span className="menu-item" aria-disabled="true">Continue <span>{latest === 'loading' ? 'Checking saves…' : latest === 'error' ? 'Saves are unavailable in this browser' : 'No saved game yet'}</span></span>}
         <a className="menu-item" href="/load">Load Game</a>
         <a className="menu-item" href="/examples">Examples</a>

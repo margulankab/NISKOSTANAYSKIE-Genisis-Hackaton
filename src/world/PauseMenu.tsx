@@ -44,7 +44,7 @@ export function PauseMenu({ save, confirmLeave, onResume, onSave, onSaveAndQuit,
         ) : (
           <>
             <h3 id={headingId}>Paused</h3>
-            <button type="button" ref={first} onClick={onResume}>Resume</button>
+            <button type="button" ref={first} disabled={busy} onClick={onResume}>Resume</button>
             <button type="button" disabled={busy} onClick={onSave}>Save Game</button>
             <button type="button" disabled={busy} onClick={onSaveAndQuit}>Save &amp; Quit</button>
             <button type="button" disabled={busy} onClick={onMainMenu}>Return to Main Menu</button>
