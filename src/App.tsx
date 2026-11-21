@@ -41,7 +41,7 @@ export function App() {
   return (
     <main className="shell">
       <header className="masthead">
-        <span className="wordmark">Memory Worlds</span>
+        <a className="wordmark" href="/">Memory Worlds</a>
         <nav className="site-nav" aria-label="Main">
           <a href="/" aria-current={path === '/' ? 'page' : undefined}>Main menu</a>
           <a href="/examples" aria-current={path === '/examples' ? 'page' : undefined}>Examples</a>

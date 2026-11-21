@@ -373,3 +373,159 @@ a.menu-item:hover, a.menu-item:focus-visible { border-color: #ddb987; background
 .pause-menu h3 { margin: 0 0 6px; font: 1.6rem Georgia, serif; }
 .pause-menu p { margin: 4px 0; }
 .pause-menu [role="alert"] { color: #ffc0ab; }
+
+/* ── Finish and polish ─────────────────────────────────────────────── */
+:root { accent-color: #ddb987; }
+body { -webkit-font-smoothing: antialiased; }
+::selection { background: #ddb987; color: #211b14; }
+
+/* Buttons: one primary look, one outline look, and visible hover/press/disabled states. */
+button {
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease, filter .15s ease, transform .08s ease;
+}
+button:not(:disabled) { cursor: pointer; }
+button:not(:disabled):hover { filter: brightness(1.08); }
+button:not(:disabled):active { transform: translateY(1px); }
+.preview button, .intake button { font-weight: 550; }
+.preview .button-secondary, .intake .button-secondary, .stage-toolbar button {
+  border: 1px solid #8a7e66;
+  color: #ede7db;
+  background: transparent;
+}
+.preview .button-secondary:not(:disabled):hover, .intake .button-secondary:not(:disabled):hover,
+.stage-toolbar button:not(:disabled):hover {
+  border-color: #ddb987;
+  color: #f4e3c6;
+  background: rgba(221, 185, 135, .1);
+  filter: none;
+}
+.button-link, .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  text-decoration: none;
+  transition: color .15s ease, background-color .15s ease;
+}
+.intake .button-link {
+  padding: 9px 14px;
+  border-radius: 5px;
+  color: #211b14;
+  background: #ddb987;
+  font-weight: 550;
+}
+.intake .button-link:hover { background: #e8cb9f; }
+.intake .back-link { color: #bdbfb0; font-size: .92rem; }
+.back-link::before { content: "←" / ""; }
+.intake .back-link:hover { color: #e7bb84; }
+
+/* Form controls that were still showing browser defaults. */
+input[type="file"] { color: #bdbfb0; font: inherit; font-size: .9rem; }
+input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  padding: 7px 12px;
+  border: 1px solid #8a7e66;
+  border-radius: 5px;
+  color: #ede7db;
+  background: #262c25;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+input[type="file"]::file-selector-button:hover { border-color: #ddb987; background: #30362d; }
+input[type="checkbox"], input[type="radio"] { width: 16px; height: 16px; margin: 0; flex: none; transform: translateY(2px); }
+.intake textarea:focus, .intake input[type="date"]:focus { border-color: #ddb987; outline: none; box-shadow: 0 0 0 3px rgba(221, 185, 135, .18); }
+.intake textarea::placeholder { color: #848a7c; }
+
+/* Header navigation: quiet links with a clear current page. */
+.wordmark { color: #ede7db; text-decoration: none; }
+.wordmark:hover { color: #f4e3c6; }
+.site-nav a { padding-bottom: 3px; text-decoration: none; border-bottom: 1px solid transparent; transition: color .15s ease, border-color .15s ease; }
+.site-nav a:hover { color: #f4e3c6; border-bottom-color: #6f6a5c; }
+.site-nav a[aria-current] { border-bottom-color: #e7bb84; }
+
+/* Title and game menus. */
+.title-menu { text-align: left; }
+.eyebrow { margin: 0 0 6px; color: #e7bb84; font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; }
+.lede { color: #cfc8b8; }
+.menu-item { position: relative; padding-right: 44px; transition: border-color .15s ease, background-color .15s ease; }
+.menu-item::after {
+  content: "›" / "";
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8a7e66;
+  font-size: 1.5rem;
+  transition: transform .15s ease, color .15s ease;
+}
+a.menu-item:hover::after, a.menu-item:focus-visible::after { color: #ddb987; transform: translate(3px, -50%); }
+.menu-item[aria-disabled="true"]::after { content: none; }
+.menu-item-primary { border-color: #ddb987; background: #2e2a20; }
+.menu-item-primary:hover { background: #3a3426; }
+.menu-list li { list-style: none; }
+
+/* Empty states. */
+.empty-state {
+  margin: 22px 0 0;
+  padding: 20px;
+  border: 1px dashed #5a6052;
+  border-radius: 7px;
+  color: #cfc8b8;
+  background: #1d221e;
+}
+.empty-state p { margin: 0; }
+.empty-state .button-link { margin-top: 14px; }
+
+/* Settings. */
+.settings { display: grid; gap: 14px; }
+.setting {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px solid #444940;
+  border-radius: 7px;
+  background: #1d221e;
+}
+.setting-heading { display: flex; justify-content: space-between; align-items: baseline; }
+.intake .setting label, .intake .setting legend { margin: 0; }
+.intake fieldset.setting { padding: 16px 18px; border: 1px solid #444940; gap: 10px; }
+.setting legend { float: left; width: 100%; margin-bottom: 4px; padding: 0; }
+.setting output { color: #e7bb84; font-variant-numeric: tabular-nums; }
+.setting input[type="range"] { width: 100%; }
+.choice { display: flex; align-items: baseline; gap: 10px; cursor: pointer; }
+.settings-status { min-height: 1.4em; margin: 12px 0 0; color: #a9c3a4; font-size: .9rem; }
+
+/* Prompt game. */
+.prompt-starters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.intake .chip {
+  margin: 0;
+  padding: 5px 12px;
+  border: 1px solid #5a6052;
+  border-radius: 999px;
+  color: #d8d1c2;
+  background: #222820;
+  font-size: .86rem;
+  font-weight: 450;
+}
+.intake .chip:hover { border-color: #ddb987; color: #f4e3c6; filter: none; }
+.prompt-game form > label { display: block; margin-bottom: 8px; }
+.prompt-actions { margin-top: 16px; }
+.prompt-actions button { margin-top: 0; }
+.prompt-result { padding-top: 22px; border-top: 1px solid #444940; }
+
+/* Game screen. */
+.game-header { align-items: center; margin-bottom: 14px; }
+.game-header h2 { margin-bottom: 0; font-size: clamp(1.8rem, 4vw, 2.7rem); line-height: 1.1; }
+.game-header .memory-context { color: #e7bb84; font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; }
+.game-header .button-secondary { flex: none; }
+.pause-backdrop { backdrop-filter: blur(3px); animation: fade-in .15s ease; }
+.pause-menu { box-shadow: 0 24px 60px rgba(0, 0, 0, .45); animation: rise-in .18s ease; }
+.pause-menu button { width: 100%; min-height: 42px; }
+.pause-hint { color: #9a9d8f; font-size: .82rem; text-align: center; }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

@@ -100,7 +100,7 @@ export function GameSession({ world, initial, saved, repository = localGames, le
           <p className="memory-context">Prompt world</p>
           <h2 id={headingId}>{world.title}</h2>
         </div>
-        <button type="button" ref={pauseButton} onClick={() => setPaused(true)}>Pause</button>
+        <button type="button" className="button-secondary" ref={pauseButton} onClick={() => setPaused(true)}>Pause</button>
       </header>
       {staticMode && (
         <p className="static-note" role="status">Static preview — the 3D world is unavailable here. Reveal each discovery from the list below.</p>

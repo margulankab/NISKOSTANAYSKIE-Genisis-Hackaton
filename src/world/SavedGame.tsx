@@ -37,7 +37,7 @@ export function SavedGame({ id }: { id: string }) {
         <p role="alert">{opened.problem}</p>
         <div className="prompt-actions">
           <button type="button" onClick={() => setRestart(true)}>Restart from the beginning</button>
-          <a href="/load">Back to Load Game</a>
+          <a className="back-link" href="/load">Back to Load Game</a>
         </div>
       </section>
     );
