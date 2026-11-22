@@ -1,5 +1,23 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-22 — First-person worlds, ink look, merged branches and a playable web build
+
+Merged `main` (PR #5) and `B_development` (B's titles, empty states and pause hint) into `claude/keen-bell-fkqitv`. Where both branches changed the same screen, the GENESIS interface was kept. `claude/practical-carson-k6sox5` holds the superseded 2026-11-20 prototype and was not merged. Worlds now open in first person, with drag or ←/→ to look and V for third person. A toon-and-ink look is drawn over every 3D view. Render resolution adapts to the device. A static web build runs from any host. The fictional-days example library is unchanged. [Architecture](ARCHITECTURE.md#first-person-worlds-ink-look-and-the-web-build--2026-11-22).
+
+**Online:** the web build (`npm run build:web`, hash routes) is published as a private claude.ai artifact for the team: https://claude.ai/artifact/D1tFJaQ9gxwUxkErVw2a4v. The owner shares it from the page's Share menu. Inside that page, ZIP export downloads are blocked by the host. Use the local app to export. `.github/workflows/pages.yml` deploys the same build to GitHub Pages after a merge to `main`, once Pages → Source is set to GitHub Actions. That deployment has not run yet.
+
+**Checks run (Linux container, Chromium headless with SwiftShader):**
+
+- `npm run typecheck` passed. `npm test` passed **168** unit tests, including the new `tests/route.test.ts` (route names round-trip and use plain `[A-Za-z0-9-]` hash names).
+- The web build was served from a sub-folder (`python3 -m http.server`, `/dist-web/index.html`). Title → New Game → From a prompt → Build world → Enter world → walk → Pause → Save → Main menu → Continue restored the position. `#options` opened Settings and `#examples` rendered a 3D example. There were no page errors and no failed requests.
+- Full browser suite, `--workers=2`: **51 of 52** passed. `soundtrack.spec.ts:63` failed once while waiting for the clip to end and then passed 2 of 2 when run alone. The new `e2e/first-person.spec.ts` (2) and the entry and song specs (6) passed together, 8 of 8.
+- Fixed during this milestone:
+  - **Adaptive resolution:** the `<Canvas dpr>` prop reset the adaptive scale on every stage re-render. AT-25 took 2.8 min against 40 s before; after the fix, 39 s.
+  - **Paper grain:** per-pixel grain made frames incompressible, so screenshots took twice as long. Removed.
+  - **Favicon:** B's favicon data URI had unescaped quotes, and the dev server reported malformed HTML. Rewritten.
+
+**Not verified here:** real-GPU frame rates and the first-person feel on phones and laptops. Fullscreen and pointer behaviour inside the claude.ai artifact frame on mobile are also untested, as is the GitHub Pages deployment itself.
+
 ## 2026-11-21 — Music apps, GENESIS atmospheres, language, music on entry and full-screen worlds
 
 Branch `claude/keen-bell-fkqitv`. This covers commit `b72d30c` and the follow-up commit. `b72d30c` added the song of the day with music-app links, larger outdoor worlds with run and compass, and the GENESIS-style interface with four atmospheres and the pixel filter. The follow-up adds an EN/RU interface language, the typed-words-to-world transition with full screen, the soundtrack starting on Enter world, a sky dome and walker detail, Russian time and weather cues, and an examples sidebar. [Architecture](ARCHITECTURE.md#language-entering-a-world-music-on-entry-and-sky-detail--2026-11-21) · [Design](docs/design_system.md).
