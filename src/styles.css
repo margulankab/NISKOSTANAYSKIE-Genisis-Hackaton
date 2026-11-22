@@ -881,6 +881,24 @@ li.is-done .quest-text, .journal-quests li.is-done > span:nth-child(2) { text-de
 .dialog-quote { display: block; margin-top: 6px; font-style: italic; color: #2f5f0c; quotes: '“' '”'; }
 .dialog-next { margin: 6px 0 0; text-align: right; font-family: var(--pxf); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #6b6f5e; animation: blink 1.2s steps(2) infinite; }
 @keyframes dialog-in { from { opacity: 0; transform: translate(-50%, 18px) scale(.97); } to { opacity: 1; transform: translateX(-50%); } }
+/* A discovery: the card that opens in the middle of the world. */
+.walk-viewport .reveal-moment, .reveal-moment {
+  position: absolute; left: 50%; top: 46%; z-index: 5; display: grid; justify-items: center; gap: 8px;
+  width: min(460px, calc(100% - 40px)); padding: 20px 24px 16px; transform: translate(-50%, -50%);
+  font: inherit; text-align: center; text-transform: none; letter-spacing: normal; cursor: pointer; color: #1d2a22;
+  background: #f6f1e2; border: 0; box-shadow: inset 0 0 0 3px #1d3134, 0 0 0 6px var(--acc), 10px 10px 0 6px rgba(0, 0, 0, .35);
+  animation: reveal-in .55s cubic-bezier(.2, 1.3, .3, 1) both, reveal-out .5s ease-in 4.7s forwards;
+}
+.reveal-moment-kicker { font-family: var(--pxf); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #5e35b8; }
+.reveal-moment-title { font-family: var(--display); font-size: 26px; line-height: 1.1; text-transform: uppercase; }
+.reveal-moment-photo { width: 100%; max-height: 180px; object-fit: cover; box-shadow: inset 0 0 0 3px #1d3134; animation: reveal-photo 1.2s ease-out both; }
+.reveal-moment-quote { font-size: 18px; line-height: 1.45; font-style: italic; color: #2f5f0c; quotes: '“' '”'; }
+.reveal-moment-note { font-size: 14px; line-height: 1.4; color: #3d463f; }
+.reveal-moment-next { font-family: var(--pxf); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #6b6f5e; }
+@keyframes reveal-in { from { opacity: 0; transform: translate(-50%, -40%) scale(.6) rotate(-3deg); } to { opacity: 1; transform: translate(-50%, -50%); } }
+@keyframes reveal-out { to { opacity: 0; transform: translate(-50%, -58%) scale(.96); } }
+@keyframes reveal-photo { from { filter: brightness(2.2) saturate(0); } to { filter: none; } }
+@media (prefers-reduced-motion: reduce) { .reveal-moment, .reveal-moment-photo { animation: none; } }
 .play-overlay {
   position: absolute; inset: 0; z-index: 6; display: grid; place-content: center; justify-items: center; gap: 12px;
   background: radial-gradient(ellipse at center, rgba(0, 0, 0, .25), rgba(0, 0, 0, .65)); color: #fffbe8;

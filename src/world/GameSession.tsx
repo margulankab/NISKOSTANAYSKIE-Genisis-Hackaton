@@ -25,6 +25,8 @@ import { useT } from '../i18n/i18n';
 import { navigate } from '../chrome/route';
 import { buildLore } from '../story/lore';
 import { DialogBox, QuestLog, useLoreFeed } from '../story/LoreHud';
+import { RevealMoment } from '../story/RevealMoment';
+import type { Moment } from '../story/RevealMoment';
 import { useImmersiveSession, FullscreenButton } from '../chrome/ImmersiveControls';
 
 /** One play session of a prompt world: walking, discoveries, ending, pause menu and saving. */
@@ -42,6 +44,7 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
   const position = useRef<Point>(initial?.position ?? world.layout.spawn);
   const [revealed, setRevealed] = useState<ReadonlySet<string>>(() => initial?.revealed ?? new Set());
   const [ended, setEnded] = useState(initial?.ended ?? false);
+  const [moment, setMoment] = useState<Moment | null>(null);
   const [storyStep, setStoryStep] = useState<StoryStep | undefined>(initial?.storyStep);
   const story = world.story;
   const conversation = useRef<HTMLElement>(null);
@@ -101,8 +104,13 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
   useEffect(() => { if (storyStep && !paused) requestAnimationFrame(() => conversation.current?.focus()); }, [paused, storyStep]);
 
   const reveal = useCallback((id: string) => {
+    if (revealed.has(id)) return;
+    const index = discoveries.findIndex(({ placementId }) => placementId === id);
+    const { start, end } = discoveries[index].excerpt;
+    setMoment({ id, count: revealed.size + 1, title: t(labelFor(world, id)),
+      quote: end > start ? world.prompt.slice(start, end) : undefined, note: discoveryNotes?.[index] });
     setRevealed((previous) => previous.has(id) ? previous : new Set([...previous, id]));
-  }, []);
+  }, [revealed, discoveries, world, t, discoveryNotes]);
   const finish = useCallback(() => {
     if (revealed.size < 2 || ended || storyStep) return;
     if (story) setStoryStep('dialogue');
@@ -113,6 +121,7 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
   function replay() {
     position.current = world.layout.spawn;
     setRevealed(new Set());
+    setMoment(null);
     setEnded(false);
     setStoryStep(undefined);
     setVisit((count) => count + 1);
@@ -175,6 +184,7 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
                   first: revealed.has(discoveries[0].placementId), second: revealed.has(discoveries[1].placementId), end: ended,
                 }} />
                 <DialogBox line={feed.line} left={feed.left} onNext={feed.next} hint={t('click to continue')} />
+                <RevealMoment moment={moment} />
                 <div className="hud-buttons">
                   <button type="button" className="hud-menu" onClick={() => { setMenuTab('game'); menu.open(); }} disabled={paused}>
                     <span aria-hidden="true">☰</span> {t('Menu')}

@@ -20,6 +20,7 @@ import { groundBounds } from './layout-schema';
 import { placementHeight, placementSolids, recipes, sceneryPlacement } from './recipes';
 import { routeTo } from './route';
 import { StoryCharacter } from './StoryCharacter';
+import { RevealBurst } from './RevealBurst';
 import { WorldPhotoFrame } from './WorldPhotoFrame';
 import { useT } from '../i18n/i18n';
 import { toggleView, useInk, useTuning, useView } from '../chrome/use-view';
@@ -102,6 +103,8 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
   const conversationBlend = useRef(0);
   const revealedCount = useRef(0);
   revealedCount.current = revealed.size;
+  // Discoveries already found when the scene opened (a loaded save) do not burst again.
+  const foundAtStart = useRef(revealed);
   const { timeOfDay, weather } = world.interpretation;
   const light = sky[timeOfDay];
   const night = timeOfDay === 'night' || timeOfDay === 'dusk';
@@ -297,6 +300,8 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
         </mesh>
       ))}
       {world.story && <StoryCharacter position={layout.landmark} outfit={world.story.npc.outfit} ready={ready && !ended} />}
+      {!reducedMotion && discoveryIds.map((id, index) => revealed.has(id) && !foundAtStart.current.has(id)
+        && <RevealBurst key={id} at={layout.artifacts[index]} color={audio?.lightColor ?? (night ? '#ffd88a' : '#fff1b8')} />)}
       {night && world.layout.placements.filter((p) => !sceneryIds.has(p.id) && (p.recipe === 'lantern' || p.recipe === 'lamp')).slice(0, 4).map((p) => (
         <pointLight key={p.id} position={[p.x, p.y + (p.recipe === 'lamp' ? 2.2 : 0.6), p.z]} color="#ffc47a" intensity={4} distance={5} />
       ))}
