@@ -92,7 +92,7 @@ export const fixtures = [
     amplitude: .17,
   },
   {
-    slug: 'rainy-kitchen', track: 'coastal-light',
+    slug: 'rainy-kitchen', track: 'rain-window',
     seed: 505,
     date: '2026-11-02',
     title: 'Rain beyond the kitchen window',

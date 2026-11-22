@@ -27,7 +27,7 @@ test('ties are stable, repeats have no extra weight, and unavailable or unsuitab
   expect(selectWorldSoundtrack({ setting: ['city'] }, []).record.kind).toBe('silent');
   expect(selectWorldSoundtrack({ setting: ['spaceship'] }).record.kind).toBe('silent');
   expect(selectWorldSoundtrack({ setting: ['market'] }, ['coastal-light']).record.kind).toBe('silent');
-  expect(new Set(soundtrackCatalog.map(({ id }) => id)).size).toBe(5);
+  expect(new Set(soundtrackCatalog.map(({ id }) => id)).size).toBe(15);
 });
 
 test('a described song steers the choice toward the matching new compositions', () => {
@@ -35,4 +35,25 @@ test('a described song steers the choice toward the matching new compositions', 
     .toMatchObject({ trackId: 'warm-tape' });
   expect(selectWorldSoundtrack({ mood: ['lively'], setting: ['night'], energy: ['high', 'bright'] }).record)
     .toMatchObject({ trackId: 'night-drive' });
+});
+
+test('specific scenes reach the specialised tracks, and every track renders', () => {
+  const pick = (cues: Parameters<typeof selectWorldSoundtrack>[0]) => {
+    const { record } = selectWorldSoundtrack(cues);
+    return record.kind === 'catalog' ? record.trackId : record.kind;
+  };
+  expect(pick({ mood: ['joyful'], setting: ['ballfield'] })).toBe('ballpark-anthem');
+  expect(pick({ mood: ['subdued'], setting: ['station'] })).toBe('last-train');
+  expect(pick({ mood: ['mourning'], setting: ['funeral'] })).toBe('farewell-waltz');
+  expect(pick({ mood: ['nostalgic'], setting: ['rain', 'room'] })).toBe('rain-window');
+  expect(pick({ setting: ['water-park'], energy: ['high'] })).toBe('summer-splash');
+  expect(pick({ mood: ['joyful'], setting: ['party', 'gathering'] })).toBe('festival-lights');
+  expect(pick({ setting: ['snow'], energy: ['low'] })).toBe('snow-hush');
+  expect(pick({ mood: ['curious'], setting: ['forest'] })).toBe('deep-woods');
+  for (const { id } of soundtrackCatalog) {
+    const { blob, record } = createCatalogSoundtrack(id);
+    expect(blob?.size).toBeGreaterThan(1000);
+    if (record.kind === 'silent') throw new Error('Expected a playable track');
+    expect(record.music.meanEnergy).toBeGreaterThan(0);
+  }
 });

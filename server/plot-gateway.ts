@@ -4,6 +4,7 @@ import { promptSchema } from '../src/world/layout-schema';
 import { composeIntentPlan, localIntent } from '../src/world/local-scene-plan';
 import { plotAnchors, plotProblems, plotSchema } from '../src/world/plot-schema';
 import { recipeIds } from '../src/world/recipes';
+import { describeCatalog } from '../src/media/soundtrack-catalog';
 import { worldIntentSchema } from '../src/world/world-intent-schema';
 import { atHomeFeeling, explicitSceneTime, explicitSceneWeather, resolveScenePalette, sceneDirectionSchema, sourceStaging } from '../src/world/scene-direction';
 
@@ -21,7 +22,9 @@ Use 1–3 moments at distinct anchors in arrival, activity, ending order. One en
 Provide a world intent as well as the plot. To stage a moment at a specific supported feature, set anchorFeature to its index in the intent features. Use a different dry feature for each such moment. Otherwise omit anchorFeature. Preserve the source hints' recognized settings, requested features, colors, counts and exclusions. Hints without an asset are unclassified words. Include one only if it names physical scenery. Use ballfield for a baseball diamond and city for a train station. Include up to 3 settings, 24 features, 20 relations, 24 exclusions, and 1–6 actions per moment. Assign 1–8 copies per feature. Use features for scenery, not people. For a requested feature, use the phrase as stated in the source. Use null for an unsupported asset. Use empty exclusions and relations arrays unless the source actually specifies an exclusion or spatial relationship. Exclusions take raw asset IDs such as "tree", with no extra words. No code, URLs, coordinates, commands, or scripts. Keep the writing concrete, short, and specific to this source. Do not include generic reflection questions.
 Set direction.version to 1. Choose a restrained HEX #RRGGBB palette with distinct horizon, sky, light, surface and accent roles. Surface is the ground or flooring, even in a water park. Set a continuous bed, track (use silence when music distracts), and mix. Write four short reasons for palette, time, weather and audio that connect the actual choices to the source. If the audio reason calls for silence or no music, set the track to silence. Time and weather use intent fields. Never invent exclusions or relationships.
 Use the source staging hints as requirements. Gathering: set plot.gathering=true. Conversation: use consecutive talk actions alternating player and companion, object none, with short fictional lines. Laughter: use laugh. Mourning: use mourn (player sits with lowered head). Dog comfort: set companionKind to dog, use comfort with companion and none, never a human stand-in. Sipping: use sip with player and cup. A waterfront requires an outdoor setting, and a sunset should face the water. Riding: use slide with player and water-slide in water-park. Set together=true only when the named companion takes the slide with the player. Keep main staged actions in separate moments if the source needs emotional breathing room. Use ordinary action labels that match the rendered action.
-Supported asset IDs for features and exclusions: ${recipeIds.join(', ')}.`;
+Supported asset IDs for features and exclusions: ${recipeIds.join(', ')}.
+Choose direction.track from the game's own score by matching the scene's mood, setting and energy to these tags. Prefer a specific match (a station farewell, a ballfield, rain at a window, a party) over a generic one, and use silence only when the source asks for quiet:
+${describeCatalog()}`;
 
 // Keep the provider's compiled constraint small. Catalog IDs and bounds are checked by plotDraftSchema.
 const providerIntentSchema = worldIntentSchema.extend({

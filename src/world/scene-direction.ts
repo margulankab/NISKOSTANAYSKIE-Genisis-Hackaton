@@ -1,10 +1,13 @@
 import { z } from 'zod';
 import { Color, SRGBColorSpace } from 'three';
+import { catalogTrackIds } from '../media/soundtrack-catalog';
+import type { CatalogTrackId } from '../media/soundtrack-catalog';
 
 const color = z.string().regex(/^#[0-9a-f]{6}$/i);
 const reason = z.string().trim().min(3).max(140);
 export const sceneBeds = ['quiet', 'breeze', 'rain', 'birds', 'station', 'room', 'crowd', 'waterfront', 'pool'] as const;
-export const sceneTracks = ['silence', 'coastal-light', 'lantern-market', 'still-rooms', 'warm-tape', 'night-drive'] as const;
+// Silence, or any track in the game's own score (the catalog lists 15 with their tags).
+export const sceneTracks = ['silence', ...catalogTrackIds] as ['silence', ...CatalogTrackId[]];
 export const sceneDirectionSchema = z.strictObject({
   version: z.literal(1),
   palette: z.strictObject({ horizon: color, sky: color, light: color, surface: color, accent: color }),
