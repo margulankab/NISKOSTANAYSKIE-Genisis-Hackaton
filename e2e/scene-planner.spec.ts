@@ -54,11 +54,9 @@ test('AT-27: both prompt actions use the scene planner and failures require an e
   await expect(page.getByText('Planned with Gemini')).toBeVisible();
   await expect(page.getByText(/In the scene.*Pool basin/)).toBeVisible();
   await expect(page.getByText(/Written locally/)).toHaveCount(0);
-  await page.getByRole('button', { name: 'Build memory' }).click();
-  await expect(page.getByText('Planned with Gemini')).toBeVisible();
-  await expect(page.getByText(/Written locally/)).toBeVisible();
+  // One build button now: a description that names someone gets the written conversation.
   status = 429;
-  await page.getByRole('button', { name: 'Build memory' }).click();
+  await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByRole('alert')).toContainText('quota');
   await expect(page.getByRole('button', { name: 'Enter world' })).toHaveCount(0);
   await expect(description).toHaveValue('water park');

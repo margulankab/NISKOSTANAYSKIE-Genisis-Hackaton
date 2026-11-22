@@ -91,8 +91,9 @@ export function MemoryCard({ item, index, label }: { item: LibraryItem; index: n
     event.currentTarget.style.removeProperty('--ry');
   }
   return (
-    <li className={`memory-card memory-card-${item.kind}`} style={{ '--i': index } as CSSProperties}>
+    <li className={`memory-card memory-card-${item.kind}`} style={{ '--i': index, '--tilt': `${((index * 37) % 7 - 3) * 0.6}deg` } as CSSProperties}>
       <a href={item.href} onPointerMove={tilt} onPointerLeave={reset}>
+        <span className="memory-card-tape" aria-hidden="true" />
         <span className="memory-card-art">
           {url && !failed ? <img src={url} alt="" loading="lazy" onError={() => setFailed(true)} />
             : <WorldArt seed={item.id} timeOfDay={item.timeOfDay} weather={item.weather} />}

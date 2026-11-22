@@ -10,6 +10,7 @@ import { SettingsMenu } from './menus/SettingsMenu';
 import { TitleMenu } from './menus/TitleMenu';
 import { installVolumeSetting } from './menus/settings';
 import { Library } from './library/Library';
+import { MiniPlayer, MusicButton } from './music/MusicApps';
 import { ViewSwitch } from './chrome/ViewSwitch';
 import { WorldWarp } from './chrome/WorldWarp';
 import { useT } from './i18n/i18n';
@@ -56,7 +57,7 @@ export function App() {
           <a href="/new" aria-current={path.startsWith('/new') ? 'page' : undefined}>{t('New game')}</a>
           <a href="/settings" aria-current={path === '/settings' ? 'page' : undefined}>{t('Settings')}</a>
         </nav>
-        <ViewSwitch />
+        <div className="masthead-tools"><MusicButton /><ViewSwitch /></div>
       </header>
       <Fragment key={path}>
       {memoryPath ? <SavedMemory key={memoryPath[1]} id={memoryPath[1]} />
@@ -65,6 +66,7 @@ export function App() {
         : (pages[path] ?? pages['/'])()}
       </Fragment>
       <WorldWarp />
+      <MiniPlayer />
     </main>
   );
 }

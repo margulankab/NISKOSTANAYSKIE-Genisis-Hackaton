@@ -1,5 +1,36 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Full-screen play, game menu, lore, 360° camera and music-app players — 2026-11-22
+
+**Playing in full screen.** In full screen the world covers the screen and nothing sits beside it. Everything else on the page (header, soundtrack, discovery cards, notes) gets `visibility: hidden` but stays mounted, so the score keeps playing. Story choices and closing cards float over the world. The story wrapper's fade animation is switched off there, because it trapped the fixed stage under later content. A saved world opened from Continue or Load Game shows a **Play** button, because browsers need a click for full screen. `enterWorld` also asks for Keyboard Lock (`navigator.keyboard.lock(['Escape'])`), so in Chrome and Edge a tap of Esc opens the game menu while holding it leaves full screen. Elsewhere, leaving full screen opens the menu.
+
+**Game menu** ([`PauseMenu`](src/world/PauseMenu.tsx)). A centered, animated card with tabs:
+- **Game:** Resume, Save, Save & Quit, Main menu, Exit full screen.
+- **Journal:** the quests, plus the player's quotes once found.
+- **Music:** the score's name and a mute toggle, plus the music-app picker.
+- **Settings** ([`QuickSettings`](src/menus/QuickSettings.tsx)): camera, field of view, sensitivity, volume, ink lines and language, applied at once.
+
+The world's HUD has **Menu** and **⚙** buttons that open it on Game or Settings. Only the active tab renders, so windowed layouts never duplicate controls.
+
+**One build button.** "Build world" now composes both kinds of world. [`mentionsPerson`](src/world/compose-memory-story.ts) adds the story character when the description names or refers to someone: "met Mira", "with my mom", "my friend Aru", "встретил друга". The character's name also comes from "friend/brother/… Name".
+
+**Lore** ([`src/story`](src/story)). `buildLore` makes three quests: the two discoveries, then talk to the character or reach the landmark. It also writes narrator lines for arrival, each find, both found and the end. Quotes are exact slices of the player's words: the discovery excerpts, or the day's first sentence. All other lines are generic game voice, translated through i18n. `useLoreFeed` queues lines once per beat; restored saves skip beats already played. `DialogBox` types lines (instantly with reduced motion), advances on click or after reading time, and never blocks walking. `QuestLog` stamps finished quests. Day memories with a composed world use the same lore, built from the entry, the date and the two artifacts.
+
+**360° camera.** In third person, drag sideways to orbit fully around the walker, and drag up or down to change the elevation (0.1–1.4 rad). The wheel zooms (0.45–2.2×). The defaults reproduce the earlier framing exactly.
+
+**Music-app players** ([`src/music`](src/music)). `embedFor` maps a parsed link to the provider's official embed: Spotify, Apple Music, SoundCloud, YouTube or YouTube Music, Deezer, Yandex Music and TIDAL. Bandcamp, VK and Spotify search links return none, and the picker explains that. The **♫ Music** header button and the menu's Music tab offer:
+- app tabs, where search opens the app in a new tab;
+- a paste-a-link field with **Play here**;
+- the world's song of the day as a shortcut.
+
+`MiniPlayer` is a fixed, collapsible card that survives in-app navigation. While it is loaded, the game's score pauses (`useNowPlaying`). See the AGENTS.md amendment for the opt-in and terms conditions.
+
+**Library.** It now opens with a featured card for the latest save, a search field beside the filters, and an ink horizon line that draws itself under the title. Cards are taped postcards, each at a small seeded angle that straightens on hover.
+
+**Web build links.** In hash builds, in-app links are rewritten to real hash addresses (`#library`). The route is kept in `data-route`, so opening a link in a new tab or copying it works from the one-file release. The game's "leave without saving?" check reads `data-route`.
+
+**Tests.** `playwright.config.ts` now starts each test with `fullscreen: false` in settings, so most specs exercise the windowed layout where every panel is on the page. `e2e/immersive.spec.ts` opts back into full screen (`test.use({ storageState: … })`) for the full-screen layout, the centered menu and the Play overlay.
+
 ## Site, memory library, shift lock and the single-file release — 2026-11-22
 
 **Site.** The masthead is now the wordmark (a home link labelled "Main menu") and three links: Library, New game, Settings. The status bar, title ticker, cassette aside and "World preview" link were removed. Archive and Create a memory moved onto the Library page, and World preview is still reachable at `/world-preview`. The title screen has four actions (New Game, Continue, Load Game, Library) beside a fanned showcase of three memory cards.

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, useMemo } from 'react';
 import { SongCard } from '../music/SongOfTheDay';
 import { songCues } from '../music/song';
 import { atmosphereFor, readSettings, setWorldAtmosphere } from '../menus/settings';
@@ -9,6 +9,11 @@ import { createWalkLayout } from '../gameplay/layout';
 import type { Point } from '../gameplay/layout';
 import type { GameState } from '../world/checkpoint';
 import { PauseMenu } from '../world/PauseMenu';
+import type { MenuTab } from '../world/PauseMenu';
+import { buildLore, firstSentence } from '../story/lore';
+import { DialogBox, QuestLog, useLoreFeed } from '../story/LoreHud';
+import { MusicPicker } from '../music/MusicApps';
+import { useT } from '../i18n/i18n';
 import { useGamePause } from '../world/use-game-pause';
 import { WorldStage } from '../world/WorldStage';
 import { artifactNames } from './ArtifactModel';
@@ -89,6 +94,21 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
     persist: game?.save,
   });
   const { paused } = pause;
+  const t = useT();
+  const [menuTab, setMenuTab] = useState<MenuTab>('game');
+  // Lore for a day: quests named after the day's objects, and lines that quote the entry word for word.
+  const lore = useMemo(() => buildLore({
+    title: manifest.title, date: manifest.date, landmark: t('end of the path'),
+    discoveries: [artifactNames[manifest.artifacts[0].kind], artifactNames[manifest.artifacts[1].kind]],
+    excerpts: manifest.artifacts.map(({ excerpt }) => excerpt ? entryText.slice(excerpt.start, excerpt.end) : undefined) as [string | undefined, string | undefined],
+    opening: firstSentence(entryText),
+  }, t), [manifest, entryText, t]);
+  const feed = useLoreFeed(lore, {
+    started: Boolean(world),
+    found: [revealed.has(manifest.artifacts[0].id), revealed.has(manifest.artifacts[1].id)],
+    ready: allRevealed,
+    ended: complete,
+  });
 
   function reveal(id: string) {
     setRevealed((previous) => previous.has(id) ? previous : new Set([...previous, id]));
@@ -113,7 +133,7 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
 
   return (
     <>
-      <article inert={paused} className="preview" aria-labelledby={headingId}>
+      <article inert={paused} className={`preview${staticMode ? ' is-static' : ''}`} aria-labelledby={headingId}>
         <header>
           <time dateTime={manifest.date}>{manifest.date}</time>
           <h2 id={headingId}>{manifest.title}</h2>
@@ -134,6 +154,23 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
               lightColor: `rgb(${style.accentPalette[0].join(',')})`, detailColor: `rgb(${style.accentPalette[1].join(',')})`,
               photoUrl: firstPhoto.status === 'ready' ? firstPhoto.url : undefined,
               ...(songTempo && { songPulse: { bpm: songTempo.tempo, energy: songTempo.energyLevel } }) }}
+            overlay={(
+              <>
+                <QuestLog lore={lore} title={t('Quests')} done={{
+                  first: revealed.has(manifest.artifacts[0].id), second: revealed.has(manifest.artifacts[1].id), end: complete,
+                }} />
+                <DialogBox line={feed.line} left={feed.left} onNext={feed.next} hint={t('click to continue')} />
+                {game && (
+                  <div className="hud-buttons">
+                    <button type="button" className="hud-menu" onClick={() => { setMenuTab('game'); pause.open(); }} disabled={paused}>
+                      <span aria-hidden="true">☰</span> {t('Menu')}
+                    </button>
+                    <button type="button" className="hud-menu" onClick={() => { setMenuTab('settings'); pause.open(); }} disabled={paused}
+                      aria-label={t('Settings')}><span aria-hidden="true">⚙</span></button>
+                  </div>
+                )}
+              </>
+            )}
             onReveal={(id) => {
               const index = world.layout.discoveries.findIndex(({ placementId }) => placementId === id);
               reveal(manifest.artifacts[index].id);
@@ -189,7 +226,24 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
           )}
         </footer>
       </article>
-      {paused && <PauseMenu {...pause.menu} />}
+      {paused && <PauseMenu {...pause.menu} title={manifest.title} tab={menuTab} onTab={setMenuTab} panels={{
+        journal: (
+          <div className="journal">
+            <ol className="journal-quests">
+              {lore.quests.map((quest, index) => {
+                const done = index < 2 ? revealed.has(manifest.artifacts[index].id) : complete;
+                return (
+                  <li key={quest.id} className={done ? 'is-done' : undefined}>
+                    <span className="quest-box" aria-hidden="true" /><span>{quest.text}</span>
+                    {index < 2 && done && lore.found[index][0]?.quote && <q>{lore.found[index][0].quote}</q>}
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        ),
+        music: <div className="menu-music"><MusicPicker song={song} /></div>,
+      }} />}
     </>
   );
 }

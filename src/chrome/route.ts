@@ -51,16 +51,33 @@ export function navigate(to: string) {
   }));
 }
 
-/** In the web build, turn clicks on in-app links ("/examples") into hash navigation. */
+/**
+ * In the web build, give in-app links ("/examples") real hash addresses ("#examples"), so opening one
+ * in a new tab or copying it works from a file or a static host; the route stays in data-route.
+ */
+function rewriteLinks(root: ParentNode) {
+  for (const link of root.querySelectorAll<HTMLAnchorElement>('a[href^="/"]')) {
+    const route = link.getAttribute('href')!;
+    link.dataset.route = route;
+    link.setAttribute('href', '#' + hashFor(route));
+  }
+}
+
+/** In the web build, turn clicks on in-app links into hash navigation (with the page-turn animation). */
 export function installHashLinks() {
   if (!hashRouting) return;
+  const start = () => {
+    rewriteLinks(document);
+    new MutationObserver(() => rewriteLinks(document)).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['href'] });
+  };
+  if (document.body) start(); else document.addEventListener('DOMContentLoaded', start, { once: true });
   // Bubble phase on window: runs after the game's own "leave without saving?" check, which cancels the click.
   window.addEventListener('click', (event) => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href^="/"]') : null;
+    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[data-route], a[href^="/"]') : null;
     if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
     event.preventDefault();
-    navigate(link.getAttribute('href')!);
+    navigate(link.dataset.route ?? link.getAttribute('href')!);
   });
 }
 

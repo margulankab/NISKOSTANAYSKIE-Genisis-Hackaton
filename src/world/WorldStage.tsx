@@ -36,7 +36,9 @@ const NO_EXCLUSIONS: readonly RecipeId[] = [];
 const CAMERA = { y: 5.2, z: 6.4, ahead: 2 };
 /** First person: eye height, look limits and drag sensitivity. */
 const EYE = { y: 1.55, maxPitch: 0.62, dragYaw: 0.0055, dragPitch: 0.0042, turnSpeed: 2.1, bob: 0.035 };
-export interface Look { yaw: number; pitch: number; turn: number }
+export interface Look { yaw: number; pitch: number; turn: number; orbit: number; zoom: number }
+/** Third-person orbit: elevation above the walker and distance, around the original framing. */
+const ORBIT = { base: Math.atan2(CAMERA.y, CAMERA.z), distance: Math.hypot(CAMERA.y, CAMERA.z), min: 0.1, max: 1.4, minZoom: 0.45, maxZoom: 2.2 };
 const KEYS: Record<string, Point> = {
   w: { x: 0, z: -1 }, arrowup: { x: 0, z: -1 }, s: { x: 0, z: 1 }, arrowdown: { x: 0, z: 1 },
   a: { x: -1, z: 0 }, arrowleft: { x: -1, z: 0 }, d: { x: 1, z: 0 }, arrowright: { x: 1, z: 0 },
@@ -175,8 +177,13 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
       const behindX = Math.sin(view.yaw), behindZ = Math.cos(view.yaw);
       const focusX = next.x + (layout.landmark.x - next.x) * blend;
       const focusZ = next.z + (layout.landmark.z - next.z) * blend;
-      const wantedY = CAMERA.y + (1.9 - CAMERA.y) * blend;
-      const wantedZ = CAMERA.z + (3.4 - CAMERA.z) * blend;
+      // 360° orbit: yaw circles the walker, orbit raises or lowers the camera, zoom moves it in or out.
+      const elevation = Math.max(ORBIT.min, Math.min(ORBIT.max, ORBIT.base + view.orbit));
+      const reach = ORBIT.distance * view.zoom;
+      const orbitY = view.orbit === 0 && view.zoom === 1 ? CAMERA.y : Math.sin(elevation) * reach;
+      const orbitZ = view.orbit === 0 && view.zoom === 1 ? CAMERA.z : Math.cos(elevation) * reach;
+      const wantedY = orbitY + (1.9 - orbitY) * blend;
+      const wantedZ = orbitZ + (3.4 - orbitZ) * blend;
       let clearance = 1;
       for (let t = .15; t < 1 && cameraBlockers.length; t += .06) {
         const sampleY = .85 + (wantedY - .85) * t;
@@ -374,7 +381,9 @@ function FieldOfView({ view, fov }: { view: 'first' | 'third'; fov: number }) {
 
 /** Walkable view of a prompt world. Movement and targeting come from A's controller. */
 export function WorldStage({ world, revealed, ended, position, paused, onReveal, onFinish, onUnavailable,
-  audio, areaLabel = 'Prompt world', artifactLabels, conversationOpen = false }: {
+  audio, areaLabel = 'Prompt world', artifactLabels, conversationOpen = false, overlay }: {
+  /** Game HUD drawn over the world (quest log, dialog, menu button). */
+  overlay?: React.ReactNode;
   world: StageWorld;
   audio?: StageAudio;
   areaLabel?: string;
@@ -404,7 +413,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
   const [target, setTarget] = useState<Target | null>(null);
   const view = useView();
   const ink = useInk();
-  const look = useRef<Look>({ yaw: 0, pitch: -0.12, turn: 0 });
+  const look = useRef<Look>({ yaw: 0, pitch: -0.12, turn: 0, orbit: 0, zoom: 1 });
   const turning = useRef(new Set<string>());
   const drag = useRef<{ id: number; x: number; y: number } | null>(null);
   const tuning = useTuning();
@@ -447,6 +456,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
     dy = Math.max(-80, Math.min(80, dy));
     view.yaw -= dx * EYE.dragYaw * speed;
     if (viewRef.current === 'first') view.pitch = Math.max(-EYE.maxPitch, Math.min(EYE.maxPitch, view.pitch - dy * EYE.dragPitch * speed));
+    else view.orbit = Math.max(ORBIT.min - ORBIT.base, Math.min(ORBIT.max - ORBIT.base, view.orbit + dy * EYE.dragPitch * speed));
   }, []);
   const lookHandlers = !paused ? {
     onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => {
@@ -476,6 +486,18 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
     if ((!shiftLock || paused) && document.pointerLockElement) document.exitPointerLock();
     if (paused && shiftLock) setShiftLock(false);
   }, [shiftLock, paused]);
+  useEffect(() => {
+    const box = stageBox.current;
+    if (!box || view !== 'third' || paused) return;
+    const wheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const view = look.current;
+      view.zoom = Math.max(ORBIT.minZoom, Math.min(ORBIT.maxZoom, view.zoom * Math.exp(event.deltaY * 0.0012)));
+    };
+    box.addEventListener('wheel', wheel, { passive: false });
+    return () => box.removeEventListener('wheel', wheel);
+  }, [view, paused]);
+
   useEffect(() => {
     const mouse = (event: MouseEvent) => {
       if (document.pointerLockElement && stageBox.current?.contains(document.pointerLockElement)) turnBy(event.movementX, event.movementY);
@@ -596,6 +618,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
           <p className="walk-prompt" role="status">{conversationOpen
             ? (ended ? 'The memory is complete.' : 'Choose how to reply.')
             : describeTarget(target, world, revealed, artifactLabels)}</p>
+          {overlay}
           <div className="walk-compass" ref={compass} hidden aria-hidden="true"><span className="walk-compass-needle" /><span /></div>
           <div className="walk-pad" aria-label="Touch movement controls">
             {pad('up', 'Walk forward', '▲', { x: 0, z: -1 })}
@@ -616,7 +639,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
             <button type="button" className="view-toggle" aria-pressed={view === 'first'} onClick={toggleView}>
               {t(view === 'first' ? 'First person' : 'Third person')}
             </button>
-            <button type="button" disabled={paused} onClick={() => { position.current = layout.spawn; look.current.yaw = 0; look.current.pitch = -0.12; }}>{t('Reset position')}</button>
+            <button type="button" disabled={paused} onClick={() => { position.current = layout.spawn; Object.assign(look.current, { yaw: 0, pitch: -0.12, orbit: 0, zoom: 1 }); }}>{t('Reset position')}</button>
           </span>
         </div>
       </StageBoundary>

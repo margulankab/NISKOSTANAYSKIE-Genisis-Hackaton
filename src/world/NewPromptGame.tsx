@@ -8,6 +8,7 @@ import { GameSession } from './GameSession';
 import { InterpretationPanel } from './InterpretationPanel';
 import { PROMPT_MAX, promptLength, promptSchema } from './layout-schema';
 import { promptSoundtrack } from './prompt-soundtrack';
+import { mentionsPerson } from './compose-memory-story';
 import { recipes } from './recipes';
 import type { PromptWorld } from './world-schema';
 import { SongOfTheDay } from '../music/SongOfTheDay';
@@ -118,11 +119,11 @@ export function NewPromptGame() {
   return (
     <section className="intake prompt-game" data-win="prompt_world.exe">
       <h1>{t('New game from a prompt')}</h1>
-      <p>{t('Describe a place to explore. Build a memory to meet a fictional character after two discoveries, or build a world to end your walk at a landmark.')}</p>
+      <p>{t('Describe a place, or a day. Your words become a world with two discoveries and a small quest; mention someone you met and they will be waiting at the end.')}</p>
       <form onSubmit={event => {
         event.preventDefault();
-        const submitter = (event.nativeEvent as SubmitEvent).submitter;
-        if (!phase) void generate(!(submitter instanceof HTMLButtonElement && submitter.value === 'world'), fictional);
+        // One button: a person in the description ("I met Mira", "with my mom") brings a character and a conversation.
+        if (!phase) void generate(mentionsPerson(prompt), fictional);
       }}>
         <label htmlFor={inputId}>{t('Describe the world')}</label>
         <textarea ref={input} id={inputId} value={prompt} rows={4} placeholder={EXAMPLE}
@@ -140,8 +141,7 @@ export function NewPromptGame() {
         <SongOfTheDay value={song} onChange={value => { clear(); setSong(value); }} />
         <p className="field-hint">{t('Processing')} · {fictional ? 'Gemini scene planner' : t('Private on this device')}</p>
         <div className="prompt-actions">
-          <button type="submit" disabled={Boolean(phase)}>{t('Build memory')}</button>
-          <button type="submit" value="world" disabled={Boolean(phase)}>{t('Build world')}</button>
+          <button type="submit" className="build-button" disabled={Boolean(phase)}>{t('Build world')}</button>
         </div>
       </form>
       {phase && <p role="status">{phase === 'planning' ? 'Planning the scene with Gemini…' : t('Building the scene and checking the route…')}</p>}

@@ -5,7 +5,9 @@ import { placementById } from './world-schema';
 import type { PromptWorld } from './world-schema';
 
 function localStory(world: PromptWorld) {
-  const name = world.prompt.match(/(?:\bwith|\bmet|\bnamed|\bcalled)\s+([\p{Lu}][\p{L}'’-]{1,35})(?=\s|[.,!?]|$)/u)?.[1];
+  // "met Mira", "with Nora", or a relation followed by a name ("my friend Aru", "моя подруга Аня").
+  const name = world.prompt.match(/(?:\bwith|\bmet|\bnamed|\bcalled)\s+([\p{Lu}][\p{L}'’-]{1,35})(?=\s|[.,!?]|$)/u)?.[1]
+    ?? world.prompt.match(/(?:friend|sister|brother|cousin|neighbou?r|друг|подруга|брат|сестра|сосед|соседка)\s+([\p{Lu}][\p{L}'’-]{1,35})(?=\s|[.,!?]|$)/u)?.[1];
   const isNight = world.interpretation.timeOfDay === 'night';
   const landmark = recipes[placementById(world.layout, world.layout.landmark.placementId).recipe].label;
   const [first, second] = world.layout.discoveries.map(({ placementId }) =>
@@ -37,6 +39,13 @@ function localStory(world: PromptWorld) {
     secondReply: { choice: 'The way it felt to be here.', answer: 'Then stay another breath. There is no hurry.' },
     closing: 'Let the scene fade when you are ready to leave.',
   });
+}
+
+const people = /(?:\b(?:with|met|named|called)\s+[\p{Lu}][\p{L}'’-]{1,35}(?=\s|[.,!?]|$))|\b(?:friend|friends|mom|mum|mother|dad|father|grandma|grandpa|grandmother|grandfather|sister|brother|wife|husband|partner|girlfriend|boyfriend|teacher|neighbou?r|cousin|aunt|uncle|daughter|son)\b|(?:встретил|встретила|друг|друга|подруг|мам|пап|бабушк|дедушк|брат|сестр|сосед)/iu;
+
+/** Whether a description mentions someone, so the world ends with a character instead of a landmark. */
+export function mentionsPerson(prompt: string) {
+  return people.test(prompt);
 }
 
 /** Write around the same resolved landmarks in either planning mode. */

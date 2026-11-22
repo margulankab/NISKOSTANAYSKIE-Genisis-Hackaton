@@ -68,11 +68,11 @@ export function useGamePause({
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
       if (!link || link.download || link.target === '_blank' || link.origin !== window.location.origin ||
-        link.pathname === window.location.pathname && link.search === window.location.search && link.hash) return;
+        (link.pathname === window.location.pathname && link.search === window.location.search && link.hash && !link.dataset.route)) return;
       if (!saving.current && lastSaved.current === snapshot(progress(), selection)) return;
       event.preventDefault();
       if (saving.current) return;
-      destination.current = link.href;
+      destination.current = link.dataset.route ?? link.href;
       setPaused(true);
       setConfirmLeave(true);
     };

@@ -45,7 +45,11 @@ export function enterWorld({ words, title, lines, from }: Omit<Warp, 'id' | 'fro
 export function requestFullscreen() {
   const root = document.documentElement;
   if (!document.fullscreenEnabled || document.fullscreenElement || !root.requestFullscreen) return;
-  root.requestFullscreen({ navigationUI: 'hide' }).catch(() => { /* Declined: keep playing in the window. */ });
+  root.requestFullscreen({ navigationUI: 'hide' }).then(() => {
+    // Where supported (Chrome, Edge), keep Esc for the game menu; holding Esc still leaves full screen.
+    const keyboard = (navigator as Navigator & { keyboard?: { lock?: (keys: string[]) => Promise<void> } }).keyboard;
+    return keyboard?.lock?.(['Escape']);
+  }).catch(() => { /* Declined: keep playing in the window. */ });
 }
 
 let chosenExit = false;

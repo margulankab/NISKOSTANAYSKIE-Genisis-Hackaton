@@ -1,5 +1,14 @@
 # Memory Worlds — active working rules (amended 2026-11-20)
 
+## Music-app players amendment — 2026-11-22
+
+**User decision (2026-11-22):** the owner asked for real Spotify, SoundCloud, Apple Music and YouTube Music players in the game. This supersedes "avoid Spotify Platform content in this game" for **opt-in embedded players** only. The rules for them:
+
+- **Official widgets only:** the player is the provider's own embed (`open.spotify.com/embed`, `w.soundcloud.com/player`, `embed.music.apple.com`, `youtube-nocookie.com/embed`, Deezer, Yandex, TIDAL). It loads only after the player presses **Play here**, and nothing from the provider is downloaded, recorded or analysed.
+- **No sync:** the game's visuals are not synchronised to that audio. The cleared in-game score pauses while an app player is loaded.
+- **Searching** opens the app in a new tab. No API keys, and no requests before the player acts.
+- **Before any public release:** review the Spotify, Apple and SoundCloud developer and embed terms for use beside a game. Hosts with a strict content policy (the claude.ai artifact page) block third-party frames, and there the player stays empty.
+
 ## Prompt-world and menu amendment — 2026-11-21
 
 Follow the [expanded gameplay and delivery plan](docs/game_development_plan.md#prompt-generated-worlds-soundtrack-selection-and-game-menus). A owns gameplay and checkpoint behavior, B owns prompt composition, menus and persistence, and C owns reusable world content, atmosphere and cleared soundtrack selection. Build worlds from prompt-dependent geometry and layout rules. Preserve the original day workflow with its photo and associated song. A prompt-only game is a separate entry into the shared renderer. Title/pause menus, correct saves and v1 archive compatibility are release checks. The earlier fixed-setting scope and 30-hour estimate are historical. Zero-cost and privacy rules remain active.

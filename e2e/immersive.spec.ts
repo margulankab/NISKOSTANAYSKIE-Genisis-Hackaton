@@ -26,36 +26,70 @@ test('the interface switches to Russian, persists, and Russian prompts set the t
   await expect(page.getByRole('link', { name: 'Main menu' })).toBeVisible();
 });
 
-test('Enter world plays the transition, goes full screen and starts the matched soundtrack', async ({ page }) => {
-  await page.goto('/new/prompt');
-  await page.getByLabel('Describe the world').fill(PROMPT);
-  await page.getByRole('button', { name: 'Build world' }).click();
-  await page.getByRole('button', { name: 'Enter world' }).click();
+test.describe('full screen (the default for players)', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
 
-  // The typed words carry into the transition, then it clears without blocking input.
-  await expect(page.locator('.warp-words')).toContainText('An autumn park at dusk');
-  await expect(page.locator('.warp')).toHaveCount(0, { timeout: 10_000 });
-  await expect(page.locator('html')).toHaveAttribute('data-immersive', 'on');
-  await expect.poll(() => page.evaluate(() => document.fullscreenElement === document.documentElement)).toBe(true);
-  const audio = page.locator('audio');
-  await expect.poll(() => audio.evaluate((element: HTMLAudioElement) => !element.paused && element.currentTime > 0)).toBe(true);
-  await expect(page.getByRole('button', { name: 'Pause soundtrack' })).toBeVisible();
+  test('Enter world animates straight into a full-screen world; Esc-style menu opens in the middle with tabs', async ({ page }) => {
+    await page.goto('/new/prompt');
+    await page.getByLabel('Describe the world').fill(PROMPT);
+    await page.getByRole('button', { name: 'Build world' }).click();
+    await page.getByRole('button', { name: 'Enter world' }).click();
 
-  // Leaving full screen with our own button keeps playing; the pause menu still stops the music.
-  await page.getByRole('button', { name: 'Exit full screen' }).click();
-  await expect.poll(() => page.evaluate(() => document.fullscreenElement)).toBeNull();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await expect.poll(() => audio.evaluate((element: HTMLAudioElement) => element.paused)).toBe(true);
-  await page.getByRole('button', { name: 'Resume' }).click();
-  await expect.poll(() => audio.evaluate((element: HTMLAudioElement) => element.paused)).toBe(false);
+    // The typed words carry into the transition, then it clears without blocking input.
+    await expect(page.locator('.warp-words')).toContainText('An autumn park at dusk');
+    await expect(page.locator('.warp')).toHaveCount(0, { timeout: 10_000 });
+    await expect(page.locator('html')).toHaveAttribute('data-immersive', 'on');
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement === document.documentElement)).toBe(true);
+    const audio = page.locator('audio');
+    await expect.poll(() => audio.evaluate((element: HTMLAudioElement) => !element.paused && element.currentTime > 0)).toBe(true);
 
-  // Leaving the world restores the normal page layout.
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await page.getByRole('button', { name: 'Return to Main Menu' }).click();
-  await page.getByRole('button', { name: 'Leave without saving' }).click();
-  await expect(page.getByRole('heading', { name: 'Memory Worlds' })).toBeVisible();
-  await expect(page.locator('html')).not.toHaveAttribute('data-immersive', 'on');
+    // Nothing beside the world: the stage covers the whole screen, and the quest log and first line are on it.
+    const stage = page.locator('.memory-stage');
+    const box = (await stage.boundingBox())!;
+    const viewport = page.viewportSize()!;
+    expect(box.width).toBeGreaterThanOrEqual(viewport.width - 1);
+    expect(box.height).toBeGreaterThanOrEqual(viewport.height - 1);
+    await expect(page.getByRole('region', { name: 'Quests' })).toContainText('Find the');
+    await expect(page.locator('.dialog-box')).toBeVisible();
+
+    // The in-world Menu opens a centered game menu; the music stops, Journal and Settings are tabs.
+    await page.getByRole('button', { name: 'Menu' }).click();
+    const menu = page.getByRole('dialog');
+    await expect(menu.getByRole('button', { name: 'Resume' })).toBeFocused();
+    const card = (await menu.boundingBox())!;
+    expect(Math.abs(card.x + card.width / 2 - viewport.width / 2)).toBeLessThan(4);
+    await expect.poll(() => audio.evaluate((element: HTMLAudioElement) => element.paused)).toBe(true);
+    await menu.getByRole('tab', { name: /Journal/ }).click();
+    await expect(menu.getByRole('tabpanel')).toContainText('Find the');
+    await menu.getByRole('tab', { name: /Settings/ }).click();
+    await menu.getByRole('button', { name: 'Third person' }).click();
+    await expect(page.locator('.walk-viewport')).toHaveAttribute('data-view', 'third');
+    await menu.getByRole('tab', { name: /Game/ }).click();
+    await menu.getByRole('button', { name: 'Resume' }).click();
+    await expect.poll(() => audio.evaluate((element: HTMLAudioElement) => element.paused)).toBe(false);
+
+    // Leaving full screen from the menu keeps the world open in the window.
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Exit full screen' }).click();
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement)).toBeNull();
+    await page.getByRole('dialog').getByRole('button', { name: 'Return to Main Menu' }).click();
+    await page.getByRole('button', { name: 'Leave without saving' }).click();
+    await expect(page.getByRole('heading', { name: 'Memory Worlds' })).toBeVisible();
+    await expect(page.locator('html')).not.toHaveAttribute('data-immersive', 'on');
+  });
+
+  test('a saved world opened from Continue offers Play, which goes full screen', async ({ page }) => {
+    await page.goto('/new/prompt');
+    await page.getByLabel('Describe the world').fill(PROMPT);
+    await page.getByRole('button', { name: 'Build world' }).click();
+    await page.getByRole('button', { name: 'Enter world' }).click();
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page.getByRole('button', { name: 'Save & Quit' }).click();
+    await page.getByRole('link', { name: /Continue/ }).click();
+    await page.getByRole('button', { name: 'Play', exact: true }).click();
+    await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(true);
+    await expect(page.getByRole('button', { name: 'Play', exact: true })).toHaveCount(0);
+  });
 });
 
 test('with autoplay and full screen turned off, Enter world stays windowed and silent', async ({ page }) => {
