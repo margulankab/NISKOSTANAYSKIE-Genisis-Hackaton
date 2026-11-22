@@ -1,5 +1,15 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-23 — One version: the polished interface on the Gemini plot engine
+
+Merged `fd58fe8` (Gemini plots, scene direction, playable moments) into the polished interface (`a030972` plus the in-world save, now playing, markers and playable examples). The interface, first person, ink look, reveal cards and library come from the new version; plots, direction, cast, cinematic moment camera and terrain come from `fd58fe8`. Prompt worlds and day memories still build privately on the device; Gemini is used only when the player sends a fictional prompt, and a failed Gemini call offers the private build.
+
+- **Gemini site plans.** Gemini also returns `site`: each feature's copies on a top-down map. The composer arranges the scene core from it before walkways are routed, keeps the discoveries and landmark fixed, refuses spots in water, on walkways or on other objects, lets unplanned filler give way, and undoes any move that blocks the visit ([site-plan.ts](src/world/site-plan.ts)). Gemini is asked to list the supporting scenery as features so the whole place can be drawn.
+- **Scenery.** Ground dressing grows in patches on green places; paved places keep the square open, line walkways with street furniture, and market and city approaches are framed by facing shopfronts.
+- **Soundtracks.** Fifteen original tracks (ten new, with bell, pluck and pad voices and a waltz). Gemini's direction chooses from all of them with their tags; the private picker reads setting, weather and plot mood. The five original tracks render byte for byte as before.
+
+**Checks (macOS, Chrome):** `npm run typecheck` clean, `npm test` 209 passed, browser suite 62 passed and 2 skipped. Gemini responses were replayed from fixtures (no API key on this machine); live Gemini site plans remain unverified.
+
 ## 2026-11-22 — One-file release: menu buttons in restricted viewers
 
 **Report:** in the HTML file only the menu showed, and pressing a button did nothing. In Chromium, opened directly and inside a sandboxed frame, the buttons worked, so the cause is the viewer. The web build navigated by changing `location.hash`, which some viewers (file previews, in-app browsers) block or ignore.

@@ -140,6 +140,17 @@ test('record the demonstration video', async ({ page }) => {
   await caption(page, '6 · Reopen the saved day', 'The memory opens again from the archive, with its photo, words and song.');
   await pause(5000);
 
+  await page.goto('/new/prompt');
+  await caption(page, '7 · Or start from a few words', 'A description becomes a place on this device: here, a night market street.');
+  await page.getByLabel('Describe the world').pressSequentially('A night market street with six stalls, four lanterns and two benches.', { delay: 14 });
+  await page.getByRole('button', { name: 'Build world' }).click();
+  await page.getByRole('button', { name: 'Enter world' }).click();
+  await expect(page.locator('.warp')).toHaveCount(0, { timeout: 15_000 });
+  await page.keyboard.down('w');
+  await pause(2600);
+  await page.keyboard.up('w');
+  await pause(2500);
+
   console.log('video seconds', video.seconds());
   await video.render(song, songStart, path.join(output, 'memory-worlds-demo.mp4'));
 });
