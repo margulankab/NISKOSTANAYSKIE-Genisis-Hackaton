@@ -11,18 +11,21 @@ import { localMemories, saveDayProgress } from './indexed-memory-repository';
 import { MemoryActions } from './MemoryActions';
 import type { DaySummary } from './repository';
 
-function ArchiveCard({ id, title, date, palette, thumbnail }: DaySummary) {
-  const [preview, setPreview] = useState<string>();
+function ArchiveCard({ id, title, date, palette, thumbnail, photo }: DaySummary) {
+  const [preview, setPreview] = useState<{ url: string; blob: Blob }>();
+  const [invalid, setInvalid] = useState<ReadonlySet<Blob>>(() => new Set());
+  const source = [thumbnail, photo].find(asset => asset instanceof Blob && !invalid.has(asset));
   useEffect(() => {
-    if (!thumbnail || !(thumbnail instanceof Blob)) { setPreview(undefined); return; }
-    const url = URL.createObjectURL(thumbnail);
-    setPreview(url);
+    if (!source) { setPreview(undefined); return; }
+    const url = URL.createObjectURL(source);
+    setPreview({ url, blob: source });
     return () => URL.revokeObjectURL(url);
-  }, [thumbnail]);
+  }, [source]);
   const colors = palette?.map(color => `rgb(${color.join(' ')})`) ?? ['#88755e', '#535d51', '#303933'];
   return <li><a href={`/memory/${id}`} className="day-card">
     <span className="day-card-image" aria-hidden="true" style={{ backgroundImage: `linear-gradient(138deg, ${colors.join(',')})` }}>
-      {preview && <img src={preview} alt="" onError={() => setPreview(undefined)} />}
+      {preview && preview.blob === source && <img key={preview.url} src={preview.url} alt="" loading="lazy" decoding="async"
+        onError={() => setInvalid(previous => new Set([...previous, preview.blob]))} />}
     </span>
     <span className="day-card-caption"><time dateTime={date}>{date}</time><strong>{title}</strong></span>
   </a></li>;

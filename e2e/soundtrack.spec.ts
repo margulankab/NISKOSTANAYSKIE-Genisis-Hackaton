@@ -81,10 +81,10 @@ test('soundtrack changes the saved composition and animates only during allowed 
   await page.getByRole('navigation').getByRole('button').nth(1).click();
   await expect(marker).toBeVisible();
   await settledShot(canvas);
-  const rest = await captureScene(canvas, testInfo.outputPath('louder-composition.png'));
-  expect(rest.equals(quiet)).toBe(false);
   await page.getByText('Why this scene?', { exact: true }).click();
   await expect(page.getByText(/sets movement to .* cycles per second/)).toBeVisible();
+  const rest = await captureScene(canvas, testInfo.outputPath('louder-composition.png'));
+  expect(rest.equals(quiet)).toBe(false);
 
   await player.evaluate((element: HTMLAudioElement) => {
     const nativeTime = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'currentTime')!;
@@ -100,10 +100,16 @@ test('soundtrack changes the saved composition and animates only during allowed 
   await expect(pause).toBeVisible();
   await expect.poll(atRest).toBe(false);
   await canvas.screenshot({ path: testInfo.outputPath('louder-in-motion.png') });
-  await player.dispatchEvent('waiting');
+  await player.evaluate((element: HTMLAudioElement) => {
+    Object.defineProperty(element, 'readyState', { value: HTMLMediaElement.HAVE_CURRENT_DATA, configurable: true });
+    element.dispatchEvent(new Event('waiting'));
+  });
   await expect.poll(atRest).toBe(true);
   await expect(pause).toBeVisible();
-  await player.dispatchEvent('playing');
+  await player.evaluate((element: HTMLAudioElement) => {
+    Reflect.deleteProperty(element, 'readyState');
+    element.dispatchEvent(new Event('playing'));
+  });
   await expect.poll(atRest).toBe(false);
 
   await page.emulateMedia({ reducedMotion: 'reduce' });

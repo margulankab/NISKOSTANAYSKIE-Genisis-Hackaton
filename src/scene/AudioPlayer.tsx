@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '../i18n/i18n';
+import { readSettings, subscribeToSettings } from '../menus/settings';
 
 export function AudioPlayer({ url, onActiveAudio, loop = false, muted = false, paused = false, preview = false, autoPlay = false }: {
   url: string;
@@ -16,6 +17,11 @@ export function AudioPlayer({ url, onActiveAudio, loop = false, muted = false, p
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
+  const resumeOnUnpause = useRef(false);
+
+  useEffect(() => subscribeToSettings(() => {
+    if (audio.current) audio.current.volume = readSettings().volume;
+  }), []);
 
   useEffect(() => {
     const player = audio.current;
@@ -26,7 +32,15 @@ export function AudioPlayer({ url, onActiveAudio, loop = false, muted = false, p
   }, [onActiveAudio]);
 
   useEffect(() => {
-    if (paused) audio.current?.pause();
+    const player = audio.current;
+    if (!player) return;
+    if (paused) {
+      resumeOnUnpause.current = !player.paused;
+      player.pause();
+    } else if (resumeOnUnpause.current) {
+      resumeOnUnpause.current = false;
+      void player.play().catch(() => {});
+    }
   }, [paused]);
 
   // Entering a world is the gesture that allows sound; if the browser still refuses, offer the button.

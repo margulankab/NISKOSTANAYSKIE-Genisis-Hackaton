@@ -109,7 +109,15 @@ function artifactId(entryId: string, mask: 1 | 2) {
   return `${entryId.slice(0, -1)}${(parseInt(entryId.slice(-1), 16) ^ mask).toString(16)}`;
 }
 
-export async function generateMemory(draft: ValidatedDayDraft): Promise<DayBundle> {
+function localWorld(text: string, id: string, seed: number): DayBundle['world'] {
+  const composed = composeSceneTemplate(text, { id });
+  const placed = composed.ok ? composed : composeWorld(text, { id, seed });
+  if (!placed.ok) return undefined;
+  const { layout, interpretation } = placed.world;
+  return layout.geometryVersion ? { layout: { ...layout, geometryVersion: layout.geometryVersion }, interpretation } : undefined;
+}
+
+export async function generateMemory(draft: ValidatedDayDraft, staged?: NonNullable<DayBundle['world']>): Promise<DayBundle> {
   const { entryId, entryText, date, rights } = draft;
   const textWords = words(entryText.toLowerCase());
   const matchedMood = strongestMatch(textWords, moodWords);
@@ -135,11 +143,9 @@ export async function generateMemory(draft: ValidatedDayDraft): Promise<DayBundl
   if (!firstPhoto) throw new Error('The draft is missing a photo.');
   const thumbnail = await photoThumbnail(photos[0].blob).catch(() => undefined);
   const availableProps = photoProps[environment];
+  // A Gemini-staged scene when the player sent one; otherwise the entry itself builds the world on this device.
+  const world = staged ?? localWorld(entryText.slice(0, PROMPT_MAX), entryId, seed);
 
-  const locationText = entryText.slice(0, PROMPT_MAX);
-  const composed = composeSceneTemplate(locationText, { id: entryId });
-  const placed = composed.ok ? composed : composeWorld(locationText, { id: entryId, seed });
-  const world = placed.ok ? { layout: placed.world.layout, interpretation: placed.world.interpretation } : undefined;
   return dayBundleSchema.parse({
     manifest: {
       id: entryId,

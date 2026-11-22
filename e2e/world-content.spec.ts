@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
-import { captureScene } from './scene-capture';
+import { captureScene, sameScene } from './scene-capture';
 import { settledShot } from './walk';
 
 test('world preview renders resolved geometry and responds to gesture-started catalog playback', async ({ page }, testInfo) => {
@@ -24,16 +24,16 @@ test('world preview renders resolved geometry and responds to gesture-started ca
   const rest = await captureScene(canvas);
   await preview.click();
   await expect.poll(() => audio.evaluate((player: HTMLAudioElement) => player.currentTime)).toBeGreaterThan(0);
-  await expect.poll(async () => (await captureScene(canvas)).equals(rest)).toBe(false);
+  await expect.poll(() => sameScene(canvas, rest)).toBe(false);
   await page.getByRole('button', { name: 'Pause soundtrack' }).click();
   await expect(preview).toBeVisible();
-  await expect.poll(async () => (await captureScene(canvas)).equals(rest)).toBe(true);
+  await expect.poll(() => sameScene(canvas, rest)).toBe(true);
   await preview.click();
-  await expect.poll(async () => (await captureScene(canvas)).equals(rest)).toBe(false);
+  await expect.poll(() => sameScene(canvas, rest)).toBe(false);
   await page.getByRole('checkbox', { name: 'Mute soundtrack' }).check();
   await expect.poll(() => audio.evaluate((player: HTMLAudioElement) => player.muted)).toBe(true);
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect.poll(async () => (await captureScene(canvas)).equals(rest)).toBe(true);
+  await expect.poll(() => sameScene(canvas, rest)).toBe(true);
   const oldPlayer = await audio.elementHandle();
   await page.getByLabel('Soundtrack', { exact: true }).selectOption('still-rooms');
   await expect(preview).toBeVisible();
@@ -66,16 +66,18 @@ test('landmark buttons and Overview frame the route and remain readable on fallb
   const views = page.getByRole('group', { name: 'Landmarks in route order' });
   await expect(views.getByRole('button')).toHaveText(['Overview', 'Lighthouse', 'Red rowboat', 'Pier']);
   await expect(overview).toBeEnabled();
+  await settledShot(canvas);
   const opening = await captureScene(canvas);
   await overview.focus();
   await page.keyboard.press('Tab');
   await expect(page.getByRole('button', { name: 'Lighthouse' })).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect.poll(async () => (await captureScene(canvas)).equals(opening)).toBe(false);
+  await expect.poll(() => sameScene(canvas, opening)).toBe(false);
   await page.keyboard.press('Shift+Tab');
   await page.keyboard.press('Space');
-  await expect.poll(async () => (await captureScene(canvas)).equals(opening)).toBe(true);
+  await expect.poll(() => sameScene(canvas, opening)).toBe(true);
 
+  await canvas.scrollIntoViewIfNeeded();
   const box = await canvas.boundingBox();
   expect(box).not.toBeNull();
   if (!box) throw new Error('The preview canvas could not be measured');
@@ -83,9 +85,9 @@ test('landmark buttons and Overview frame the route and remain readable on fallb
   await page.mouse.down();
   await page.mouse.move(box.x + box.width / 2 + 70, box.y + box.height / 2 + 25, { steps: 5 });
   await page.mouse.up();
-  await expect.poll(async () => (await captureScene(canvas)).equals(opening)).toBe(false);
+  await expect.poll(() => sameScene(canvas, opening)).toBe(false);
   await overview.click();
-  await expect.poll(async () => (await captureScene(canvas)).equals(opening)).toBe(true);
+  await expect.poll(() => sameScene(canvas, opening)).toBe(true);
 
   await canvas.dispatchEvent('webglcontextlost');
   await expect(viewport.getByRole('status')).toContainText('3D preview is unavailable');

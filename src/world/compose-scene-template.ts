@@ -3,13 +3,18 @@ import { addRouteDressing, composeGrounds, signatureProblems } from './compose-g
 import { clauseAround, composeLayout, seedFromPrompt, titleFromPrompt } from './compose-world';
 import { extendOutdoorLayout } from './extend-world';
 import type { ComposeResult } from './compose-world';
-import { promptSchema } from './layout-schema';
+import { groundBounds, promptSchema, toWalkLayout } from './layout-schema';
 import type { Interpretation, Term, WorldLayout } from './layout-schema';
 import { localIntent, privateScenePlan, sceneCandidates } from './local-scene-plan';
 import { parsePrompt } from './parse-prompt';
 import { scenePlanProblems, scenePlanSchema } from './scene-template-schema';
 import type { ScenePlan } from './scene-template-schema';
 import { PARSER_VERSION, promptWorldSchema, WORLD_SCHEMA_VERSION } from './world-schema';
+import { plotAnchors } from './plot-schema';
+import type { Plot } from './plot-schema';
+import { waterfrontWords } from './scene-direction';
+import type { SceneDirection } from './scene-direction';
+import { reachableCells } from './route';
 
 export function validateScenePlan(prompt: string, input: unknown) {
   const parsed = scenePlanSchema.safeParse(input);
@@ -96,8 +101,8 @@ function realizedRelation(layout: WorldLayout, { kind, subject, object }: Interp
   return Math.hypot(a.x - b.x, a.z - b.z) < 3.6;
 }
 
-export function composeSceneTemplate(prompt: string, { id, plan: input, processing = 'private' }: {
-  id: string; plan?: unknown; processing?: 'private' | 'gemini';
+export function composeSceneTemplate(prompt: string, { id, plan: input, processing = 'private', plot, direction }: {
+  id: string; plan?: unknown; processing?: 'private' | 'gemini'; plot?: Plot; direction?: SceneDirection;
 }): ComposeResult {
   const promptResult = promptSchema.safeParse(prompt);
   if (!promptResult.success) return { ok: false, reason: promptResult.error.issues[0].message, interpretation: null };
@@ -112,19 +117,36 @@ export function composeSceneTemplate(prompt: string, { id, plan: input, processi
   const interpretation = interpret(prompt, plan);
   const seed = seedFromPrompt(JSON.stringify([prompt, SCENE_CATALOG_VERSION, template]));
   const profile = template.zones[template.spawn].family;
-  const fallbackTitle = profile === 'water-park' ? 'Water Park' : profile[0].toUpperCase() + profile.slice(1);
+  const waterfront = Boolean(direction && waterfrontWords.test(prompt));
+  const ride = Boolean(plot?.moments.some(moment => moment.actions.some(action => action.kind === 'slide')));
+  const fallbackTitle = profile === 'water-park' ? 'Water Park' : profile === 'ballfield' ? 'Baseball Field' : profile[0].toUpperCase() + profile.slice(1);
   let lastProblem = '';
   for (let attempt = 1; attempt <= 4; attempt++) {
-    const composed = intent.settings.length === 1 && (profile === 'water-park' || profile === 'park')
-      ? composeGrounds(prompt, template, interpretation, seed, attempt)
+    const composed = intent.settings.length === 1 && (profile === 'ballfield' || profile === 'water-park' || profile === 'park' && !waterfront)
+      ? composeGrounds(prompt, template, interpretation, seed, attempt, ride)
       : composeLayout(prompt, interpretation, seed, attempt, {
         ending: template.ending, discoveries: template.discoveries,
         size: template.zones[template.spawn].size,
         surfaces: template.groups.map(group => template.zones[group.zone].surface),
+        waterfront,
+        wallWindow: Boolean(direction && interpretation.setting === 'indoor'),
       });
     if (typeof composed === 'string') { lastProblem = composed; continue; }
     // Outdoor scenes get open land around the composed core; walkways are then routed from the new spawn.
-    const layout = addRouteDressing(extendOutdoorLayout({ ...composed, geometryVersion: 3, profile }));
+    const extended = extendOutdoorLayout({ ...composed, geometryVersion: 3, profile, ...(plot && { plot }), ...(direction && { direction }) });
+    if (waterfront && extended.water && extended.approaches && plot) {
+      const land = groundBounds(extended);
+      const shore = extended.water.maxX === extended.bounds.maxX ? land.maxX : land.minX;
+      const cells = reachableCells(toWalkLayout(extended)).filter(cell => Math.abs(cell.x - shore) > .95 && Math.abs(cell.x - shore) < 1.9);
+      for (const moment of plot.moments.filter(moment => moment.actions.some(action => action.kind === 'sip'))) {
+        const index = plotAnchors.indexOf(moment.anchor);
+        const target = extended.approaches[index];
+        const spot = cells.reduce<(typeof cells)[number] | undefined>((best, cell) =>
+          !best || Math.abs(cell.z - target.z) < Math.abs(best.z - target.z) ? cell : best, undefined);
+        if (spot) extended.approaches[index] = spot;
+      }
+    }
+    const layout = addRouteDressing(extended);
     if (typeof layout === 'string') { lastProblem = layout; continue; }
     const placed = template.groups.map((_, index) => layout.placements.filter(placement => placement.term === index).length);
     const coverage = template.coverage.map(item => {

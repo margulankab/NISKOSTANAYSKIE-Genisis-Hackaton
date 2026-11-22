@@ -4,9 +4,12 @@ import { parsePrompt } from './parse-prompt';
 import type { RecipeId } from './recipes';
 import type { ScenePlan, SceneTemplate } from './scene-template-schema';
 import type { WorldIntent } from './world-intent-schema';
+import type { Plot, PlotMoment } from './plot-schema';
+import { atHomeFeeling } from './scene-direction';
 
 const settingPatterns: [SceneFamily, RegExp][] = [
   ['water-park', /\bwater[\s-]*park\b|аквапарк/giu],
+  ['ballfield', /\b(?:baseball(?:\s+field|\s+diamond|\s+park)?|ball\s?field|home[\s-]?runs?)\b/giu],
   ['station', /\b(?:lunar station|space station|spacecraft|sci-fi interior)\b|лунная станция/giu],
   ['coast', /\b(?:cove|coast|beach|shore|bay|harbou?r|sea|pier)\b|побережье|бухта|пляж/giu],
   ['market', /\b(?:market|bazaar|night fair)\b|рынок/giu],
@@ -64,6 +67,7 @@ export function localIntent(prompt: string): WorldIntent | null {
   }
   for (const { asset, phrase, start, end } of candidates.sort((a, b) => a.start - b.start)) {
     const before = prompt.slice(0, start);
+    if (asset === 'house' && /^home$/i.test(phrase) && atHomeFeeling.test(prompt.slice(Math.max(0, start - 24), end))) continue;
     if (negation.test(before)) { if (asset) exclusions.add(asset); continue; }
     if (features.length >= 24) continue;
     // "the pier" refers to the first pier already named.
@@ -100,7 +104,10 @@ export function localIntent(prompt: string): WorldIntent | null {
 
 export function privateScenePlan(prompt: string): ScenePlan | null {
   const intent = localIntent(prompt);
-  if (!intent) return null;
+  return intent && composeIntentPlan(intent);
+}
+
+export function composeIntentPlan(intent: WorldIntent, plot?: Plot): ScenePlan | null {
   const { settings, exclusions, features } = intent;
   const zones: SceneTemplate['zones'] = settings.map((family, index) => ({
     family, surface: familySurfaces[family], role: index === 0 ? 'entry' : 'destination', size: settings.length > 1 ? 'medium' : 'large',
@@ -151,21 +158,36 @@ export function privateScenePlan(prompt: string): ScenePlan | null {
       && groups.filter(group => group.asset === 'tube-slide' || group.asset === 'open-flume').reduce((sum, group) => sum + group.count, 0) < 2) {
     add('open-flume', 'water-park', 1, null);
   }
-  const endingOrder: RecipeId[] = ['cabana', 'gazebo', 'lighthouse', 'dome', 'station-module', 'cabin', 'cavern', 'ruin', 'barn', 'station-facade', 'stall', 'window'];
-  const ending = endingOrder.map(asset => groups.findIndex(group => group.asset === asset && zones[group.zone].role !== 'display'))
-    .find(index => index >= 0) ?? groups.findIndex(group => catalogById[group.asset].role === 'structure' && zones[group.zone].role !== 'display');
+  const endingOrder: RecipeId[] = ['baseball-diamond', 'cabana', 'gazebo', 'lighthouse', 'dome', 'station-module', 'cabin', 'cavern', 'ruin', 'barn', 'station-facade', 'stall', 'window'];
+  const ride = plot?.moments.find(moment => moment.actions.some(action => action.kind === 'slide'));
+  const slideGroup = ride ? groups.findIndex(group => group.asset === 'tube-slide') : -1;
+  const preferred = (anchor: PlotMoment['anchor']) => {
+    if (ride?.anchor === anchor) return slideGroup;
+    const feature = plot?.moments.find(moment => moment.anchor === anchor)?.anchorFeature;
+    if (feature === undefined) return -1;
+    return groups.findIndex((group, index) => index !== slideGroup && group.feature === feature && zones[group.zone].role !== 'display' &&
+      (anchor === 'ending' || catalogById[group.asset].discoverable));
+  };
+  const first = preferred('arrival'), second = preferred('activity'), last = preferred('ending');
+  const reserved = new Set([first, second].filter(index => index >= 0));
+  const availableEnding = (group: SceneTemplate['groups'][number], index: number) => zones[group.zone].role !== 'display' && !reserved.has(index);
+  const ending = last >= 0 && !reserved.has(last) && settings[0] !== 'ballfield' ? last
+    : endingOrder.map(asset => groups.findIndex((group, index) => group.asset === asset && availableEnding(group, index)))
+        .find(index => index >= 0) ?? groups.findIndex((group, index) => catalogById[group.asset].role === 'structure' && availableEnding(group, index));
   const priorities: RecipeId[] = settings[0] === 'water-park' ? ['life-ring', 'lifeguard-chair']
-    : settings[0] === 'park' ? ['bench', 'flower-bed'] : ['boat', 'control-panel', 'fern'];
+    : settings[0] === 'park' ? ['bench', 'flower-bed'] : settings[0] === 'ballfield' ? ['dugout', 'scoreboard'] : ['boat', 'control-panel', 'fern'];
   const discoverable = groups.map((group, index) => ({ group, index })).filter(({ group, index }) =>
     index !== ending && catalogById[group.asset].discoverable && (zones[group.zone].role !== 'display' ||
       group.asset === 'boat' && groups.some(other => other.asset === 'pier')));
-  const discoveries = discoverable.sort((a, b) => {
+  const fallback = discoverable.sort((a, b) => {
     const rank = (group: typeof a.group) => (group.feature !== null ? 8 : 0) + (priorities.includes(group.asset) ? 5 - priorities.indexOf(group.asset) : 0);
     return rank(b.group) - rank(a.group);
-  }).slice(0, 2).map(({ index }) => index);
-  if (ending < 0 || discoveries.length < 2) return null;
+  }).map(({ index }) => index).filter(index => !reserved.has(index));
+  const discoveries = [first >= 0 ? first : fallback.shift(), second >= 0 && second !== first ? second : fallback.shift()];
+  if (ending < 0 || discoveries[0] === undefined || discoveries[1] === undefined) return null;
   groups[ending].purpose = 'landmark';
-  for (const index of discoveries) groups[index].purpose = 'discovery';
+  groups[discoveries[0]].purpose = 'discovery';
+  groups[discoveries[1]].purpose = 'discovery';
   const connections: SceneTemplate['connections'] = zones.flatMap((zone, index) => index === 0 ? [] : [{
     from: 0, to: index,
     kind: zone.family === 'station' || zones[0].family === 'station' ? 'airlock'

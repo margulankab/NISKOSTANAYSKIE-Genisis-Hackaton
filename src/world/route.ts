@@ -1,4 +1,4 @@
-import { blocked, targetAt } from '../gameplay/controller';
+import { blocked, canReach, targetAt } from '../gameplay/controller';
 import type { Target } from '../gameplay/controller';
 import type { Point, WalkLayout } from '../gameplay/layout';
 
@@ -33,7 +33,7 @@ const same = (a: Target | null, b: Target) =>
   a?.kind === b.kind && (a.kind === 'artifact' ? b.kind === 'artifact' && a.index === b.index : true);
 
 /** Problems that would stop a full visit: each discovery and the ready ending must be activatable from a reachable spot. */
-export function routeProblems(layout: WalkLayout): string[] {
+export function routeProblems(layout: WalkLayout, momentMarks: readonly Point[] = []): string[] {
   const cells = reachableCells(layout);
   if (cells.length === 0) return ['The spawn point is blocked.'];
   const goals: [string, Target][] = [
@@ -41,9 +41,18 @@ export function routeProblems(layout: WalkLayout): string[] {
     ['second discovery', { kind: 'artifact', index: 1 }],
     ['ending', { kind: 'ending', ready: true }],
   ];
-  return goals
+  const problems = goals
     .filter(([, goal]) => !cells.some((cell) => same(targetAt(cell, layout, 2), goal)))
     .map(([name]) => `The ${name} cannot be reached from spawn.`);
+  const { minX, maxX, minZ, maxZ } = layout.bounds;
+  const radius = layout.playerRadius;
+  for (const [index, point] of momentMarks.entries()) {
+    if (point.x < minX + radius || point.x > maxX - radius || point.z < minZ + radius || point.z > maxZ - radius
+      || blocked(point, layout) || !cells.some(cell => Math.hypot(cell.x - point.x, cell.z - point.z) <= .32 && canReach(cell, point, layout))) {
+      problems.push(`Moment ${index + 1} needs a clear standing position.`);
+    }
+  }
+  return problems;
 }
 
 /** Shortest grid route to a spot that activates the goal, as straight-line corner waypoints. */

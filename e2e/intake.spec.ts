@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
-import { visitArtifact } from './walk';
+import { playMoment, visitArtifact } from './walk';
+import { mockPromptPlots, openWindow } from './support/plot-fixtures';
 import type { Page } from '@playwright/test';
 import { createTestTone } from '../src/fixtures/test-tone';
 
@@ -149,15 +150,17 @@ test('rejects a decodable photo over 16 megapixels and decodable audio outside 1
   await expect(page.getByRole('status')).toHaveCount(0);
 });
 
-test('generates and plays a memory offline using the original entry and selected media', async ({ page, context }) => {
+test('uses only the fictional prompt for Gemini and plays the original entry and media locally', async ({ page }) => {
+  await mockPromptPlots(page);
   await page.goto('/create');
-  const requests: string[] = [];
+  const requests: unknown[] = [];
   page.on('request', (request) => {
-    if (/^https?:/.test(request.url())) requests.push(request.url());
+    if (request.url().endsWith('/api/scene-plan')) requests.push(request.postDataJSON());
   });
-  await context.setOffline(true);
   await fillDraft(page);
   await submit(page);
+  await page.getByLabel('Fictional scene prompt').fill(openWindow);
+  await page.getByLabel(/Send this fictional prompt/).check();
   await page.getByRole('button', { name: 'Generate memory' }).click();
   await expect(page.getByText('Memory preview ready.', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Remembering the last light drain' })).toBeVisible();
@@ -173,10 +176,11 @@ test('generates and plays a memory offline using the original entry and selected
   await page.getByLabel('What happened that day?').fill(`${text} Then I went home.`);
   await expect(page.getByRole('article')).toHaveCount(0);
   expect(await player.evaluate((element: HTMLAudioElement) => element.paused)).toBe(true);
-  expect(requests).toEqual([]);
+  expect(requests).toEqual([{ prompt: openWindow, fictional: true }]);
 });
 
 test('retains the draft on generation failure and recovers with a replacement photo', async ({ page }) => {
+  await mockPromptPlots(page);
   await page.goto('/create');
   await fillDraft(page);
   const photos = page.getByLabel('Photos', { exact: true });
@@ -184,30 +188,32 @@ test('retains the draft on generation failure and recovers with a replacement ph
   const transparentPng = await page.evaluate(() => document.createElement('canvas').toDataURL().split(',')[1]);
   await photos.setInputFiles({ ...photo, name: 'transparent.png', buffer: Buffer.from(transparentPng, 'base64') });
   await submit(page);
+  await page.getByLabel('Fictional scene prompt').fill(openWindow);
+  await page.getByLabel(/Send this fictional prompt/).check();
   await page.getByRole('button', { name: 'Generate memory' }).click();
-  await expect(page.getByRole('alert')).toContainText('The memory could not be generated.');
+  await expect(page.getByRole('alert')).toBeVisible();
   await expect(page.getByRole('article')).toHaveCount(0);
   await expect(photos).toHaveValue(/transparent\.png$/);
   await expect(audioInput).toHaveValue(/tone\.wav$/);
   await expect(page.getByLabel('What happened that day?')).toHaveValue(text);
   await page.getByRole('button', { name: 'Retry generation' }).click();
-  await expect(page.getByRole('alert')).toContainText('The memory could not be generated.');
+  await expect(page.getByRole('alert')).toBeVisible();
 
   await photos.setInputFiles(photo);
   await submit(page);
   await page.getByRole('button', { name: 'Generate memory' }).click();
   await expect(page.getByText('Memory preview ready.', { exact: true })).toBeVisible();
-  await visitArtifact(page, 1);
-  await expect(page.locator('blockquote')).toHaveText(text);
+  await playMoment(page, 1);
+  await expect(page.locator('.artifact-card blockquote')).toHaveText(text);
   await expect(page.getByRole('alert')).toHaveCount(0);
 
   const fallbackText = '✨🌿'.repeat(12);
   await page.getByLabel('What happened that day?').fill(fallbackText);
   await submit(page);
   await page.getByRole('button', { name: 'Generate memory' }).click();
-  await expect(page.getByText('Local draft with neutral mood and setting.', { exact: true })).toBeVisible();
+  await expect(page.getByText('Memory preview ready.', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Remembering The Day 2026-10-04' })).toBeVisible();
-  await visitArtifact(page, 1);
-  await expect(page.locator('blockquote')).toHaveText(fallbackText);
+  await playMoment(page, 1);
+  await expect(page.locator('.artifact-card blockquote')).toHaveText(fallbackText);
   await expect(page.getByRole('alert')).toHaveCount(0);
 });

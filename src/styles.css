@@ -83,8 +83,8 @@ body {
     linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
     var(--bg);
 }
-/* CRT scanlines over everything; purely visual. */
-body::after {
+/* The pixel filter pairs low 3D resolution with the CRT treatment. */
+[data-pixel="on"] body::after {
   content: '';
   position: fixed;
   inset: 0;
@@ -395,12 +395,13 @@ button:disabled, .pb[aria-disabled="true"] { opacity: .45; cursor: not-allowed; 
   box-shadow: inset 0 0 0 3px var(--edge), 0 0 60px var(--glow), 12px 12px 0 var(--shadow);
 }
 .stage-viewport::after {
-  /* CRT scanlines and vignette on the 3D view itself. */
   content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  box-shadow: inset 0 0 0 3px var(--edge);
+}
+[data-pixel="on"] .stage-viewport::after {
   background:
     repeating-linear-gradient(transparent 0 2px, rgba(0, 0, 0, .16) 2px 3px),
     radial-gradient(ellipse at center, transparent 58%, rgba(0, 0, 0, .35) 100%);
-  box-shadow: inset 0 0 0 3px var(--edge);
 }
 [data-pixel="on"] .stage-viewport canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 .stage-viewport canvas { cursor: grab; }
@@ -424,7 +425,21 @@ button:disabled, .pb[aria-disabled="true"] { opacity: .45; cursor: not-allowed; 
 .preview .stage-marker[aria-pressed="true"], .preview .stage-marker:hover { background: var(--acc); color: var(--on-acc); }
 
 .walk-viewport { touch-action: none; }
-.walk-viewport canvas { cursor: default; }
+.walk-viewport canvas { cursor: grab; }
+.walk-viewport canvas:active { cursor: grabbing; }
+.plot-progress { margin-block: 1rem; display: grid; gap: .65rem; }
+.plot-progress p, .plot-recollection h3 { margin: 0; }
+.plot-recollection { display: grid; gap: .55rem; padding: .9rem 1rem; border-left: 2px solid var(--acc); background: var(--board); }
+.plot-recollection blockquote { margin: 0; }
+.catch-meter { position: absolute; top: 4.35rem; left: .8rem; z-index: 2; width: min(15rem, 62%); padding: .45rem; color: #fff4d6; background: #202b29; }
+.catch-meter[hidden] { display: none; }
+.plot-subtitle { position: absolute; z-index: 2; inset: auto 18% 18%; text-align: center; background: #191b1aeb;
+  color: #fff1db; padding: .65rem .85rem; margin: 0; font-size: clamp(.8rem, 2vw, 1.05rem); pointer-events: none; }
+.plot-subtitle[hidden] { display: none; }
+.catch-track { display: block; height: .45rem; margin: .4rem 0; background: linear-gradient(to right, #505858 35%, #7da37a 35% 80%, #505858 80%); position: relative; }
+.catch-track::after { content: ''; position: absolute; height: 135%; width: 3px; background: #fff4d6; top: -17%; left: var(--catch-progress, 0%); }
+.catch-meter[data-ready="true"] .catch-track::after { background: #f4c677; }
+.catch-meter button { font-size: .75rem; }
 .walk-prompt {
   position: absolute; left: 14px; top: 14px; margin: 0; z-index: 3; max-width: calc(100% - 110px);
   padding: 8px 12px; background: rgba(8, 12, 8, .9); color: #eaf7e0;
@@ -555,7 +570,7 @@ button:disabled, .pb[aria-disabled="true"] { opacity: .45; cursor: not-allowed; 
   display: block; overflow: hidden; width: 100%; aspect-ratio: 8 / 5;
   background-color: var(--board); background-position: center; background-size: cover; image-rendering: pixelated;
 }
-.day-card-image img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.day-card-image img { width: 100%; height: 100%; display: block; object-fit: contain; }
 .day-card-caption { display: grid; gap: .25rem; }
 .memory-context { text-transform: uppercase; }
 .photo-gallery { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }

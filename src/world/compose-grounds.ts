@@ -30,13 +30,14 @@ export function signatureProblems(profile: WorldLayout['profile'], placements: r
 
 /** Fit the landmark, recreation fixtures, and contextual anchors around a clear circulation lane. */
 export function composeGrounds(prompt: string, template: SceneTemplate, interpretation: Interpretation, seed: number,
-  attempt: number): WorldLayout | string {
+  attempt: number, ride = false): WorldLayout | string {
   const { groups, discoveries, ending, zones, spawn } = template;
   const profile = zones[spawn].family;
   const recreation = profile === 'water-park';
+  const field = profile === 'ballfield';
   const sizes = { small: 7.9, medium: 8.6, large: 9.4 };
   const half = sizes[zones[spawn].size];
-  const bounds: Rect = { minX: -half, maxX: half, minZ: -10.4, maxZ: 7.7 };
+  const bounds: Rect = { minX: -half, maxX: half, minZ: field ? -16 : -10.4, maxZ: 7.7 };
   const rand = seededRandom(seed + attempt * 7919), mirror = rand() > .5;
   const poolHalfWidth = 2.25, poolHalfDepth = 1.75;
   const pool = { x: reflection(2.65 + rand() * .55, mirror), z: -.15 - rand() * .75 };
@@ -59,12 +60,16 @@ export function composeGrounds(prompt: string, template: SceneTemplate, interpre
     ['pool-basin', pool], ['entry-arch', { x: spawnPoint.x, z: 4.65 }], ['park-gate', { x: spawnPoint.x, z: 4.65 }],
     ['pool-ladder', { x: round(poolBounds.minX + .35), z: round(poolBounds.maxZ + .13) }],
     ['life-ring', { x: recreation ? (mirror ? poolBounds.maxX + .44 : poolBounds.minX - .44) : x(-.4), z: pool.z + .48 }],
-    ['lifeguard-chair', { x: pool.x, z: poolBounds.maxZ + .85 }],
+    ['lifeguard-chair', { x: ride ? pool.x + x(3.05) : pool.x, z: poolBounds.maxZ + .85 }],
+    ['baseball-diamond', { x: 0, z: 0 }], ['dugout', { x: x(-6.8), z: 1.3 }],
+    ['scoreboard', { x: x(7), z: -1 }],
   ]);
+  if (ride && recreation) fixed.set('tube-slide', { x: pool.x, z: poolBounds.minZ - 1.92 });
   const isCloseToPool = (p: Point, radius: number) => recreation && p.x > poolBounds.minX - radius && p.x < poolBounds.maxX + radius &&
     p.z > poolBounds.minZ - radius && p.z < poolBounds.maxZ + radius;
   const free = (p: Point, radius: number) => p.x > bounds.minX + radius + .18 && p.x < bounds.maxX - radius - .18 &&
     p.z > bounds.minZ + radius + .18 && p.z < bounds.maxZ - radius - .18 && !isCloseToPool(p, radius + .06) &&
+    (!field || Math.abs(p.x) >= radius + 6.5 || p.z > 2.6 + radius) &&
     !lanes.some(lane => Math.abs(lane.x - p.x) < radius + .72 && p.z > lane.minZ && p.z < lane.maxZ) &&
     occupied.every(other => Math.hypot(other.x - p.x, other.z - p.z) > other.radius + radius + .26);
   function place(index: number, at: Point, rotation = 0) {
@@ -111,7 +116,8 @@ export function composeGrounds(prompt: string, template: SceneTemplate, interpre
         const candidate = { x: edge ? side * (4.8 + rand() * (half - 5.4)) : (rand() - .5) * (half * 2 - 1.4), z };
         if (free(candidate, radius)) spot = candidate;
       }
-      if (spot) place(index, spot, group.asset === 'tube-slide' || group.asset === 'open-flume' ? x(.12) : trees.has(group.asset) ? (rand() - .5) * 5 : 0);
+      if (spot) place(index, spot, group.asset === 'tube-slide' || group.asset === 'open-flume'
+        ? (ride && group.asset === 'tube-slide' && n === 0 ? 0 : x(.12)) : trees.has(group.asset) ? (rand() - .5) * 5 : 0);
     }
   }
   const missing = signatureProblems(profile, placements);

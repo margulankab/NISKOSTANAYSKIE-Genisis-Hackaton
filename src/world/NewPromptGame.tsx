@@ -9,6 +9,8 @@ import { InterpretationPanel } from './InterpretationPanel';
 import { PROMPT_MAX, promptLength, promptSchema } from './layout-schema';
 import { promptSoundtrack } from './prompt-soundtrack';
 import { mentionsPerson } from './compose-memory-story';
+import { requestPlotWorld } from './request-plot-world';
+import { SceneDirectionDetails } from './SceneDirectionDetails';
 import { recipes } from './recipes';
 import type { PromptWorld } from './world-schema';
 import { SongOfTheDay } from '../music/SongOfTheDay';
@@ -79,25 +81,18 @@ export function NewPromptGame() {
     const controller = new AbortController();
     active.current = controller;
     setPhase(useGemini ? 'planning' : 'building');
-    let plan: unknown;
     try {
+      let built: ComposeResult;
       if (useGemini) {
-        const response = await fetch('/api/scene-plan', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt, fictional: true }),
-          signal: AbortSignal.any([controller.signal, AbortSignal.timeout(21_000)]),
-        });
-        if (!response.ok) throw new Error(response.status === 429 ? 'Gemini is busy or has reached its quota.' : 'Gemini could not complete this scene.');
-        plan = await response.json();
-        if (plan === null || typeof plan !== 'object') throw new Error('Gemini returned an invalid scene specification.');
+        // Gemini stages the whole visit: the plot's playable moments, the scene direction, and where things stand.
+        built = { ok: true, world: await requestPlotWorld(checked.data, crypto.randomUUID(), controller.signal) };
         if (controller.signal.aborted) return;
-        setPhase('building');
+      } else {
+        await new Promise<void>(resolve => window.setTimeout(resolve, 0));
+        if (controller.signal.aborted) return;
+        built = composeSceneTemplate(prompt, { id: crypto.randomUUID(), processing: 'private' });
       }
-      await new Promise<void>(resolve => window.setTimeout(resolve, 0));
-      if (controller.signal.aborted) return;
-      const built = composeSceneTemplate(prompt, { id: crypto.randomUUID(), plan, processing: useGemini ? 'gemini' : 'private' });
-      if (useGemini && !built.ok) throw new Error(built.reason);
-      const storied = story ? withMemoryStory(built) : built;
+      const storied = story && !(built.ok && built.world.layout.plot) ? withMemoryStory(built) : built;
       const next = storied.ok && song ? { ...storied, world: { ...storied.world, song } } : storied;
       setResult(next);
       if (next.ok) setSoundtrack(promptSoundtrack(next.world));
@@ -130,7 +125,12 @@ export function NewPromptGame() {
           onChange={event => edit(event.target.value)} aria-describedby="prompt-hint" />
         <p className="field-hint" id="prompt-hint">{promptLength(prompt)} / {PROMPT_MAX} · {t('A place name is enough. Add objects, weather, or where things belong to shape the visit.')}</p>
         <div className="prompt-actions" aria-label={t('Fill with an example')}>
-          {['park', 'water park'].map(example => <button key={example} type="button" onClick={() => { edit(example); input.current?.focus(); }}>{example}</button>)}
+          {['park', 'water park'].map(example => <button key={example} type="button" onClick={() => { edit(example); input.current?.focus(); }}>{t(example)}</button>)}
+          <button type="button" onClick={() => {
+            edit('At dusk I hit my first home run. Dad watched the ball clear the fence, then we celebrated together.');
+            setFictional(true);
+            input.current?.focus();
+          }}>{t('First home run')}</button>
         </div>
         {import.meta.env.DEV && (
           <label className="story-consent">
@@ -144,7 +144,7 @@ export function NewPromptGame() {
           <button type="submit" className="build-button" disabled={Boolean(phase)}>{t('Build world')}</button>
         </div>
       </form>
-      {phase && <p role="status">{phase === 'planning' ? 'Planning the scene with Gemini…' : t('Building the scene and checking the route…')}</p>}
+      {phase && <p role="status">{phase === 'planning' ? t('Writing the plot and checking the route…') : t('Building the scene and checking the route…')}</p>}
       {failed && (
         <div className="prompt-result">
           <p role="alert">{failed.reason}</p>
@@ -163,8 +163,9 @@ export function NewPromptGame() {
       {result?.ok && soundtrack && (
         <div className="prompt-result">
           <h2>{result.world.title}</h2>
-          <p role="status">{scene?.processing === 'gemini' ? 'Planned with Gemini' : t('Built privately')}</p>
-          {result.world.story && <p>{result.world.story.place} · {result.world.story.mood} · Written locally</p>}
+          <p role="status">{scene?.processing === 'gemini' ? t('Planned with Gemini') : t('Built privately')}</p>
+          {result.world.layout.plot && <p className="plot-opening">{result.world.layout.plot.opening}</p>}
+          {result.world.story && <p>{result.world.story.place} · {result.world.story.mood} · {t('Written locally')}</p>}
           <p><strong>{t('In the scene')}</strong> {features.join(', ')}</p>
           {scene && scene.coverage.some(item => item.status !== 'placed') && (
             <ul aria-label="Substitutions and missing features">
@@ -175,6 +176,8 @@ export function NewPromptGame() {
           {result.world.interpretation.relations.some(relation => relation.status === 'unsupported') && (
             <p>Some requested positions could not be matched. Try changing the relationship or naming additional space around the object.</p>
           )}
+          {result.world.layout.direction && <SceneDirectionDetails direction={result.world.layout.direction}
+            interpretation={result.world.interpretation} prompt={result.world.prompt} soundtrack={soundtrack} song={Boolean(result.world.song)} />}
           <details><summary>{t('World interpretation')}</summary>
             <InterpretationPanel prompt={result.world.prompt} interpretation={result.world.interpretation} />
           </details>
