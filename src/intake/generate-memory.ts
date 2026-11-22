@@ -11,20 +11,28 @@ type Environment = MemoryScene['context']['environment'];
 type TimeOfDay = MemoryScene['context']['timeOfDay'];
 
 const moodWords = {
-  calm: ['calm', 'quiet', 'peaceful', 'relaxed', 'still', 'gentle'],
-  nostalgic: ['remembered', 'remember', 'childhood', 'again', 'familiar', 'old', 'missed'],
-  tense: ['tense', 'anxious', 'worried', 'rushed', 'scared', 'nervous'],
-  joyful: ['happy', 'laughed', 'joyful', 'excited', 'celebrated', 'smiled'],
+  // English, then Russian (common forms; the entry is matched word by word in lower case).
+  calm: ['calm', 'quiet', 'peaceful', 'relaxed', 'still', 'gentle',
+    'тихий', 'тихо', 'тихая', 'тишина', 'спокойно', 'спокойный', 'спокойная'],
+  nostalgic: ['remembered', 'remember', 'childhood', 'again', 'familiar', 'old', 'missed',
+    'вспомнил', 'вспомнила', 'помню', 'детство', 'снова', 'знакомый', 'старый', 'старую', 'скучал', 'скучала'],
+  tense: ['tense', 'anxious', 'worried', 'rushed', 'scared', 'nervous',
+    'тревожно', 'волновался', 'волновалась', 'спешил', 'спешила', 'страшно', 'нервничал', 'нервничала'],
+  joyful: ['happy', 'laughed', 'joyful', 'excited', 'celebrated', 'smiled',
+    'смеялись', 'смеялся', 'смеялась', 'радостно', 'счастлив', 'счастлива', 'улыбался', 'улыбалась', 'праздновали'],
 } satisfies Partial<Record<Mood, string[]>>;
 const environmentWords = {
-  park: ['park', 'garden', 'trail', 'trees', 'river', 'grass', 'lake', 'woods'],
-  city: ['city', 'street', 'station', 'traffic', 'train', 'bus', 'sidewalk', 'skyline'],
-  room: ['room', 'home', 'kitchen', 'window', 'apartment', 'desk', 'bedroom'],
+  park: ['park', 'garden', 'trail', 'trees', 'river', 'grass', 'lake', 'woods',
+    'парк', 'парке', 'сад', 'саду', 'тропа', 'деревья', 'река', 'реки', 'реке', 'рекой', 'трава', 'озеро', 'лес', 'лесу'],
+  city: ['city', 'street', 'station', 'traffic', 'train', 'bus', 'sidewalk', 'skyline',
+    'город', 'городе', 'улица', 'улице', 'вокзал', 'вокзале', 'станция', 'поезд', 'автобус'],
+  room: ['room', 'home', 'kitchen', 'window', 'apartment', 'desk', 'bedroom',
+    'комната', 'комнате', 'дом', 'дома', 'кухня', 'кухне', 'окно', 'окна', 'квартира', 'квартире', 'стол'],
 } satisfies Record<Environment, string[]>;
 const timeWords = {
-  day: ['morning', 'afternoon', 'noon', 'daylight', 'sunrise'],
-  dusk: ['dusk', 'sunset', 'twilight', 'evening'],
-  night: ['night', 'midnight', 'moonlight', 'moon', 'dark'],
+  day: ['morning', 'afternoon', 'noon', 'daylight', 'sunrise', 'утро', 'утром', 'днём', 'днем', 'полдень', 'рассвет'],
+  dusk: ['dusk', 'sunset', 'twilight', 'evening', 'закат', 'сумерки', 'вечер', 'вечером'],
+  night: ['night', 'midnight', 'moonlight', 'moon', 'dark', 'ночь', 'ночью', 'луна', 'темно'],
 } satisfies Partial<Record<TimeOfDay, string[]>>;
 const moods: Record<Mood, Omit<MemoryScene['mood'], 'primary'>> = {
   calm: { warmth: 0.5, energy: 0.2, tension: 0.1, valence: 0.6 },
@@ -38,10 +46,11 @@ const photoProps = {
   city: ['lamp'],
   room: ['desk', 'cup'],
 } as const;
-const titleStopWords = new Set('a an and as at be but by for from had i in is it me my of on or our she that the then they this to was we were with you'.split(' '));
-const titleLeadVerbs = new Set(['feel', 'felt', 'remember', 'remembered', 'saw', 'watched']);
+const titleStopWords = new Set(('a an and as at be but by for from had i in is it me my of on or our she that the then they this to was we were with you '
+  + 'и в во на с со у к по о об а но я мы он она они это был была были над под за из от до мой моя мои').split(' '));
+const titleLeadVerbs = new Set(['feel', 'felt', 'remember', 'remembered', 'saw', 'watched', 'вспомнил', 'вспомнила', 'помню', 'видел', 'видела', 'смотрел', 'смотрела']);
 // A title ends before a new clause ("…kitchen as rain reached…") and keeps a leading article or subject.
-const titleClauseBreaks = new Set('and as because but so then until when where while'.split(' '));
+const titleClauseBreaks = new Set('and as because but so then until when where while и но когда пока потому где'.split(' '));
 const titleArticles = new Set(['a', 'an', 'my', 'our', 'the']);
 const titleSubjects = new Set(['he', 'i', 'she', 'they', 'we', 'you']);
 
@@ -91,6 +100,13 @@ function createTitle(excerpt: string, entryText: string, date: string) {
   if (chosen.length > 1 && (titleArticles.has(before) || (titleSubjects.has(before) && /ed$/i.test(chosen[0])))) {
     chosen.unshift(before === 'i' ? 'I' : before);
   }
+  // A Russian entry gets a Russian folder name: «Вспоминая тихий вечер в парке».
+  const sample = words(chosen.length ? chosen.join(' ') : excerpt);
+  if (sample.filter(word => /[а-яё]/i.test(word)).length > sample.filter(word => /[a-z]/i.test(word)).length) {
+    if (chosen.length === 0) return `Вспоминая день ${date}`;
+    if (chosen.length === 1) return `Вспоминая день ${chosen[0]}`;
+    return `Вспоминая ${[chosen[0].toLowerCase(), ...chosen.slice(1)].join(' ')}`;
+  }
   if (chosen.length === 0) return `Remembering The Day ${date}`;
   if (chosen.length === 1) return `Remembering A Day With ${chosen[0]}`;
   return `Remembering ${chosen.join(' ')}`;
@@ -109,7 +125,15 @@ function artifactId(entryId: string, mask: 1 | 2) {
   return `${entryId.slice(0, -1)}${(parseInt(entryId.slice(-1), 16) ^ mask).toString(16)}`;
 }
 
-export async function generateMemory(draft: ValidatedDayDraft): Promise<DayBundle> {
+function localWorld(text: string, id: string, seed: number): DayBundle['world'] {
+  const composed = composeSceneTemplate(text, { id });
+  const placed = composed.ok ? composed : composeWorld(text, { id, seed });
+  if (!placed.ok) return undefined;
+  const { layout, interpretation } = placed.world;
+  return layout.geometryVersion ? { layout: { ...layout, geometryVersion: layout.geometryVersion }, interpretation } : undefined;
+}
+
+export async function generateMemory(draft: ValidatedDayDraft, staged?: NonNullable<DayBundle['world']>): Promise<DayBundle> {
   const { entryId, entryText, date, rights } = draft;
   const textWords = words(entryText.toLowerCase());
   const matchedMood = strongestMatch(textWords, moodWords);
@@ -135,11 +159,9 @@ export async function generateMemory(draft: ValidatedDayDraft): Promise<DayBundl
   if (!firstPhoto) throw new Error('The draft is missing a photo.');
   const thumbnail = await photoThumbnail(photos[0].blob).catch(() => undefined);
   const availableProps = photoProps[environment];
+  // A Gemini-staged scene when the player sent one; otherwise the entry itself builds the world on this device.
+  const world = staged ?? localWorld(entryText.slice(0, PROMPT_MAX), entryId, seed);
 
-  const locationText = entryText.slice(0, PROMPT_MAX);
-  const composed = composeSceneTemplate(locationText, { id: entryId });
-  const placed = composed.ok ? composed : composeWorld(locationText, { id: entryId, seed });
-  const world = placed.ok ? { layout: placed.world.layout, interpretation: placed.world.interpretation } : undefined;
   return dayBundleSchema.parse({
     manifest: {
       id: entryId,

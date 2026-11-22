@@ -12,6 +12,9 @@ import './styles.css';
 
 // Theme, motion and pixel attributes go on <html> before the first render, so there is no flash.
 applyAppearance();
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  void navigator.serviceWorker.register('/visit-offline.js').catch(() => {});
+}
 // Fetch every interface face now, so a player who later goes offline still sees the intended type.
 if ('fonts' in document) {
   for (const face of ['900 1em "Unbounded Variable"', '800 1em "Unbounded Variable"', '400 1em "JetBrains Mono Variable"',

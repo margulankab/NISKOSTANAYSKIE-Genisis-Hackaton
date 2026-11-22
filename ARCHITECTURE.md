@@ -91,6 +91,25 @@ A decorative overlay (`aria-hidden`, `pointer-events: none`) lifts the typed wor
 **Sky and walker detail.** [`SkyDome`](src/scene/SkyDome.tsx) adds a vertex-coloured dome from the fog colour to a per-atmosphere zenith. It also adds 34 seeded low-poly hills on the horizon, a sun or moon in front of the camera, and seeded stars at dusk and night. A hemisphere light adds a soft sky fill. The walker gained a cap, a scarf, a backpack and boots. All of it is static and deterministic, so the screenshot-equality checks for a scene at rest still hold.
 
 **Examples layout.** At 1,100 px and wider, the fixture list becomes a sticky sidebar, so the 3D world opens above the fold.
+## Scene direction and staging — 2026-11-22
+
+The shared Gemini request returns a compact direction alongside the plot and world intent. The gateway checks color values, atmosphere and soundtrack choices, and the reason for each treatment. Explicit weather and time take precedence. The gateway blends the proposed surface color with the setting's existing material palette so pavement, grass, pool decks, and water remain distinguishable. Prompt and journal visits save the applied treatment in optional `layout.direction`. The browser uses it to render **Why this scene?** and its soundtrack changes. Older layouts reopen through their existing renderer settings.
+
+The walkable area retains its checked bounds. The shared stage draws surrounding terrain and distant scenery beyond it, using a common horizon color for fog and sky. Natural edges and interior walls provide visual limits. The composer places waterfront approaches on the dry bank and aligns the slide's exit with the pool. The player performs typed actions for conversation, laughter, grief, comfort, sipping, and sliding. Scene casting uses a dog rig or a human rig and places background guests away from required approaches.
+
+The model selects an ambient layer and a cleared track or silence. The stage synthesizes a local loop and fades between moment cues. Sound starts from a player gesture, respects visibility of the pause menu and mute controls, and follows the saved volume. A journal keeps its original soundtrack. The provider still receives only the explicitly fictional scene prompt and hints derived from it.
+
+## Gemini plot visits — 2026-11-22
+
+Both prompt actions and journal-world creation use the Gemini Developer API free tier. `POST /api/scene-plan` accepts only an explicitly fictional `prompt` and the `fictional: true` acknowledgment. The Vite loopback adapter and Cloudflare Pages Function share a text-only Gemini gateway. Gemini returns structured world intent and a versioned plot, with one targeted retry for invalid output within the shared deadline. The gateway converts the accepted intent into a catalog plan. The browser validates and resolves the physical layout and approaches. The deployment must explicitly identify its server-held key as unbilled. Saved visits and static previews consume no model calls.
+
+The Gemini response schema uses strings for catalog IDs and omits numeric and array bounds to stay within the provider's compiled schema limit. The gateway checks the returned IDs and bounds against the full Zod contract. It retains a moment's optional feature reference when the composer can honor it and uses the resolved approach otherwise.
+
+The optional `layout.plot` holds up to three ordered moments, source evidence, companion and reusable action references, sensory cues, and input mode. A moment can bind to a specific supported feature in the world intent. The layout contains the final approaches and collision inputs. The stage executes typed actions using shared actor and prop animation, locally synthesized cues, a follow camera, and moment-specific lighting. Plot checkpoints add `momentsCompleted` and resume interrupted actions from their safe approach. Legacy discovery and conversation checkpoints continue to use their existing paths.
+
+New journal bundles include the user-authored fictional `world.scenePrompt` in `world.json`. Layout evidence is validated against that text. Journal excerpts, original photo bytes, and the associated song stay local. A production service worker caches the static shell and app assets for offline reopening. The archive uses the saved thumbnail, then a decoded original photo, then the photo palette. Existing v1 ZIPs, pre-plot v3 scenes, and earlier save contracts remain readable.
+
+The sections below document the prior releases.
 
 ## Song of the day, larger worlds and interface atmospheres — 2026-11-21
 

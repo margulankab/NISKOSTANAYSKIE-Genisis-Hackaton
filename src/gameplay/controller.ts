@@ -63,6 +63,10 @@ function visible(from: Point, to: Point, layout: WalkLayout) {
   return true;
 }
 
+export function canReach(from: Point, to: Point, layout: WalkLayout) {
+  return near(from, to, layout.reach) && visible(from, to, layout);
+}
+
 /** What E / the Interact button would act on right now, if anything. */
 export function targetAt(position: Point, layout: WalkLayout, revealedCount: number, revealed: readonly boolean[] = []): Target | null {
   let best: { index: 0 | 1; distance: number; found: boolean } | null = null;
@@ -74,7 +78,7 @@ export function targetAt(position: Point, layout: WalkLayout, revealedCount: num
       && visible(position, a, layout)) best = { index, distance, found };
   }
   if (best && !best.found) return { kind: 'artifact', index: best.index };
-  if (near(position, layout.landmark, layout.reach) && visible(position, layout.landmark, layout) &&
+  if (canReach(position, layout.landmark, layout) &&
       (revealedCount >= 2 || !best)) return { kind: 'ending', ready: revealedCount >= 2 };
   if (best) return { kind: 'artifact', index: best.index };
   return null;

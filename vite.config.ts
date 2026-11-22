@@ -4,5 +4,6 @@ import { geminiScenePlugin } from './server/gemini-story';
 
 export default defineConfig(({ command, mode }) => {
   const env = command === 'serve' ? loadEnv(mode, process.cwd(), 'GEMINI_') : {};
-  return { plugins: [react(), ...(command === 'serve' ? [geminiScenePlugin(env.GEMINI_API_KEY, env.GEMINI_MODEL)] : [])] };
+  const freeKey = env.GEMINI_FREE_TIER === 'true' ? env.GEMINI_API_KEY : undefined;
+  return { plugins: [react(), ...(command === 'serve' ? [geminiScenePlugin(freeKey)] : [])] };
 });

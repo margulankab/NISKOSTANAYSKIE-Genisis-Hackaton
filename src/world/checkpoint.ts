@@ -22,10 +22,11 @@ export const checkpointSchema = z.strictObject({
   revealed: z.array(z.string().max(40)).max(2),
   ended: z.boolean(),
   storyStep: storyStepSchema.optional(),
+  momentsCompleted: z.int().min(0).max(3).optional(),
 });
 export type Checkpoint = z.infer<typeof checkpointSchema>;
 
-export interface GameState { position: Point; revealed: ReadonlySet<string>; ended: boolean; storyStep?: StoryStep }
+export interface GameState { position: Point; revealed: ReadonlySet<string>; ended: boolean; storyStep?: StoryStep; momentsCompleted?: number }
 
 type CheckpointTarget = {
   id: string;
@@ -33,6 +34,7 @@ type CheckpointTarget = {
   walk: WalkLayout;
   discoveries: readonly string[];
   hasStory?: boolean;
+  moments?: number;
 };
 
 export function dayCheckpointTarget({ manifest, world }: Pick<DayBundle, 'manifest' | 'world'>): CheckpointTarget {
@@ -41,6 +43,7 @@ export function dayCheckpointTarget({ manifest, world }: Pick<DayBundle, 'manife
     key: `day:${manifest.id}:${manifest.rulesVersion}:${world?.layout.geometryVersion ?? 1}:${manifest.seed}`,
     walk: world ? toWalkLayout(world.layout) : createWalkLayout(getSceneStyle(manifest)),
     discoveries: manifest.artifacts.map(({ id }) => id),
+    moments: world?.layout.plot?.moments.length,
   };
 }
 
@@ -50,10 +53,11 @@ function target(source: PromptWorld | CheckpointTarget): CheckpointTarget {
     id: source.id, key: layoutKey(source), walk: toWalkLayout(source.layout),
     discoveries: source.layout.discoveries.map(({ placementId }) => placementId),
     hasStory: Boolean(source.story),
+    moments: source.layout.plot?.moments.length,
   };
 }
 
-export function createCheckpoint(source: PromptWorld | CheckpointTarget, { position, revealed, ended, storyStep }: GameState, now = new Date()): Checkpoint {
+export function createCheckpoint(source: PromptWorld | CheckpointTarget, { position, revealed, ended, storyStep, momentsCompleted }: GameState, now = new Date()): Checkpoint {
   const { id, key } = target(source);
   return checkpointSchema.parse({
     schemaVersion: CHECKPOINT_VERSION,
@@ -64,6 +68,7 @@ export function createCheckpoint(source: PromptWorld | CheckpointTarget, { posit
     revealed: [...revealed],
     ended,
     ...(storyStep && { storyStep }),
+    ...(momentsCompleted !== undefined && { momentsCompleted }),
   });
 }
 
@@ -71,7 +76,7 @@ export type Restored = { ok: true; state: GameState } | { ok: false; reason: str
 
 /** Check a stored checkpoint against the saved world before resuming from it. */
 export function restoreCheckpoint(source: PromptWorld | CheckpointTarget, stored: unknown): Restored {
-  const { id, key, walk: layout, discoveries, hasStory } = target(source);
+  const { id, key, walk: layout, discoveries, hasStory, moments } = target(source);
   const parsed = checkpointSchema.safeParse(stored);
   if (!parsed.success) return { ok: false, reason: 'The saved progress is unreadable.' };
   const checkpoint = parsed.data;
@@ -91,7 +96,16 @@ export function restoreCheckpoint(source: PromptWorld | CheckpointTarget, stored
   if (revealed.size !== checkpoint.revealed.length || checkpoint.revealed.some((id) => !discoveries.includes(id))) {
     return { ok: false, reason: 'The saved discoveries do not match this world.' };
   }
-  if (checkpoint.ended && revealed.size < 2) return { ok: false, reason: 'The saved ending is not consistent with the discoveries.' };
+  const { momentsCompleted } = checkpoint;
+  if (moments !== undefined) {
+    if (momentsCompleted === undefined || momentsCompleted > moments || checkpoint.ended !== (momentsCompleted === moments) || checkpoint.storyStep) {
+      return { ok: false, reason: 'The saved moment does not match this plot.' };
+    }
+    return { ok: true, state: { position: checkpoint.position, revealed, ended: checkpoint.ended, momentsCompleted } };
+  }
+  if (momentsCompleted !== undefined || (checkpoint.ended && revealed.size < 2)) {
+    return { ok: false, reason: 'The saved ending is not consistent with this world.' };
+  }
   const { ended, storyStep } = checkpoint;
   if ((!hasStory && storyStep) || (hasStory && (ended !== (storyStep === 'first' || storyStep === 'second')
     || (storyStep !== undefined && revealed.size !== 2)))) {

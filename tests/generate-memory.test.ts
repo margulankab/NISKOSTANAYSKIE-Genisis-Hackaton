@@ -105,6 +105,15 @@ describe('local memory generation', () => {
       .toBe('Remembering the room before the call');
   });
 
+  it('reads a Russian entry: mood, place, time and a Russian folder name', async () => {
+    const { manifest } = await generateMemory({ ...makeDraft(),
+      entryText: 'Тихий вечер в парке над рекой. Я вспомнил старую скамейку и пошёл домой длинной дорогой.' });
+    expect(manifest.title).toBe('Вспоминая тихий вечер в парке');
+    expect(memoryTitleSchema.safeParse(manifest.title).success).toBe(true);
+    expect(manifest.context).toEqual({ environment: 'park', timeOfDay: 'dusk' });
+    expect(manifest.mood.primary).toBe('nostalgic');
+  });
+
   it('rejects an assembled bundle with invalid source or rights records', async () => {
     const draft = makeDraft();
     await expect(generateMemory({ ...draft, rights: [draft.rights[0], draft.rights[0]] })).rejects.toThrow();

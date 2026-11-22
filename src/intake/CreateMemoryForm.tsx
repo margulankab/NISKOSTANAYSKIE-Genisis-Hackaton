@@ -14,6 +14,7 @@ import { validateDayDraft } from './validate-day-draft';
 import { enterWorld } from '../chrome/immersive';
 import { useT } from '../i18n/i18n';
 import type { DayDraftInput, DraftErrors, ValidatedDayDraft } from './validate-day-draft';
+import { requestPlotWorld } from '../world/request-plot-world';
 
 function localDate() {
   const today = new Date();
@@ -27,25 +28,31 @@ function isSelectedFile(value: FormDataEntryValue | null): value is File {
 
 export function CreateMemoryForm() {
   const form = useRef<HTMLFormElement>(null);
+  const active = useRef<AbortController | null>(null);
   const [errors, setErrors] = useState<DraftErrors>({});
   const [draft, setDraft] = useState<ValidatedDayDraft>();
   const [pending, setPending] = useState<'validation' | 'generation'>();
   const [failure, setFailure] = useState(false);
-  const [generationFailed, setGenerationFailed] = useState(false);
+  const [generationFailed, setGenerationFailed] = useState('');
+  const [scenePrompt, setScenePrompt] = useState('');
+  const [fictional, setFictional] = useState(false);
+  const [geminiNote, setGeminiNote] = useState('');
   const [preview, setPreview] = useState<{ bundle: DayBundle; viewer: MemoryViewerProps }>();
   const [song, setSong] = useState<Song | null>(null);
   const [entered, setEntered] = useState(false);
   const entry = useRef<HTMLTextAreaElement>(null);
   const viewer = useRef<HTMLDivElement>(null);
   const t = useT();
+  useEffect(() => () => active.current?.abort(), []);
   useEffect(() => {
     if (!pending && Object.values(errors).some(Boolean)) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
   }, [errors, pending]);
 
   function clearPreview() {
     setPreview(undefined);
+    setGeminiNote('');
     setEntered(false);
-    setGenerationFailed(false);
+    setGenerationFailed('');
   }
 
   function update(field: keyof DayDraftInput) {
@@ -84,16 +91,32 @@ export function CreateMemoryForm() {
 
   async function generate() {
     if (!draft || pending) return;
+    // The fictional scene prompt is optional: without it (or when Gemini is unavailable) the day is built on this device.
+    const useGemini = scenePrompt.trim().length > 0;
+    if (useGemini && !fictional) { setGenerationFailed(t('Confirm that the scene prompt is fictional before sending it to Gemini.')); return; }
+    const controller = new AbortController();
+    active.current = controller;
     setPending('generation');
     clearPreview();
     try {
-      const generated = await generateMemory(draft);
+      let world: NonNullable<DayBundle['world']> | undefined;
+      if (useGemini) {
+        try {
+          const scene = await requestPlotWorld(scenePrompt, draft.entryId, controller.signal);
+          world = { layout: scene.layout, interpretation: scene.interpretation, scenePrompt };
+        } catch (error) {
+          controller.signal.throwIfAborted();
+          setGeminiNote(t('Gemini could not stage the scene, so it was built on this device. ({reason})', { reason: error instanceof Error ? error.message : '' }));
+        }
+      }
+      const generated = await generateMemory(draft, world);
+      controller.signal.throwIfAborted();
       const bundle: DayBundle = song ? { ...generated, song } : generated;
       setPreview({ bundle, viewer: createViewerProps(bundle, () => {}) });
-    } catch {
-      setGenerationFailed(true);
+    } catch (error) {
+      if (!controller.signal.aborted) setGenerationFailed(error instanceof Error ? error.message : 'The memory could not be generated. Try again.');
     } finally {
-      setPending(undefined);
+      if (active.current === controller) { active.current = null; setPending(undefined); }
     }
   }
 
@@ -150,11 +173,21 @@ export function CreateMemoryForm() {
       {failure && <p role="alert">{t('The draft could not be checked. Try again in this browser.')}</p>}
       {draft && !preview && (
         <div className="draft-status">
+          <label htmlFor="day-scene-prompt">{t('Fictional scene prompt (optional)')}</label>
+          <textarea id="day-scene-prompt" value={scenePrompt} rows={3} disabled={Boolean(pending)}
+            aria-describedby="day-scene-help" onChange={event => {
+              setScenePrompt(event.target.value); setFictional(false); setGenerationFailed('');
+            }} />
+          <p id="day-scene-help" className="form-help">{t('Leave it empty to build the day privately on this device. Or describe an invented scene with the same feeling, up to 600 characters: only this field goes to Gemini, which stages it as a playable plot.')} <a href="https://aistudio.google.com/docs/terms#data-use-unpaid" target="_blank" rel="noreferrer">{t('Gemini terms')}</a></p>
+          <label className="permission">
+            <input type="checkbox" checked={fictional} disabled={Boolean(pending)} onChange={event => setFictional(event.target.checked)} />
+            <span>{t('Send this fictional prompt to Google Gemini.')}</span>
+          </label>
           <p role="status">
             {pending === 'generation' ? t('Generating your memory…')
               : t(draft.photos.length === 1 ? 'Draft ready for {date}. {count} photo and one audio excerpt validated.' : 'Draft ready for {date}. {count} photos and one audio excerpt validated.', { date: draft.date, count: draft.photos.length })}
           </p>
-          {generationFailed && <p role="alert">{t('The memory could not be generated. Retry or choose a different photo.')}</p>}
+          {generationFailed && <p role="alert">{generationFailed}</p>}
           <button type="button" disabled={Boolean(pending)} onClick={generate}>
             {generationFailed ? t('Retry generation') : t('Generate memory')}
           </button>
@@ -162,6 +195,7 @@ export function CreateMemoryForm() {
       )}
       {preview && (
         <div className="generated-memory">
+          {geminiNote && <p role="status">{geminiNote}</p>}
           <p role="status">{preview.bundle.manifest.generation.fallbackReason === 'no-keyword-match'
             ? t('Local draft with neutral mood and setting.') : t('Memory preview ready.')}</p>
           {!entered && (

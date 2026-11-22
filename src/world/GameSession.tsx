@@ -26,8 +26,13 @@ import { navigate } from '../chrome/route';
 import { buildLore } from '../story/lore';
 import { DialogBox, QuestLog, useLoreFeed } from '../story/LoreHud';
 import { RevealMoment } from '../story/RevealMoment';
+import { SaveToLibrary } from '../story/SaveToLibrary';
+import { NowPlaying } from '../story/NowPlaying';
+import { songLabel } from '../music/song';
 import type { Moment } from '../story/RevealMoment';
 import { useImmersiveSession, FullscreenButton } from '../chrome/ImmersiveControls';
+import { PlotProgress, usePlotVisit } from './PlotVisit';
+import { SceneDirectionDetails } from './SceneDirectionDetails';
 
 /** One play session of a prompt world: walking, discoveries, ending, pause menu and saving. */
 export function GameSession({ world, initial, initialSoundtrack, autoStart = false, repository = localGames, leave = () => navigate('/') }: {
@@ -65,9 +70,10 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
     setNeedsStart(false);
     setAutoPlay(readSettings().autoplay);
   }
+  const plotVisit = usePlotVisit(world.layout.plot, initial?.momentsCompleted);
   const menu = useGamePause({
     initial, selection: JSON.stringify([soundtrack.record, soundtrack.muted]),
-    progress: () => ({ position: position.current, revealed, ended, storyStep }),
+    progress: () => ({ position: position.current, revealed, ended: plotVisit?.ended ?? ended, storyStep, momentsCompleted: plotVisit?.completed }),
     persist: (state) => repository.saveGame(world, createCheckpoint(world, state), soundtrack),
     leave,
   });
@@ -111,6 +117,8 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
       quote: end > start ? world.prompt.slice(start, end) : undefined, note: discoveryNotes?.[index] });
     setRevealed((previous) => previous.has(id) ? previous : new Set([...previous, id]));
   }, [revealed, discoveries, world, t, discoveryNotes]);
+  // The closing card's save: the finished visit, as Save Game would write it.
+  const keep = () => repository.saveGame(world, createCheckpoint(world, { position: position.current, revealed, ended: true, storyStep, momentsCompleted: plotVisit?.completed }), soundtrack);
   const finish = useCallback(() => {
     if (revealed.size < 2 || ended || storyStep) return;
     if (story) setStoryStep('dialogue');
@@ -124,6 +132,7 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
     setMoment(null);
     setEnded(false);
     setStoryStep(undefined);
+    plotVisit?.reset();
     setVisit((count) => count + 1);
   }
 
@@ -151,6 +160,7 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
             <button type="button" ref={menu.pauseButton} onClick={menu.open}>{t('Pause')}</button>
           </div>
         </header>
+        {plotVisit && !plotVisit.completed && <p className="story-opening">{plotVisit.plot.opening}</p>}
         {story && !storyStep && <p className="story-opening">{story.opening}</p>}
         {story && !storyStep && latestDiscovery && (
           <p className="story-discovery" role="status">{discoveryNotes?.[latestDiscovery === discoveries[0].placementId ? 0 : 1]}</p>
@@ -170,21 +180,38 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
             <h3>{t('Memory complete')}</h3>
             <p>{story.npc.name}: {reply.answer}</p>
             <p>{story.closing}</p>
-            <button type="button" onClick={replay}>{t('Replay visit')}</button>
+            <div className="prompt-actions">
+              <SaveToLibrary save={keep} />
+              <button type="button" onClick={replay}>{t('Replay visit')}</button>
+            </div>
           </section>
         )}
         {staticMode && (
-          <p className="static-note" role="status">Static preview — the 3D world is unavailable here. Reveal each discovery from the list below.</p>
+          <p className="static-note" role="status">Static preview — the 3D world is unavailable here. {plotVisit ? 'Play through the moments below.' : 'Reveal each discovery from the list below.'}</p>
         )}
         <div key={visit} className={story && !reducedMotion ? `story-stage${ended ? ' story-stage-ended' : ''}` : undefined}>
-          <WorldStage world={world} revealed={revealed} ended={ended} position={position} paused={paused || !!storyStep}
-            conversationOpen={!!storyStep} overlay={(
+          <WorldStage world={world} revealed={revealed} ended={plotVisit?.ended ?? ended} position={position} paused={paused || !!storyStep}
+            conversationOpen={!!storyStep} visit={plotVisit} overlay={(
               <>
-                <QuestLog lore={lore} title={t('Quests')} done={{
+                {!plotVisit && <QuestLog lore={lore} title={t('Quests')} done={{
                   first: revealed.has(discoveries[0].placementId), second: revealed.has(discoveries[1].placementId), end: ended,
-                }} />
-                <DialogBox line={feed.line} left={feed.left} onNext={feed.next} hint={t('click to continue')} />
-                <RevealMoment moment={moment} />
+                }} />}
+                {plotVisit && !plotVisit.ended && <p className="plot-quest" aria-live="polite">
+                  <span>{t('Moment {count} of {total}', { count: Math.min(plotVisit.completed + 1, plotVisit.plot.moments.length), total: plotVisit.plot.moments.length })}</span>
+                  {plotVisit.current?.title}
+                </p>}
+                {!plotVisit && !storyStep && !ended && <DialogBox line={feed.line} left={feed.left} onNext={feed.next} hint={t('click to continue')} />}
+                {!storyStep && !ended && <RevealMoment moment={moment} />}
+                <NowPlaying playing={Boolean(activeAudio) && !paused && !storyStep && !ended && !plotVisit?.ended}
+                  name={world.song ? songLabel(world.song) : soundtrack.record.kind === 'silent' ? undefined : soundtrack.record.title} />
+                {plotVisit?.ended && <div className="closing-card plot-closing" role="status">
+                  <h3>{t('Memory complete')}</h3>
+                  <p>{plotVisit.plot.closing}</p>
+                  <div className="prompt-actions">
+                    <SaveToLibrary save={keep} />
+                    <button type="button" onClick={replay}>{t('Replay visit')}</button>
+                  </div>
+                </div>}
                 <div className="hud-buttons">
                   <button type="button" className="hud-menu" onClick={() => { setMenuTab('game'); menu.open(); }} disabled={paused}>
                     <span aria-hidden="true">☰</span> {t('Menu')}
@@ -201,15 +228,18 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
                   </div>
                 )}
               </>
-            )} audio={{ activeAudio, music, ...(songTempo && { songPulse: { bpm: songTempo.tempo, energy: songTempo.energyLevel } }) }} onReveal={reveal} onFinish={finish} onUnavailable={useStatic} />
+            )} audio={{ activeAudio, music, muted: soundtrack.muted, ...(songTempo && { songPulse: { bpm: songTempo.tempo, energy: songTempo.energyLevel } }) }} onReveal={reveal} onFinish={finish} onUnavailable={useStatic} />
         </div>
-        <div className="memory-actions">
+        {plotVisit ? <PlotProgress visit={plotVisit} staticMode={staticMode} onReplay={replay} /> : <div className="memory-actions">
           <p role="status">{t('{count} of 2 discoveries found', { count: revealed.size })}</p>
-        </div>
+        </div>}
         {world.song && <SongCard song={world.song} />}
+        {world.layout.direction && <SceneDirectionDetails direction={world.layout.direction} interpretation={world.interpretation}
+          prompt={world.prompt} soundtrack={soundtrack} song={Boolean(world.song)}
+          momentBed={plotVisit?.playing || plotVisit?.completed ? (plotVisit.current ?? plotVisit.plot.moments.at(-1))?.ambience : undefined} />}
         <WorldSoundtrack value={soundtrack} onChange={changeTrack} onActiveAudio={setActiveAudio} paused={paused || Boolean(external)} autoPlay={autoPlay}
           mute={{ value: soundtrack.muted, onChange: (muted) => setSoundtrack((previous) => ({ ...previous, muted })) }} />
-        <div className="artifact-grid">
+        {!plotVisit && <><div className="artifact-grid">
           {discoveries.map(({ placementId, excerpt }, index) => {
             const open = revealed.has(placementId);
             return (
@@ -234,13 +264,14 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
             <div className="closing-card" role="status">
               <h3>{t('World complete')}</h3>
               <p>{world.title}</p>
+              <SaveToLibrary save={keep} />
               <button type="button" onClick={replay}>{t('Replay visit')}</button>
             </div>
           )}
-        </footer>
+        </footer></>}
         <details className="interpretation-details">
           <summary>{t('How this world was built')}</summary>
-          <p>{world.scene?.processing === 'gemini' ? t('Gemini planned this fictional scene.') : t('The scene was built privately on this device.')}
+          <p>{plotVisit ? t('Gemini wrote this dramatization from the fictional prompt.') : world.scene?.processing === 'gemini' ? t('Gemini planned this fictional scene.') : t('The scene was built privately on this device.')}
             {story && t(' The conversation is imagined.')}</p>
           {story && (
             <>

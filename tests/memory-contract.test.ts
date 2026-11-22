@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createInMemoryStore } from '../src/data/repository';
-import { fixtures, loadFixture } from '../src/fixtures/memories';
+import { fixtures, loadFixture, playableFixture } from '../src/fixtures/memories';
 import { dayBundleSchema, memorySceneSchema, resolvePresentation } from '../src/shared/memory-schema';
 import type { DayBundle, MemoryScene } from '../src/shared/memory-schema';
 import { createViewerProps } from '../src/shared/memory-viewer';
@@ -12,6 +12,19 @@ beforeAll(async () => {
 });
 
 describe('MW-000 / AT-02', () => {
+  it('turns every example into a full world with its own in-game score', () => {
+    const tracks = new Set<string>();
+    bundles.forEach((bundle, index) => {
+      const playable = playableFixture(bundle, fixtures[index]);
+      expect(playable.world?.layout.geometryVersion).toBeTruthy();
+      expect(playable.audio.filename).not.toBe(bundle.audio.filename);
+      expect(playable.entryText).toBe(bundle.entryText);
+      expect(playable.world?.interpretation.timeOfDay).toBe(fixtures[index].context.timeOfDay);
+      tracks.add(playable.audio.filename);
+    });
+    expect(tracks.size).toBe(5);
+  });
+
   it('accepts five distinct complete fixtures and resolves their replay data', async () => {
     expect(new Set(bundles.map(({ manifest }) => manifest.id)).size).toBe(5);
     expect(bundles.map(({ manifest }) => manifest.mood.primary)).toEqual(['nostalgic', 'tense', 'calm', 'joyful', 'nostalgic']);

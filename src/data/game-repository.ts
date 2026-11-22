@@ -29,7 +29,9 @@ export interface GameRepository {
 }
 
 function statusOf(checkpoint: Checkpoint) {
-  return checkpoint.ended ? 'Completed' : `${checkpoint.revealed.length} of 2 discoveries`;
+  if (checkpoint.ended) return 'Completed';
+  if (checkpoint.momentsCompleted !== undefined) return `${checkpoint.momentsCompleted} ${checkpoint.momentsCompleted === 1 ? 'moment' : 'moments'} completed`;
+  return `${checkpoint.revealed.length} of 2 discoveries`;
 }
 
 const worldOf = (stored: StoredWorld) => 'world' in stored ? stored.world : stored;

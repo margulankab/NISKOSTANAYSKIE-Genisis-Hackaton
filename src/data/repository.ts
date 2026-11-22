@@ -3,6 +3,7 @@ import type { DayBundle } from '../shared/memory-schema';
 
 export type DaySummary = Pick<DayBundle['manifest'], 'id' | 'title' | 'date'> & {
   thumbnail?: Blob;
+  photo?: Blob;
   palette?: DayBundle['manifest']['photos'][number]['palette'];
 };
 

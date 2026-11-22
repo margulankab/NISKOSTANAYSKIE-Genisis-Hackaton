@@ -1,8 +1,10 @@
-import { Fragment, useEffect, useState, useSyncExternalStore } from 'react';
+import { Fragment, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { currentPath, installHashLinks, subscribeToRoute } from './chrome/route';
 import { Archive, SavedMemory } from './data/Archive';
 import { createInMemoryStore } from './data/repository';
-import { fixtures, loadFixture } from './fixtures/memories';
+import { fixtures, loadFixture, playableFixture } from './fixtures/memories';
+import { enterWorld } from './chrome/immersive';
+import type { DayBundle } from './shared/memory-schema';
 import { CreateMemoryForm } from './intake/CreateMemoryForm';
 import { LoadGameMenu } from './menus/LoadGameMenu';
 import { NewGameMenu } from './menus/NewGameMenu';
@@ -23,7 +25,7 @@ import type { MemoryViewerProps } from './shared/memory-viewer';
 
 type FixtureState =
   | { status: 'loading' | 'error' }
-  | { status: 'ready'; viewer: MemoryViewerProps };
+  | { status: 'ready'; viewer: MemoryViewerProps; bundle: DayBundle };
 
 const store = createInMemoryStore();
 installVolumeSetting();
@@ -86,8 +88,8 @@ function FixtureLibrary({ slug }: { slug?: string }) {
               <button type="button" aria-pressed={fixture === selected} onClick={() => setSelected(fixture)}>
                 <span className="day-card-image" aria-hidden="true" style={{ backgroundImage: `url("${fixture.image}")` }} />
                 <time dateTime={fixture.date}>{fixture.date}</time>
-                <span className="memory-context">{fixture.mood.primary} · {fixture.context.environment}</span>
-                <span>{fixture.title}</span>
+                <span className="memory-context">{t(fixture.mood.primary)} · {t(fixture.context.environment)}</span>
+                <span>{t(fixture.title)}</span>
               </button>
             </li>
           ))}
@@ -100,7 +102,10 @@ function FixtureLibrary({ slug }: { slug?: string }) {
 }
 
 function FixturePanel({ fixture }: { fixture: (typeof fixtures)[number] }) {
+  const t = useT();
   const [state, setState] = useState<FixtureState>({ status: 'loading' });
+  const [world, setWorld] = useState<MemoryViewerProps | null>(null);
+  const enterButton = useRef<HTMLButtonElement>(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -111,7 +116,7 @@ function FixturePanel({ fixture }: { fixture: (typeof fixtures)[number] }) {
         await store.save(bundle);
         const saved = await store.load(bundle.manifest.id);
         if (!saved) throw new Error('Fixture could not be reopened.');
-        if (!disposed) setState({ status: 'ready', viewer: createViewerProps(saved, () => {}) });
+        if (!disposed) setState({ status: 'ready', viewer: createViewerProps(saved, () => {}), bundle: saved });
       } catch {
         if (!disposed) setState({ status: 'error' });
       }
@@ -120,7 +125,32 @@ function FixturePanel({ fixture }: { fixture: (typeof fixtures)[number] }) {
     return () => { disposed = true; };
   }, [fixture, attempt]);
 
-  if (state.status === 'ready') return <MemoryViewer {...state.viewer} />;
+  if (state.status === 'ready') {
+    if (world) return <MemoryViewer key="world" {...world} entered />;
+    // The preview above is the example's diorama; Enter world opens it as a full world, like a day made in Create.
+    const enter = () => {
+      const playable = playableFixture(state.bundle, fixture);
+      const { manifest } = playable;
+      enterWorld({
+        words: playable.entryText, title: t(manifest.title), from: enterButton.current,
+        lines: [
+          t('reading your words'),
+          t('placing {count} objects', { count: manifest.artifacts.length + manifest.photos.length }),
+          t('tuning soundtrack: {track}', { track: playable.audio.filename.replace(/\.wav$/, '') }),
+          t('opening the world'),
+        ],
+      });
+      setWorld(createViewerProps(playable, () => {}));
+    };
+    return (
+      <>
+        <div className="prompt-actions example-enter">
+          <button type="button" className="enter-world" ref={enterButton} onClick={enter}>{t('Enter world')}</button>
+        </div>
+        <MemoryViewer {...state.viewer} />
+      </>
+    );
+  }
   if (state.status === 'error') {
     return (
       <section className="preview">

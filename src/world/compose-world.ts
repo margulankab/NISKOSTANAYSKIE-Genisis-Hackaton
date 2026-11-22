@@ -88,6 +88,10 @@ export function titleFromPrompt(prompt: string, fallback: string, termStarts: re
   if (lastTerm >= 2) picked.splice(lastTerm + 1);
   while (picked.length && titleStops.has(picked[picked.length - 1][0].toLowerCase())) picked.pop();
   const title = picked.length >= 3 ? picked.map((w) => w[0]) : [fallback, 'Memory', 'World'];
+  // Russian titles use sentence case: «Ночной рынок на улице».
+  if (title.filter(w => /[а-яё]/i.test(w)).length > title.length / 2) {
+    return title.map((w, i) => i === 0 ? w[0].toUpperCase() + w.slice(1) : w.toLowerCase()).join(' ');
+  }
   return title.map((w, i) => i > 0 && titleStops.has(w.toLowerCase()) ? w.toLowerCase() : w[0].toUpperCase() + w.slice(1)).join(' ');
 }
 
@@ -104,6 +108,8 @@ interface Draft {
 }
 
 export interface TemplatePlacement {
+  waterfront?: boolean;
+  wallWindow?: boolean;
   ending: number;
   discoveries: readonly [number, number];
   surfaces: readonly (Term['zone'] | 'deck' | 'pool' | 'sand' | 'floor' | 'rock')[];
@@ -115,7 +121,7 @@ export function composeLayout(prompt: string, interpretation: Interpretation, se
   const rand = seededRandom(seed + attempt * 7919);
   const { terms, relations, setting } = interpretation;
   const usable = terms.map((t, index) => ({ ...t, index })).filter((t) => t.status !== 'unsupported');
-  const hasWater = plan?.surfaces.includes('water') || usable.some((t) => t.zone === 'water' || (t.recipe && recipes[t.recipe].aquatic));
+  const hasWater = plan?.waterfront || plan?.surfaces.includes('water') || usable.some((t) => t.zone === 'water' || (t.recipe && recipes[t.recipe].aquatic));
   const base = setting === 'indoor' ? INDOOR_ONLY : OUTDOOR;
   const scale = plan?.size === 'small' ? .94 : plan?.size === 'large' ? 1.05 : 1;
   const bounds = { ...base, minX: base.minX * scale, maxX: base.maxX * scale, minZ: base.minZ * scale };
@@ -222,7 +228,8 @@ export function composeLayout(prompt: string, interpretation: Interpretation, se
     const indoor = plan && zoneOf(landmarkTerm) === 'indoor' && draft.indoor;
     const lx = indoor ? (indoor.area.minX + indoor.area.maxX) / 2 :
       overWater ? shoreX - draft.waterSide * 1.6 : landmarkTerm.recipe === 'bridge' ? 0 : (rand() - 0.5) * 3;
-    const lz = indoor ? indoor.area.minZ + 1.6 : landmarkTerm.recipe === 'bridge' ? -5 : backZ;
+    const onWall = plan?.wallWindow && indoor && landmarkTerm.recipe === 'window';
+    const lz = indoor ? indoor.area.minZ + (onWall ? .23 : 1.6) : landmarkTerm.recipe === 'bridge' ? -5 : backZ;
     let rise = 0;
     if (overWater || terms.some((t) => t.recipe === 'hill' && relations.some((r) => r.subject === landmarkTerm.index && r.object === terms.indexOf(t)))) {
       const hillTerm = terms.findIndex((t) => t.recipe === 'hill');
@@ -230,7 +237,7 @@ export function composeLayout(prompt: string, interpretation: Interpretation, se
       placedFirst.set(hillTerm, hill);
       rise = (placementHeight('hill') ?? 0) * hill.scale;
     }
-    landmark = add(landmarkTerm.recipe!, lx, lz, landmarkTerm.index, { y: rise });
+    landmark = add(landmarkTerm.recipe!, lx, lz, landmarkTerm.index, { y: rise, ...(onWall && { rotation: 0 }) });
     placedFirst.set(landmarkTerm.index, landmark);
   } else {
     landmark = add('gate', 0, backZ, null);
@@ -256,7 +263,11 @@ export function composeLayout(prompt: string, interpretation: Interpretation, se
     const count = countFor(term);
     let first: Placement | undefined;
 
-    if (draft.indoor && setting === 'mixed' && (recipe === 'airlock' || recipe === 'doorway')) {
+    if (plan?.wallWindow && draft.indoor && setting === 'indoor' && recipe === 'window' &&
+      !draft.placements.some(p => p.recipe === 'window')) {
+      const { area } = draft.indoor;
+      first = add(recipe, (area.minX + area.maxX) / 2, area.minZ + .23, term.index, { rotation: 0 });
+    } else if (draft.indoor && setting === 'mixed' && (recipe === 'airlock' || recipe === 'doorway')) {
       first = add(recipe, draft.indoor.door.x, draft.indoor.door.z, term.index, { rotation: Math.PI / 2 });
     } else if (recipe === 'pier' && draft.water) {
       const z = -3 + rand() * 4;

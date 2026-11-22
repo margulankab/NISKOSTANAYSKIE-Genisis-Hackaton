@@ -35,7 +35,7 @@ export function LoadGameMenu() {
             <li key={game.kind + ':' + game.id}>
               <a className="menu-item" href={gamePath(game)}>
                 {game.title}
-                <span>{`${game.status}${game.savedAt ? ' · ' + t('saved {when}', { when: when(game.savedAt) }) : ''}`}</span>
+                <span>{`${t(game.status)}${game.savedAt ? ' · ' + t('saved {when}', { when: when(game.savedAt) }) : ''}`}</span>
               </a>
             </li>
           ))}

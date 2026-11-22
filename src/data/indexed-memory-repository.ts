@@ -131,7 +131,9 @@ export const localMemories: MemoryRepository = {
       const summaries = await Promise.all(stored.map(async ({ manifest }) => {
         const { id, title, date } = manifest;
         const assets: StoredMedia | undefined = await resultOf(tx.objectStore(media).get(id));
-        return { id, title, date, palette: manifest.photos?.[0]?.palette, thumbnail: assets?.thumbnail };
+        const first = manifest.photos?.[0];
+        return { id, title, date, palette: first?.palette, thumbnail: assets?.thumbnail,
+          photo: assets?.photos?.find(photo => photo.id === first?.assetId)?.blob };
       }));
       return summaries.sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
     });

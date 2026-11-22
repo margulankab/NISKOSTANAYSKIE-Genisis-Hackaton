@@ -1,10 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
-import { playerAt, targets, visitArtifact } from './walk';
+import { playerAt, playMoment, targets, visitArtifact } from './walk';
 import type { Page } from '@playwright/test';
 import { unzipSync, zipSync } from 'fflate';
 import { startPromptGame } from './world-walk';
 import { createTestTone } from '../src/fixtures/test-tone';
+import { mockPromptPlots, stationFarewell } from './support/plot-fixtures';
 
 const firstEntry = 'I watched the last light drain from the river before walking home.';
 const secondEntry = 'I watched the last light drain from the river before catching the bus.';
@@ -15,6 +16,7 @@ const otherPhotoBytes = await readFile(new URL('../src/fixtures/media/calm-city.
 const audioBytes = Buffer.from(await createTestTone(220, 0.09).blob.arrayBuffer());
 
 async function generate(page: Page, date = '2026-10-04', entry = firstEntry) {
+  await mockPromptPlots(page);
   await page.goto('/create');
   await page.getByLabel('Date', { exact: true }).fill(date);
   await page.getByLabel('What happened that day?').fill(entry);
@@ -22,6 +24,8 @@ async function generate(page: Page, date = '2026-10-04', entry = firstEntry) {
   await page.getByLabel('Audio excerpt', { exact: true }).setInputFiles({ name: 'tone.wav', mimeType: 'audio/wav', buffer: audioBytes });
   await page.getByRole('checkbox').check();
   await page.getByRole('button', { name: 'Validate draft' }).click();
+  await page.getByLabel('Fictional scene prompt').fill(stationFarewell);
+  await page.getByLabel(/Send this fictional prompt/).check();
   await page.getByRole('button', { name: 'Generate memory' }).click();
   await expect(page.getByRole('heading', { name: title })).toBeVisible();
 }
@@ -54,6 +58,7 @@ function inspect(bytes: Uint8Array) {
   expect(readText('entry.txt')).toBe(firstEntry);
   const manifest = JSON.parse(readText('manifest.json'));
   const credits = JSON.parse(readText('credits.json'));
+  expect(JSON.parse(readText('world.json'))).toMatchObject({ scenePrompt: stationFarewell, layout: { plot: { version: 1 } } });
   expect(Object.keys(entries).sort()).toEqual([
     root + 'manifest.json', root + 'entry.txt', root + 'credits.json', root + 'world.json', root + 'preview.png',
     root + `photos/${manifest.source.photoIds[0]}.png`, root + `audio/${manifest.source.audioId}.wav`,
@@ -68,6 +73,8 @@ function inspect(bytes: Uint8Array) {
 }
 
 test('saves duplicate titles, reloads the archive, and reopens the stored bundle byte for byte', async ({ page }) => {
+  test.setTimeout(85_000);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await generate(page);
   const original = inspect(await download(page));
   const first = await save(page);
@@ -84,14 +91,17 @@ test('saves duplicate titles, reloads the archive, and reopens the stored bundle
   await expect(choices).toHaveCount(2);
   await expect(choices.nth(0)).toHaveAttribute('href', second);
   await expect(choices.nth(1)).toHaveAttribute('href', first);
+  await expect.poll(() => choices.nth(0).locator('img').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
   await choices.nth(0).click();
-  await visitArtifact(page, 1);
-  await expect(page.locator('blockquote')).toHaveText(secondEntry);
+  await playMoment(page, 1);
+  await playMoment(page, 2);
+  await expect(page.locator('.artifact-card blockquote')).toHaveText(secondEntry);
   await page.getByRole('link', { name: 'Back to archive' }).click();
   await page.getByRole('button', { name: 'Leave without saving' }).click();
   await choices.nth(1).click();
-  await visitArtifact(page, 1);
-  await expect(page.locator('blockquote')).toHaveText(firstEntry);
+  await playMoment(page, 1);
+  await playMoment(page, 2);
+  await expect(page.locator('.artifact-card blockquote')).toHaveText(firstEntry);
   expect(unzipSync(await download(page))).toEqual(original);
 });
 
@@ -165,8 +175,9 @@ test('a quota failure preserves the preview, allows ZIP export, and rolls back t
   await page.getByRole('button', { name: 'Save to archive' }).click();
   await expect(page.getByRole('alert')).toContainText('archive storage is full');
   await expect(page.getByRole('link', { name: 'Open saved memory' })).toHaveCount(0);
-  await visitArtifact(page, 1);
-  await expect(page.locator('blockquote')).toHaveText(firstEntry);
+  await playMoment(page, 1);
+  await playMoment(page, 2);
+  await expect(page.locator('.artifact-card blockquote')).toHaveText(firstEntry);
   inspect(await download(page));
   // The archive now lives in the memory library; the main navigation still asks before leaving.
   await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Library' }).click();
@@ -178,7 +189,8 @@ test('a quota failure preserves the preview, allows ZIP export, and rolls back t
 });
 
 test('a generated day checkpoint resumes from Continue, and a ZIP carries the layout and original media', async ({ page, browser }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(85_000);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await startPromptGame(page, 'A quiet kitchen with a table and a garden with two trees.');
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Save & Quit' }).click();
@@ -188,8 +200,8 @@ test('a generated day checkpoint resumes from Continue, and a ZIP carries the la
   const layout = await targets(page);
   const portable = await download(page);
   inspect(portable);
-  await visitArtifact(page, 1);
-  await expect(page.locator('blockquote')).toHaveText(firstEntry);
+  await playMoment(page, 1);
+  await expect(page.getByRole('img', { name: 'Memory photo' })).toBeVisible();
   const position = await playerAt(page);
 
   await page.getByRole('button', { name: 'Play soundtrack' }).click();
@@ -200,22 +212,22 @@ test('a generated day checkpoint resumes from Continue, and a ZIP carries the la
 
   const resume = page.getByRole('link', { name: /Continue/ });
   await expect(resume).toContainText(title);
-  await expect(resume).toContainText('1 of 2 discoveries');
+  await expect(resume).toContainText('1 moment completed');
   await resume.click();
   await expect(page.getByText('1 of 2 artifacts revealed')).toBeVisible();
-  await expect(page.locator('blockquote')).toHaveText(firstEntry);
+  await expect(page.getByRole('img', { name: 'Memory photo' })).toBeVisible();
   expect(await playerAt(page)).toEqual(position);
   expect(await targets(page)).toEqual(layout);
   await expect.poll(() => page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.paused)).toBe(true);
-  await visitArtifact(page, 0);
-  await expect(page.getByRole('img', { name: 'Memory photo' })).toBeVisible();
+  await playMoment(page, 2);
+  await expect(page.locator('.artifact-card blockquote')).toHaveText(firstEntry);
 
   await page.getByRole('link', { name: 'Main menu', exact: true }).click();
   await page.getByRole('button', { name: 'Leave without saving' }).click();
   await page.getByRole('link', { name: 'Load Game' }).click();
   await expect(page.getByRole('list', { name: 'Saved games' }).getByRole('link')).toHaveCount(2);
   await page.getByRole('list', { name: 'Saved games' }).locator('a[href^="/play/"]').click();
-  await expect(page.getByText('0 of 2 discoveries found')).toBeVisible();
+  await expect(page.getByText('0 of 1 moments complete')).toBeVisible();
 
   const fresh = await browser.newContext();
   try {

@@ -3,6 +3,10 @@ import type { WalkLayout } from '../gameplay/layout';
 import { getWorldApproach, getWorldWalkableSurfaces } from '../scene/world-recipes';
 import { placementSolids, recipeIds, sceneryPlacement } from './recipes';
 import { routeProblems } from './route';
+import { plotAnchors, plotProblems, plotSchema } from './plot-schema';
+import type { PlotMoment } from './plot-schema';
+import { sceneDirectionSchema, waterfrontWords } from './scene-direction';
+import { slidePoint } from './original-models';
 
 export const PROMPT_MAX = 600;
 export const PROMPT_PAYLOAD_MAX = 4096;
@@ -74,7 +78,9 @@ export type Placement = z.infer<typeof placementSchema>;
 
 export const worldLayoutSchema = z.strictObject({
   geometryVersion: z.union([z.literal(2), z.literal(3)]).optional(),
-  profile: z.enum(['park', 'water-park', 'coast', 'market', 'interior', 'woodland', 'city', 'rural', 'fantasy', 'station']).optional(),
+  profile: z.enum(['park', 'water-park', 'coast', 'market', 'interior', 'woodland', 'city', 'rural', 'fantasy', 'station', 'ballfield']).optional(),
+  plot: plotSchema.optional(),
+  direction: sceneDirectionSchema.optional(),
   drySurfaces: z.array(rect).min(1).max(16).optional(),
   paths: z.array(z.array(point).min(2).max(80)).max(4).optional(),
   approaches: z.tuple([point, point, point]).optional(),
@@ -93,6 +99,12 @@ export const worldLayoutSchema = z.strictObject({
   landmark: z.strictObject({ placementId: z.string() }),
 });
 export type WorldLayout = z.infer<typeof worldLayoutSchema>;
+
+export function momentPoint(layout: WorldLayout, moment: PlotMoment) {
+  const index = layout.profile === 'ballfield' && moment.actions.some(action => action.object === 'ball')
+    ? 2 : plotAnchors.indexOf(moment.anchor);
+  return layout.approaches?.[index] ?? layout.spawn;
+}
 
 export function placementById(layout: WorldLayout, id: string) {
   const placement = layout.placements.find((p) => p.id === id);
@@ -137,10 +149,29 @@ export function groundBounds({ bounds, water }: WorldLayout): WorldLayout['bound
 export const dayWorldSchema = z.strictObject({
   layout: worldLayoutSchema.required({ geometryVersion: true }),
   interpretation: interpretationSchema,
+  scenePrompt: promptSchema.optional(),
 });
 
 export function checkWorldLayout(prompt: string, interpretation: Interpretation, layout: WorldLayout, ctx: z.RefinementCtx) {
   const issue = (message: string, path: (string | number)[]) => ctx.addIssue({ code: 'custom', message, path });
+  if (layout.direction && !layout.plot) issue('Scene direction requires a playable plot.', ['layout', 'direction']);
+  if (layout.plot) {
+    if (layout.geometryVersion !== 3 || !layout.approaches) issue('A plot needs a resolved scene with reachable anchors.', ['layout', 'plot']);
+    for (const message of plotProblems(layout.plot, prompt)) issue(message, ['layout', 'plot']);
+    if (layout.direction && waterfrontWords.test(prompt) && !layout.water) {
+      issue('A waterfront visit needs a continuous water edge.', ['layout', 'water']);
+    }
+    if (layout.plot.moments.some(moment => moment.actions.some(action => action.kind === 'slide'))) {
+      const slide = layout.placements.find(p => p.recipe === 'tube-slide');
+      const pool = layout.placements.find(p => p.recipe === 'pool-basin');
+      const [x, , z] = slidePoint(1);
+      const exitX = slide && slide.x + (Math.cos(slide.rotation) * x + Math.sin(slide.rotation) * z) * slide.scale;
+      const exitZ = slide && slide.z + (-Math.sin(slide.rotation) * x + Math.cos(slide.rotation) * z) * slide.scale;
+      if (!pool || exitX === undefined || exitZ === undefined || Math.abs(pool.x - exitX) >= 2.2 || Math.abs(pool.z - exitZ) >= 1.72) {
+        issue('The water slide must land within its pool.', ['layout', 'plot']);
+      }
+    }
+  }
   for (const [index, { span: { end } }] of interpretation.terms.entries()) {
     if (end > prompt.length) issue('Term span is outside the prompt.', ['interpretation', 'terms', index]);
   }
@@ -174,6 +205,7 @@ export function checkWorldLayout(prompt: string, interpretation: Interpretation,
     }
   }
   if (ctx.issues.length === 0) {
-    for (const problem of routeProblems(toWalkLayout(layout))) issue(problem, ['layout']);
+    const marks = layout.plot?.moments.map(moment => momentPoint(layout, moment));
+    for (const problem of routeProblems(toWalkLayout(layout), marks)) issue(problem, ['layout']);
   }
 }
