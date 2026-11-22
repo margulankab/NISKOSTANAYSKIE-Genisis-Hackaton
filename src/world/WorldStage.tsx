@@ -869,6 +869,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
             <button type="button" className="view-toggle" aria-pressed={view === 'first'} onClick={toggleView}>
               {t(view === 'first' ? 'First person' : 'Third person')}
             </button>
+            <button type="button" disabled={paused} onClick={() => { Object.assign(look.current, { pitch: -0.12, orbit: 0, zoom: 1 }); }}>{t('Recenter camera')}</button>
             <button type="button" disabled={paused || visit?.playing} onClick={() => { position.current = layout.spawn; Object.assign(look.current, { yaw: 0, pitch: -0.12, orbit: 0, zoom: 1 }); }}>{t('Reset position')}</button>
             {direction && <button type="button" className="scene-sound-toggle" aria-pressed={silenced} disabled={paused}
               onClick={() => {

@@ -98,7 +98,8 @@ test('Gemini moments can be completed in the static preview, and invalid respons
   await page.getByRole('button', { name: 'Build privately' }).click();
   await expect(page.getByText('Built privately')).toBeVisible();
   await expect(page.getByLabel('Describe the world')).toHaveValue(fictionalMarket);
-  await expect(page.getByRole('button', { name: 'Enter world' })).toHaveCount(0);
+  // The private build is a separate, explicit choice; it is ready to enter.
+  await expect(page.getByRole('button', { name: 'Enter world' })).toBeVisible();
 });
 
 test('a home run is one cinematic action and can be restarted after saving during the pitch', async ({ page }, info) => {

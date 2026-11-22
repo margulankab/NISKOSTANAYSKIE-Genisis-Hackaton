@@ -164,9 +164,8 @@ test('uses only the fictional prompt for Gemini and plays the original entry and
   await page.getByRole('button', { name: 'Generate memory' }).click();
   await expect(page.getByText('Memory preview ready.', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Remembering the last light drain' })).toBeVisible();
-  await visitArtifact(page, 1);
-  await expect(page.locator('blockquote')).toHaveText(text);
-  await visitArtifact(page, 0);
+  await playMoment(page, 1);
+  await expect(page.locator('.artifact-card blockquote')).toHaveText(text);
   const memoryPhoto = page.getByRole('img', { name: 'Memory photo' });
   await expect.poll(() => memoryPhoto.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBe(480);
   await page.getByRole('button', { name: 'Play soundtrack' }).click();
@@ -211,7 +210,8 @@ test('retains the draft on generation failure and recovers with a replacement ph
   await page.getByLabel('What happened that day?').fill(fallbackText);
   await submit(page);
   await page.getByRole('button', { name: 'Generate memory' }).click();
-  await expect(page.getByText('Memory preview ready.', { exact: true })).toBeVisible();
+  // No words to read: the day keeps neutral mood and setting, and says so.
+  await expect(page.getByText('Local draft with neutral mood and setting.', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Remembering The Day 2026-10-04' })).toBeVisible();
   await playMoment(page, 1);
   await expect(page.locator('.artifact-card blockquote')).toHaveText(fallbackText);

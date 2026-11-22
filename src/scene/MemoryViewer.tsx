@@ -172,12 +172,24 @@ function MemoryOpening({ manifest, entryText, world, song, trackName, resolveAss
               ...(songTempo && { songPulse: { bpm: songTempo.tempo, energy: songTempo.energyLevel } }) }}
             overlay={(
               <>
-                <QuestLog lore={lore} title={t('Quests')} done={{
+                {!plotVisit && <QuestLog lore={lore} title={t('Quests')} done={{
                   first: revealed.has(manifest.artifacts[0].id), second: revealed.has(manifest.artifacts[1].id), end: complete,
-                }} />
-                {!complete && <DialogBox line={feed.line} left={feed.left} onNext={feed.next} hint={t('click to continue')} />}
-                {!complete && <RevealMoment moment={moment} />}
-                <NowPlaying name={trackName} playing={Boolean(activeAudio) && !paused && !complete} />
+                }} />}
+                {plotVisit && !plotVisit.ended && <p className="plot-quest" aria-live="polite">
+                  <span>{t('Moment {count} of {total}', { count: Math.min(plotVisit.completed + 1, plotVisit.plot.moments.length), total: plotVisit.plot.moments.length })}</span>
+                  {plotVisit.current?.title}
+                </p>}
+                {!plotVisit && !complete && <DialogBox line={feed.line} left={feed.left} onNext={feed.next} hint={t('click to continue')} />}
+                {!plotVisit && !complete && <RevealMoment moment={moment} />}
+                <NowPlaying name={trackName} playing={Boolean(activeAudio) && !paused && !complete && !plotVisit?.ended} />
+                {plotVisit?.ended && <div className="closing-card plot-closing" role="status">
+                  <h3>{t('Memory complete')}</h3>
+                  <p>{plotVisit.plot.closing}</p>
+                  <div className="prompt-actions">
+                    {game && <SaveToLibrary save={() => game.save({ position: position.current, revealed, ended: true, momentsCompleted: plotVisit.completed })} />}
+                    <button type="button" onClick={replay}>{t('Replay visit')}</button>
+                  </div>
+                </div>}
                 {game && (
                   <div className="hud-buttons">
                     <button type="button" className="hud-menu" onClick={() => { setMenuTab('game'); pause.open(); }} disabled={paused}>

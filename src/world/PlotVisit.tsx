@@ -23,6 +23,7 @@ export function usePlotVisit(plot: Plot | undefined, restored: number | undefine
 
 export type PlotVisit = NonNullable<ReturnType<typeof usePlotVisit>>;
 
+/** The plot's moments below the world. The ending card shows here only when the 3D world (and its own card) is unavailable. */
 export function PlotProgress({ visit, staticMode, onReplay }: { visit: PlotVisit; staticMode: boolean; onReplay(): void }) {
   const recent = visit.plot.moments[visit.completed - 1];
   return <section className="plot-progress" aria-label="Memory moments">
@@ -39,7 +40,7 @@ export function PlotProgress({ visit, staticMode, onReplay }: { visit: PlotVisit
         {visit.playing ? 'Continue' : visit.current.actionLabel}
       </button>
     </div>}
-    {visit.ended && <div className="closing-card" role="status">
+    {visit.ended && staticMode && <div className="closing-card" role="status">
       <h3>Memory complete</h3>
       <p>{visit.plot.closing}</p>
       <button type="button" onClick={onReplay}>Replay visit</button>

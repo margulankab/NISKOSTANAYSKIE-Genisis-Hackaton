@@ -1087,3 +1087,17 @@ li.is-done .quest-text, .journal-quests li.is-done > span:nth-child(2) { text-de
 .pause-menu.game-menu .segmented button[aria-pressed="true"] { background: var(--acc); color: var(--on-acc); }
 .pause-menu.game-menu .menu-score button { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--txt) 25%, transparent); }
 .pause-menu.game-menu .music-row input { min-width: 0; }
+
+/* Gemini plots: the current moment in the corner, and the ending over the world. */
+.plot-quest {
+  position: absolute; left: 14px; top: 14px; z-index: 3; margin: 0; display: grid; gap: 3px; max-width: min(320px, 46%);
+  padding: 10px 12px 12px; background: rgba(12, 18, 14, .78); color: #eef6e6; backdrop-filter: blur(6px);
+  box-shadow: inset 0 0 0 2px rgba(196, 245, 138, .55), 5px 5px 0 rgba(0, 0, 0, .35); font-size: 14px;
+  animation: hud-in .6s .3s cubic-bezier(.2, .85, .25, 1) both;
+}
+.plot-quest span { font-family: var(--pxf); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #c4f58a; }
+.walk-viewport .plot-closing {
+  position: absolute; left: 50%; bottom: 90px; z-index: 6; width: min(560px, calc(100% - 32px)); margin: 0; transform: translateX(-50%);
+  animation: rise-in .45s cubic-bezier(.2, .85, .25, 1) both;
+}
+.plot-opening { font-style: italic; color: var(--txt2); }

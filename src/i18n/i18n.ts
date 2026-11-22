@@ -53,6 +53,7 @@ const ru: Record<string, string> = {
   'Film or game score': 'Музыка из кино или игр',
   'Something else': 'Другое',
   // Gemini plots and scene direction
+  'Recenter camera': 'Выровнять камеру',
   'Confirm that the scene prompt is fictional before sending it to Gemini.': 'Подтвердите, что описание сцены вымышлено, прежде чем отправлять его в Gemini.',
   'Gemini could not stage the scene, so it was built on this device. ({reason})': 'Gemini не смог поставить сцену, поэтому она собрана на этом устройстве. ({reason})',
   'Fictional scene prompt (optional)': 'Вымышленное описание сцены (необязательно)',
