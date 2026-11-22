@@ -11,7 +11,8 @@ import { visitArtifact, visitEnding } from './walk';
 
 test.skip(!process.env.DEMO_VIDEO, 'Set DEMO_VIDEO=1 to record the demonstration video.');
 test.setTimeout(6 * 60_000);
-test.use({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
+// Players' defaults: the world opens in full screen and its soundtrack starts by itself.
+test.use({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1, storageState: { cookies: [], origins: [] } });
 
 const output = path.resolve('submission-output');
 const fps = 25;
@@ -104,11 +105,11 @@ test('record the demonstration video', async ({ page }) => {
   await why.click();
   await pause(4500);
 
-  await page.getByRole('button', { name: 'Play soundtrack' }).click();
-  const audio = page.locator('audio');
+  await page.getByRole('button', { name: 'Enter world' }).click();
+  await expect(page.locator('.warp')).toHaveCount(0, { timeout: 15_000 });
+  const audio = page.locator('audio').first();
   await expect.poll(() => audio.evaluate((node: HTMLAudioElement) => node.currentTime)).toBeGreaterThan(0.05);
   const songStart = Math.max(0, video.seconds() - await audio.evaluate((node: HTMLAudioElement) => node.currentTime));
-  await page.locator('.walk-viewport').scrollIntoViewIfNeeded();
   await caption(page, '3 · Walk and reveal', 'Walk to the two marked objects. Each one opens the original photo or the exact words from the entry.');
   await pause(3500);
   await visitArtifact(page, 0);
@@ -117,24 +118,23 @@ test('record the demonstration video', async ({ page }) => {
   await pause(2200);
   await caption(page, '3 · The ending', 'With both found, the closing landmark ends the visit.');
   await visitEnding(page);
-  await page.getByRole('heading', { name: 'Memory complete' }).first().scrollIntoViewIfNeeded();
-  await pause(4500);
-
-  await caption(page, '4 · The day folder', `Save to the archive, or export the folder "${title}" as a ZIP with the original photo, song and scene.`);
-  const save = page.getByRole('button', { name: /Save to archive/ });
-  await save.scrollIntoViewIfNeeded();
-  if (await save.isEnabled()) await save.click();
-  await page.getByRole('button', { name: 'Export ZIP' }).scrollIntoViewIfNeeded();
   await pause(3500);
 
+  await caption(page, '4 · The day folder', `Save the finished visit: the day folder "${title}" keeps the original photo, song and scene (and exports as a ZIP).`);
+  await page.getByRole('button', { name: 'Save to library' }).click();
+  await expect(page.getByText('Saved to your library.')).toBeVisible();
+  await pause(3000);
+  await page.getByRole('button', { name: 'Open library' }).click();
+
   console.log('library at', video.seconds());
-  await page.goto('/library');
   await caption(page, '5 · Browse the archive', 'Your saved days sit next to five example days with different moods: each folder name came from the engine.');
   const shelf = page.getByRole('list', { name: 'Memories' });
   await pause(4500);
   await shelf.getByRole('link', { name: /The city by the river/ }).click();
+  await page.getByRole('button', { name: 'Enter world' }).click();
+  await expect(page.locator('.warp')).toHaveCount(0, { timeout: 15_000 });
   await caption(page, 'Same system, different day', 'A calm night city: new words, light and music give the same visual system a different mood.');
-  await pause(5000);
+  await pause(6500);
   await page.goto('/library');
   await shelf.getByRole('link', { name: new RegExp('^Day ' + title) }).click();
   await caption(page, '6 · Reopen the saved day', 'The memory opens again from the archive, with its photo, words and song.');

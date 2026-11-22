@@ -21,6 +21,7 @@ import { placementHeight, placementSolids, recipes, sceneryPlacement } from './r
 import { routeTo } from './route';
 import { StoryCharacter } from './StoryCharacter';
 import { RevealBurst } from './RevealBurst';
+import { DiscoveryMarkers, Motes } from './WorldAmbience';
 import { WorldPhotoFrame } from './WorldPhotoFrame';
 import { useT } from '../i18n/i18n';
 import { toggleView, useInk, useTuning, useView } from '../chrome/use-view';
@@ -300,6 +301,9 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
         </mesh>
       ))}
       {world.story && <StoryCharacter position={layout.landmark} outfit={world.story.npc.outfit} ready={ready && !ended} />}
+      {!reducedMotion && <Motes bounds={bounds} night={night} color={night ? '#e4ff9a' : '#fff4d6'} active={!paused && Boolean(audio?.activeAudio)} />}
+      <DiscoveryMarkers points={layout.artifacts.filter((_, index) => !revealed.has(discoveryIds[index]))} player={position}
+        color={audio?.lightColor ?? '#ffd58a'} active={!reducedMotion && !paused && Boolean(audio?.activeAudio)} />
       {!reducedMotion && discoveryIds.map((id, index) => revealed.has(id) && !foundAtStart.current.has(id)
         && <RevealBurst key={id} at={layout.artifacts[index]} color={audio?.lightColor ?? (night ? '#ffd88a' : '#fff1b8')} />)}
       {night && world.layout.placements.filter((p) => !sceneryIds.has(p.id) && (p.recipe === 'lantern' || p.recipe === 'lamp')).slice(0, 4).map((p) => (
@@ -623,7 +627,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
           {shiftLock && <p className="walk-shift-lock" role="status">{t('Shift lock on: the mouse turns the camera. Click to capture it, tap Shift to release.')}</p>}
           <p className="walk-prompt" role="status">{conversationOpen
             ? (ended ? t('The memory is complete.') : t('Choose how to reply.'))
-            : describeTarget(target, world, revealed, artifactLabels, t)}</p>
+            : ended ? t('The memory is complete.') : describeTarget(target, world, revealed, artifactLabels, t)}</p>
           {overlay}
           <div className="walk-compass" ref={compass} hidden aria-hidden="true"><span className="walk-compass-needle" /><span /></div>
           <div className="walk-pad" aria-label="Touch movement controls">

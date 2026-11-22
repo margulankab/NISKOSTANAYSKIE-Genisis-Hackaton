@@ -26,6 +26,9 @@ import { navigate } from '../chrome/route';
 import { buildLore } from '../story/lore';
 import { DialogBox, QuestLog, useLoreFeed } from '../story/LoreHud';
 import { RevealMoment } from '../story/RevealMoment';
+import { SaveToLibrary } from '../story/SaveToLibrary';
+import { NowPlaying } from '../story/NowPlaying';
+import { songLabel } from '../music/song';
 import type { Moment } from '../story/RevealMoment';
 import { useImmersiveSession, FullscreenButton } from '../chrome/ImmersiveControls';
 
@@ -111,6 +114,8 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
       quote: end > start ? world.prompt.slice(start, end) : undefined, note: discoveryNotes?.[index] });
     setRevealed((previous) => previous.has(id) ? previous : new Set([...previous, id]));
   }, [revealed, discoveries, world, t, discoveryNotes]);
+  // The closing card's save: the finished visit, as Save Game would write it.
+  const keep = () => repository.saveGame(world, createCheckpoint(world, { position: position.current, revealed, ended: true, storyStep }), soundtrack);
   const finish = useCallback(() => {
     if (revealed.size < 2 || ended || storyStep) return;
     if (story) setStoryStep('dialogue');
@@ -170,7 +175,10 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
             <h3>{t('Memory complete')}</h3>
             <p>{story.npc.name}: {reply.answer}</p>
             <p>{story.closing}</p>
-            <button type="button" onClick={replay}>{t('Replay visit')}</button>
+            <div className="prompt-actions">
+              <SaveToLibrary save={keep} />
+              <button type="button" onClick={replay}>{t('Replay visit')}</button>
+            </div>
           </section>
         )}
         {staticMode && (
@@ -183,8 +191,10 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
                 <QuestLog lore={lore} title={t('Quests')} done={{
                   first: revealed.has(discoveries[0].placementId), second: revealed.has(discoveries[1].placementId), end: ended,
                 }} />
-                <DialogBox line={feed.line} left={feed.left} onNext={feed.next} hint={t('click to continue')} />
-                <RevealMoment moment={moment} />
+                {!storyStep && !ended && <DialogBox line={feed.line} left={feed.left} onNext={feed.next} hint={t('click to continue')} />}
+                {!storyStep && !ended && <RevealMoment moment={moment} />}
+                <NowPlaying playing={Boolean(activeAudio) && !paused && !storyStep && !ended}
+                  name={world.song ? songLabel(world.song) : soundtrack.record.kind === 'silent' ? undefined : soundtrack.record.title} />
                 <div className="hud-buttons">
                   <button type="button" className="hud-menu" onClick={() => { setMenuTab('game'); menu.open(); }} disabled={paused}>
                     <span aria-hidden="true">☰</span> {t('Menu')}
@@ -234,6 +244,7 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
             <div className="closing-card" role="status">
               <h3>{t('World complete')}</h3>
               <p>{world.title}</p>
+              <SaveToLibrary save={keep} />
               <button type="button" onClick={replay}>{t('Replay visit')}</button>
             </div>
           )}

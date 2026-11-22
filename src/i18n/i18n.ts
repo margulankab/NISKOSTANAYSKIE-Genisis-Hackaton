@@ -53,6 +53,11 @@ const ru: Record<string, string> = {
   'Film or game score': 'Музыка из кино или игр',
   'Something else': 'Другое',
   // In-world hints and object names
+  'Now playing': 'Сейчас играет',
+  'Saved to your library.': 'Сохранено в библиотеке.',
+  'Open library': 'Открыть библиотеку',
+  'Save to library': 'Сохранить в библиотеку',
+  'This browser could not save it. Try again from the menu.': 'Браузер не смог сохранить. Попробуйте ещё раз из меню.',
   'Desk': 'Стол',
   'Memory found · {count} of {total}': 'Найдено воспоминание · {count} из {total}',
   'Both found. The way out is open.': 'Оба найдены. Путь к выходу открыт.',

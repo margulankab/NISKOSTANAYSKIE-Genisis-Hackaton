@@ -13,6 +13,8 @@ import type { MenuTab } from '../world/PauseMenu';
 import { buildLore, firstSentence } from '../story/lore';
 import { DialogBox, QuestLog, useLoreFeed } from '../story/LoreHud';
 import { RevealMoment } from '../story/RevealMoment';
+import { SaveToLibrary } from '../story/SaveToLibrary';
+import { NowPlaying } from '../story/NowPlaying';
 import type { Moment } from '../story/RevealMoment';
 import { MusicPicker } from '../music/MusicApps';
 import { useT } from '../i18n/i18n';
@@ -57,7 +59,7 @@ function MemoryAudio({ id, resolveAsset, onActiveAudio, paused, autoPlay = false
   onActiveAudio: (player: HTMLAudioElement | null) => void;
 }) {
   const media = useAssetUrl(id, resolveAsset);
-  if (media.status === 'ready') return <AudioPlayer key={media.url} url={media.url} onActiveAudio={onActiveAudio} paused={paused} autoPlay={autoPlay} />;
+  if (media.status === 'ready') return <AudioPlayer key={media.url} url={media.url} loop onActiveAudio={onActiveAudio} paused={paused} autoPlay={autoPlay} />;
   if (media.status === 'error') return <p role="alert">The memory audio could not be opened.</p>;
   return <button type="button" className="play" disabled>Play soundtrack</button>;
 }
@@ -72,7 +74,7 @@ export function MemoryViewer(props: ViewerProps) {
   return <MemoryOpening key={props.manifest.id} {...props} />;
 }
 
-function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onComplete, game, entered = false }: ViewerProps) {
+function MemoryOpening({ manifest, entryText, world, song, trackName, resolveAsset, onComplete, game, entered = false }: ViewerProps) {
   const songTempo = song ? songCues(song) : null;
   useEffect(() => {
     setWorldAtmosphere(atmosphereFor({ timeOfDay: manifest.context.timeOfDay }));
@@ -167,8 +169,9 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
                 <QuestLog lore={lore} title={t('Quests')} done={{
                   first: revealed.has(manifest.artifacts[0].id), second: revealed.has(manifest.artifacts[1].id), end: complete,
                 }} />
-                <DialogBox line={feed.line} left={feed.left} onNext={feed.next} hint={t('click to continue')} />
-                <RevealMoment moment={moment} />
+                {!complete && <DialogBox line={feed.line} left={feed.left} onNext={feed.next} hint={t('click to continue')} />}
+                {!complete && <RevealMoment moment={moment} />}
+                <NowPlaying name={trackName} playing={Boolean(activeAudio) && !paused && !complete} />
                 {game && (
                   <div className="hud-buttons">
                     <button type="button" className="hud-menu" onClick={() => { setMenuTab('game'); pause.open(); }} disabled={paused}>
@@ -227,10 +230,13 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
           )}
           {complete && (
             <div className="closing-card" role="status">
-              <h3>Memory complete</h3>
+              <h3>{t('Memory complete')}</h3>
               <p>{manifest.title}</p>
               {manifest.artifacts[1].excerpt && <blockquote>{entryText.slice(manifest.artifacts[1].excerpt.start, manifest.artifacts[1].excerpt.end)}</blockquote>}
-              <button type="button" onClick={replay}>Replay visit</button>
+              <div className="prompt-actions">
+                {game && <SaveToLibrary save={() => game.save({ position: position.current, revealed, ended: true })} />}
+                <button type="button" onClick={replay}>{t('Replay visit')}</button>
+              </div>
             </div>
           )}
         </footer>
