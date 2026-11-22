@@ -43,7 +43,7 @@ describe('local memory generation', () => {
     expect(manifest).toMatchObject({ id: draft.entryId, schemaVersion: 1, rulesVersion: 1,
       context: { environment: 'park', timeOfDay: 'dusk' }, mood: { primary: 'nostalgic' },
       generation: { mode: 'rules', model: null, fallbackReason: null } });
-    expect(manifest.title).toBe('Remembering trees by the river');
+    expect(manifest.title).toBe('Remembering the trees by the river');
     const { start, end } = manifest.artifacts[1].excerpt!;
     expect(bundle.entryText).toBe(draft.entryText);
     expect(bundle.entryText.slice(start, end)).toBe('I remembered the trees by the river at dusk.');
@@ -82,7 +82,7 @@ describe('local memory generation', () => {
   it('builds safe titles from Unicode text, including a dated fallback for entries without usable words', async () => {
     const draft = makeDraft();
     const unicode = (await generateMemory({ ...draft, entryText: '../Café\\снег: 東京 | encore «déjà».' })).manifest;
-    expect(unicode.title).toBe('Remembering Café снег 東京 encore');
+    expect(unicode.title).toBe('Remembering Café снег 東京 encore déjà');
     expect(memoryTitleSchema.safeParse(unicode.title).success).toBe(true);
     expect(unicode.generation.fallbackReason).toBe('no-keyword-match');
     expect(unicode.mood.primary).toBe('mixed');
@@ -92,6 +92,17 @@ describe('local memory generation', () => {
     expect(fallback.title).toBe('Remembering The Day 2026-10-04');
     expect(memoryTitleSchema.safeParse(fallback.title).success).toBe(true);
     expect(fallback.artifacts[1].excerpt).toEqual({ start: 0, end: emoji.length });
+  });
+
+  it('titles end before a new clause and keep the article or the subject of a past-tense verb', async () => {
+    const draft = makeDraft();
+    const titleOf = async (entryText: string) => (await generateMemory({ ...draft, entryText })).manifest.title;
+    expect(await titleOf('We laughed by the gazebo when everyone finally reached the park.'))
+      .toBe('Remembering we laughed by the gazebo');
+    expect(await titleOf('I remembered the quiet kitchen as rain reached the garden.'))
+      .toBe('Remembering the quiet kitchen');
+    expect(await titleOf('The room before the call felt smaller than usual.'))
+      .toBe('Remembering the room before the call');
   });
 
   it('rejects an assembled bundle with invalid source or rights records', async () => {

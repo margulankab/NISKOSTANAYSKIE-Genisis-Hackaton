@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mentionsPerson } from '../src/world/compose-memory-story';
+import { composeSceneTemplate } from '../src/world/compose-scene-template';
+import { withMemoryStory } from '../src/world/compose-memory-story';
 import { buildLore, firstSentence } from '../src/story/lore';
 import { translate } from '../src/i18n/i18n';
 
@@ -45,5 +47,22 @@ describe('lore', () => {
 
   it('cuts long first sentences at 180 characters', () => {
     expect(firstSentence('word '.repeat(80)).length).toBeLessThanOrEqual(180);
+  });
+});
+
+describe('prompt story', () => {
+  const story = (prompt: string) => {
+    const result = withMemoryStory(composeSceneTemplate(prompt, { id: '9a65a38e-7d16-4b4d-88c9-227983d45f40' }));
+    if (!result.ok) throw new Error(result.reason);
+    return result.world.story!;
+  };
+
+  it('finds a Russian name in the accusative and returns it to the nominative', () => {
+    expect(story('Ночной парк у пруда, скамейка и фонарь. Я встретил Миру.').npc.name).toBe('Мира');
+  });
+
+  it('never names the same discovery twice in the opening', () => {
+    const { opening } = story('Ночной парк у пруда, скамейка и фонарь. Я встретил Миру.');
+    expect(opening).not.toMatch(/\b(\w+) and \1\b/);
   });
 });

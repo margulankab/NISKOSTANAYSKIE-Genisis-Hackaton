@@ -69,7 +69,7 @@ export function SongOfTheDay({ value, onChange, legend = 'Song of the day' }: {
         <label>{t('Style')}
           <select value={genre} onChange={event => setGenre(event.target.value)}>
             <option value="">{t('Not sure')}</option>
-            {Object.entries(songGenres).map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+            {Object.entries(songGenres).map(([key, name]) => <option key={key} value={key}>{t(name)}</option>)}
           </select>
         </label>
         <label>{t('Year')}<input value={year} inputMode="numeric" maxLength={4} pattern="\d{4}" onChange={event => setYear(event.target.value.replace(/\D/g, ''))} /></label>

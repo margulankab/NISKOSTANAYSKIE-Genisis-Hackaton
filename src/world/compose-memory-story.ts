@@ -6,7 +6,11 @@ import type { PromptWorld } from './world-schema';
 
 function localStory(world: PromptWorld) {
   // "met Mira", "with Nora", or a relation followed by a name ("my friend Aru", "моя подруга Аня").
+  // Russian "встретил Миру" names her in the accusative; turn -у/-ю back into -а/-я.
+  const russian = world.prompt.match(/(?:встретил|встретила|встретили)\s+([\p{Lu}][\p{L}'’-]{1,35})(?=\s|[.,!?]|$)/u)?.[1]
+    ?.replace(/у$/, 'а').replace(/ю$/, 'я');
   const name = world.prompt.match(/(?:\bwith|\bmet|\bnamed|\bcalled)\s+([\p{Lu}][\p{L}'’-]{1,35})(?=\s|[.,!?]|$)/u)?.[1]
+    ?? russian
     ?? world.prompt.match(/(?:friend|sister|brother|cousin|neighbou?r|друг|подруга|брат|сестра|сосед|соседка)\s+([\p{Lu}][\p{L}'’-]{1,35})(?=\s|[.,!?]|$)/u)?.[1];
   const isNight = world.interpretation.timeOfDay === 'night';
   const landmark = recipes[placementById(world.layout, world.layout.landmark.placementId).recipe].label;
@@ -32,7 +36,7 @@ function localStory(world: PromptWorld) {
     place,
     mood: moods.find(mood => words.has(mood)) ?? (scene?.mood === 'curious' ? 'calm' : scene?.mood) ?? (isNight ? 'subdued' : 'nostalgic'),
     npc: { name: name ?? role, outfit: isNight ? 'plum' : family === 'park' ? 'ochre' : 'sea' },
-    opening: `Take a walk around the ${place.toLowerCase()}. Stop at the ${first} and ${second} before meeting ${name ?? (role === 'A familiar face' ? 'the person waiting nearby' : 'the ' + role.toLowerCase())}.`,
+    opening: `Take a walk around the ${place.toLowerCase()}. Stop at the ${first} and ${second === first ? 'the other ' : ''}${second} before meeting ${name ?? (role === 'A familiar face' ? 'the person waiting nearby' : 'the ' + role.toLowerCase())}.`,
     firstDiscovery, secondDiscovery,
     greeting: `You made it to the ${landmark.toLowerCase()}. What will you take with you when you leave?`,
     firstReply: { choice: 'One small detail.', answer: 'Sometimes that is all it takes to find your way back here.' },

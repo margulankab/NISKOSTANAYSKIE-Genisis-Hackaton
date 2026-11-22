@@ -51,21 +51,22 @@ const sky = {
 } as const;
 const grounds = { grass: '#7f9f68', sand: '#d1bb8e', paved: '#9a8f84', floor: '#8d6b4c' };
 
-export function describeTarget(target: Target | null, world: StageWorld, revealed: ReadonlySet<string>, labels?: readonly [string, string]) {
-  const name = (id: string) => labelFor(world, id).toLowerCase();
+export function describeTarget(target: Target | null, world: StageWorld, revealed: ReadonlySet<string>, labels?: readonly [string, string],
+  t: (text: string, vars?: Record<string, string | number>) => string = (text, vars) => text.replace(/\{(\w+)\}/g, (m, k: string) => String(vars?.[k] ?? m))) {
+  const name = (id: string) => t(labelFor(world, id)).toLowerCase();
   if (!target) {
     const index = world.layout.discoveries.findIndex(({ placementId }) => !revealed.has(placementId));
-    if (index >= 0) return `Find the marked ${labels?.[index].toLowerCase() ?? name(world.layout.discoveries[index].placementId)}.`;
-    return world.story ? `Find ${world.story.npc.name} near the landmark.` : `Walk to the ${name(world.layout.landmark.placementId)}.`;
+    if (index >= 0) return t('Find the marked {thing}.', { thing: labels ? t(labels[index]).toLowerCase() : name(world.layout.discoveries[index].placementId) });
+    return world.story ? t('Find {name} near the landmark.', { name: world.story.npc.name }) : t('Walk to the {thing}.', { thing: name(world.layout.landmark.placementId) });
   }
   if (target.kind === 'ending') {
-    if (world.story) return target.ready ? `Press E to talk to ${world.story.npc.name}.` : 'Explore both objects before starting the conversation.';
+    if (world.story) return target.ready ? t('Press E to talk to {name}.', { name: world.story.npc.name }) : t('Explore both objects before starting the conversation.');
     const landmark = name(world.layout.landmark.placementId);
-    return target.ready ? `Press E at the ${landmark} to finish.` : `The ${landmark} opens once both discoveries are found.`;
+    return target.ready ? t('Press E at the {thing} to finish.', { thing: landmark }) : t('The {thing} opens once both discoveries are found.', { thing: landmark });
   }
   const id = world.layout.discoveries[target.index].placementId;
-  const label = labels?.[target.index].toLowerCase() ?? name(id);
-  return revealed.has(id) ? `The ${label} · already found` : `Press E to look at the ${label}.`;
+  const label = labels ? t(labels[target.index]).toLowerCase() : name(id);
+  return revealed.has(id) ? t('The {thing} · already found', { thing: label }) : t('Press E to look at the {thing}.', { thing: label });
 }
 
 /** A readable name for a placement, with the prompt's color word when it named one. */
@@ -616,8 +617,8 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
           {(view === 'first' || shiftLock) && <span className="walk-reticle" aria-hidden="true" />}
           {shiftLock && <p className="walk-shift-lock" role="status">{t('Shift lock on: the mouse turns the camera. Click to capture it, tap Shift to release.')}</p>}
           <p className="walk-prompt" role="status">{conversationOpen
-            ? (ended ? 'The memory is complete.' : 'Choose how to reply.')
-            : describeTarget(target, world, revealed, artifactLabels)}</p>
+            ? (ended ? t('The memory is complete.') : t('Choose how to reply.'))
+            : describeTarget(target, world, revealed, artifactLabels, t)}</p>
           {overlay}
           <div className="walk-compass" ref={compass} hidden aria-hidden="true"><span className="walk-compass-needle" /><span /></div>
           <div className="walk-pad" aria-label="Touch movement controls">

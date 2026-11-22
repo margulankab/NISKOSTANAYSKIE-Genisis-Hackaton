@@ -80,8 +80,8 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
   const discoveries = world.layout.discoveries;
   const lore = useMemo(() => buildLore({
     title: world.title,
-    discoveries: [labelFor(world, discoveries[0].placementId), labelFor(world, discoveries[1].placementId)],
-    landmark: labelFor(world, world.layout.landmark.placementId),
+    discoveries: [t(labelFor(world, discoveries[0].placementId)), t(labelFor(world, discoveries[1].placementId))],
+    landmark: t(labelFor(world, world.layout.landmark.placementId)),
     excerpts: [0, 1].map((index) => {
       const { start, end } = discoveries[index].excerpt;
       return end > start ? world.prompt.slice(start, end) : undefined;
@@ -230,8 +230,8 @@ export function GameSession({ world, initial, initialSoundtrack, autoStart = fal
         </footer>
         <details className="interpretation-details">
           <summary>{t('How this world was built')}</summary>
-          <p>{world.scene?.processing === 'gemini' ? 'Gemini planned this fictional scene.' : 'The scene was built privately on this device.'}
-            {story && ' The conversation is imagined.'}</p>
+          <p>{world.scene?.processing === 'gemini' ? t('Gemini planned this fictional scene.') : t('The scene was built privately on this device.')}
+            {story && t(' The conversation is imagined.')}</p>
           {story && (
             <>
               {story.originalPrompt !== world.prompt && <blockquote>{story.originalPrompt}</blockquote>}

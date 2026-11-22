@@ -8,7 +8,7 @@ import { createTestTone } from '../src/fixtures/test-tone';
 
 const firstEntry = 'I watched the last light drain from the river before walking home.';
 const secondEntry = 'I watched the last light drain from the river before catching the bus.';
-const title = 'Remembering last light drain';
+const title = 'Remembering the last light drain';
 const root = `${title}/`;
 const photoBytes = await readFile(new URL('../src/fixtures/media/nostalgic-park.png', import.meta.url));
 const otherPhotoBytes = await readFile(new URL('../src/fixtures/media/calm-city.png', import.meta.url));
