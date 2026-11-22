@@ -9,7 +9,10 @@ import type { MemoryViewerProps } from '../shared/memory-viewer';
 import { generateMemory } from './generate-memory';
 import { SongOfTheDay } from '../music/SongOfTheDay';
 import type { Song } from '../music/song';
+import { songLabel } from '../music/song';
 import { validateDayDraft } from './validate-day-draft';
+import { enterWorld } from '../chrome/immersive';
+import { useT } from '../i18n/i18n';
 import type { DayDraftInput, DraftErrors, ValidatedDayDraft } from './validate-day-draft';
 
 function localDate() {
@@ -31,12 +34,17 @@ export function CreateMemoryForm() {
   const [generationFailed, setGenerationFailed] = useState(false);
   const [preview, setPreview] = useState<{ bundle: DayBundle; viewer: MemoryViewerProps }>();
   const [song, setSong] = useState<Song | null>(null);
+  const [entered, setEntered] = useState(false);
+  const entry = useRef<HTMLTextAreaElement>(null);
+  const viewer = useRef<HTMLDivElement>(null);
+  const t = useT();
   useEffect(() => {
     if (!pending && Object.values(errors).some(Boolean)) form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
   }, [errors, pending]);
 
   function clearPreview() {
     setPreview(undefined);
+    setEntered(false);
     setGenerationFailed(false);
   }
 
@@ -91,38 +99,38 @@ export function CreateMemoryForm() {
 
   return (
     <section className="intake" data-win="day_memory.exe">
-      <h1>Create a memory</h1>
-      <p>Your entry and files stay in this browser. This draft lasts while the page is open.</p>
+      <h1>{t('Create a memory')}</h1>
+      <p>{t('Your entry and files stay in this browser. This draft lasts while the page is open.')}</p>
       <form ref={form} onSubmit={submit} noValidate aria-busy={Boolean(pending)}>
         <fieldset disabled={Boolean(pending)} aria-label="Memory details">
-          <label htmlFor="date">Date</label>
+          <label htmlFor="date">{t('Date')}</label>
           <input id="date" name="date" type="date" defaultValue={localDate()} required
             aria-invalid={Boolean(errors.date)} aria-describedby={errors.date ? 'date-error' : undefined}
             onChange={() => update('date')} />
           {errors.date && <p id="date-error" role="alert">{errors.date}</p>}
 
-          <label htmlFor="entry-text">What happened that day?</label>
-          <textarea id="entry-text" name="entryText" rows={6} minLength={20} maxLength={6000} required
+          <label htmlFor="entry-text">{t('What happened that day?')}</label>
+          <textarea ref={entry} id="entry-text" name="entryText" rows={6} minLength={20} maxLength={6000} required
             aria-invalid={Boolean(errors.entryText)}
             aria-describedby={errors.entryText ? 'entry-help entry-error' : 'entry-help'}
             onChange={() => update('entryText')} />
-          <p id="entry-help" className="form-help">20–6,000 characters.</p>
+          <p id="entry-help" className="form-help">{t('20–6,000 characters.')}</p>
           {errors.entryText && <p id="entry-error" role="alert">{errors.entryText}</p>}
 
-          <label htmlFor="photos">Photos</label>
+          <label htmlFor="photos">{t('Photos')}</label>
           <input id="photos" name="photos" type="file" multiple required
             accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
             aria-invalid={Boolean(errors.photos)} aria-describedby={errors.photos ? 'photos-help photos-error' : 'photos-help'}
             onChange={() => update('photos')} />
-          <p id="photos-help" className="form-help">1–3 JPEG, PNG, or WebP files. Up to 5 MiB and 16 megapixels each.</p>
+          <p id="photos-help" className="form-help">{t('1–3 JPEG, PNG, or WebP files. Up to 5 MiB and 16 megapixels each.')}</p>
           {errors.photos && <p id="photos-error" role="alert">{errors.photos}</p>}
 
-          <label htmlFor="audio">Audio excerpt</label>
+          <label htmlFor="audio">{t('Audio excerpt')}</label>
           <input id="audio" name="audio" type="file" required
             accept="audio/mpeg,audio/wav,audio/x-wav,.mp3,.wav"
             aria-invalid={Boolean(errors.audio)} aria-describedby={errors.audio ? 'audio-help audio-error' : 'audio-help'}
             onChange={() => update('audio')} />
-          <p id="audio-help" className="form-help">MP3 or WAV. 1–90 seconds, up to 10 MiB.</p>
+          <p id="audio-help" className="form-help">{t('MP3 or WAV. 1–90 seconds, up to 10 MiB.')}</p>
           {errors.audio && <p id="audio-error" role="alert">{errors.audio}</p>}
 
           <SongOfTheDay value={song} onChange={setSong} legend="Where to hear the song" />
@@ -132,31 +140,51 @@ export function CreateMemoryForm() {
               aria-invalid={Boolean(errors.hasPermission)}
               aria-describedby={errors.hasPermission ? 'permission-error' : undefined}
               onChange={() => update('hasPermission')} />
-            <span>I own or have permission to include, play, and export the selected media.</span>
+            <span>{t('I own or have permission to include, play, and export the selected media.')}</span>
           </label>
           {errors.hasPermission && <p id="permission-error" role="alert">{errors.hasPermission}</p>}
-          <button type="submit">{pending === 'validation' ? 'Checking files…' : 'Validate draft'}</button>
+          <button type="submit">{pending === 'validation' ? t('Checking files…') : t('Validate draft')}</button>
         </fieldset>
       </form>
-      {pending === 'validation' && <p role="status">Checking your photos and audio.</p>}
-      {failure && <p role="alert">The draft could not be checked. Try again in this browser.</p>}
+      {pending === 'validation' && <p role="status">{t('Checking your photos and audio.')}</p>}
+      {failure && <p role="alert">{t('The draft could not be checked. Try again in this browser.')}</p>}
       {draft && !preview && (
         <div className="draft-status">
           <p role="status">
-            {pending === 'generation' ? 'Generating your memory…'
-              : `Draft ready for ${draft.date}. ${draft.photos.length} ${draft.photos.length === 1 ? 'photo' : 'photos'} and one audio excerpt validated.`}
+            {pending === 'generation' ? t('Generating your memory…')
+              : t(draft.photos.length === 1 ? 'Draft ready for {date}. {count} photo and one audio excerpt validated.' : 'Draft ready for {date}. {count} photos and one audio excerpt validated.', { date: draft.date, count: draft.photos.length })}
           </p>
-          {generationFailed && <p role="alert">The memory could not be generated. Retry or choose a different photo.</p>}
+          {generationFailed && <p role="alert">{t('The memory could not be generated. Retry or choose a different photo.')}</p>}
           <button type="button" disabled={Boolean(pending)} onClick={generate}>
-            {generationFailed ? 'Retry generation' : 'Generate memory'}
+            {generationFailed ? t('Retry generation') : t('Generate memory')}
           </button>
         </div>
       )}
       {preview && (
         <div className="generated-memory">
           <p role="status">{preview.bundle.manifest.generation.fallbackReason === 'no-keyword-match'
-            ? 'Local draft with neutral mood and setting.' : 'Memory preview ready.'}</p>
-          <MemoryViewer {...preview.viewer} game={{ save: (progress) => saveDayProgress(preview.bundle, progress) }} />
+            ? t('Local draft with neutral mood and setting.') : t('Memory preview ready.')}</p>
+          {!entered && (
+            <div className="prompt-actions">
+              <button type="button" className="enter-world" onClick={() => {
+                const { manifest } = preview.bundle;
+                enterWorld({
+                  words: preview.viewer.entryText, title: manifest.title, from: entry.current,
+                  lines: [
+                    t('reading your words'),
+                    t('placing {count} objects', { count: manifest.artifacts.length + manifest.photos.length }),
+                    t('tuning soundtrack: {track}', { track: preview.bundle.song ? songLabel(preview.bundle.song) : manifest.date }),
+                    t('opening the world'),
+                  ],
+                });
+                setEntered(true);
+                requestAnimationFrame(() => viewer.current?.scrollIntoView({ block: 'start' }));
+              }}>{t('Enter world')}</button>
+            </div>
+          )}
+          <div ref={viewer} className="entered-viewer">
+            <MemoryViewer {...preview.viewer} entered={entered} game={{ save: (progress) => saveDayProgress(preview.bundle, progress) }} />
+          </div>
           <MemoryActions bundle={preview.bundle} />
         </div>
       )}

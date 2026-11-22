@@ -6,3 +6,8 @@ const pixelOf = () => readSettings().pixel;
 export function useStageDpr(): [number, number] {
   return useSyncExternalStore(subscribeToSettings, pixelOf) ? [0.5, 0.5] : [1, 1.5];
 }
+
+/** Whether the pixel filter is on. */
+export function usePixel() {
+  return useSyncExternalStore(subscribeToSettings, pixelOf);
+}

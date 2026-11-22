@@ -17,10 +17,27 @@ const settingsSchema = z.strictObject({
   reducedMotion: z.enum(['system', 'on', 'off']),
   // Added later: defaults keep settings saved by earlier versions valid.
   theme: z.enum(['auto', ...atmosphereIds]).default('auto'),
-  pixel: z.boolean().default(true),
+  pixel: z.boolean().default(false),
+  lang: z.enum(['en', 'ru']).default('en'),
+  /** Start the world's cleared soundtrack when the player enters a world. */
+  autoplay: z.boolean().default(true),
+  /** Switch the page to full screen when the player enters a world. */
+  fullscreen: z.boolean().default(true),
+  /** Camera in walkable worlds: through the walker's eyes, or behind them. */
+  view: z.enum(['first', 'third']).default('first'),
+  /** Toon bands, ink outlines, hatching and paper grain on 3D worlds. */
+  ink: z.boolean().default(true),
+  /** Look speed for mouse, touch and shift lock. */
+  sensitivity: z.number().min(0.4).max(2.5).default(1),
+  /** First-person lens in degrees. */
+  fov: z.number().min(55).max(95).default(68),
+  /** Weight of the ink outlines. */
+  inkWeight: z.enum(['fine', 'medium', 'bold']).default('medium'),
+  /** Interface text size in percent. */
+  textScale: z.number().min(90).max(130).default(100),
 });
 export type Settings = z.infer<typeof settingsSchema>;
-const defaults: Settings = { volume: 0.8, reducedMotion: 'system', theme: 'auto', pixel: true };
+const defaults: Settings = { volume: 0.8, reducedMotion: 'system', theme: 'auto', pixel: false, lang: 'en', autoplay: true, fullscreen: true, view: 'first', ink: true, sensitivity: 1, fov: 68, inkWeight: 'medium', textScale: 100 };
 const listeners = new Set<() => void>();
 
 export function readSettings(): Settings {
@@ -77,6 +94,8 @@ export function applyAppearance() {
   root.dataset.ui = effectiveAtmosphere(settings);
   root.dataset.motion = settings.reducedMotion === 'on' ? 'off' : settings.reducedMotion === 'off' ? 'on' : 'system';
   root.dataset.pixel = settings.pixel ? 'on' : 'off';
+  root.lang = settings.lang;
+  root.style.setProperty('--text-scale', String(settings.textScale / 100));
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', getComputedStyle(root).getPropertyValue('--bg').trim() || '#070a07');
 }

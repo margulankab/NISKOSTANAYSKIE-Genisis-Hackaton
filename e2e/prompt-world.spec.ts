@@ -13,7 +13,8 @@ async function pause(page: Page) {
 }
 
 test('AT-25: start from the title menu, save mid-visit, Continue, finish, Save & Quit and Load Game', async ({ page }, testInfo) => {
-  test.setTimeout(60_000);
+  // Larger worlds and the lore HUD: the full visit runs close to a minute with two browsers at once.
+  test.setTimeout(120_000);
   await page.goto('/');
   await expect(page.getByText('No saved game yet')).toBeVisible();
   await startPromptGame(page, lighthouse);
@@ -191,7 +192,8 @@ for (const [name, prompt, track] of [
   ['mixed world', 'A quiet kitchen with a wooden table, then a garden with two oak trees and a carousel beyond the house.', 'still-rooms'],
 ]) {
   test(`AT-23/24: walks both discoveries and the ending in a ${name}`, async ({ page }, testInfo) => {
-    test.setTimeout(60_000);
+    // Outdoor worlds are larger since 2026-11-21, so the full walk takes longer under software rendering.
+    test.setTimeout(120_000);
     await startPromptGame(page, prompt);
     await expect(page.getByLabel('Soundtrack', { exact: true })).toHaveValue(track);
     await captureScene(page.getByRole('region', { name: 'Prompt world' }).locator('canvas'), testInfo.outputPath('generated-world.png'));

@@ -19,6 +19,24 @@ Outdoor worlds are about four times larger than before: the walk starts on the a
 
 **Song of the day.** In **From a prompt** and **Create a memory**, paste a link from Spotify, Apple Music, YouTube Music, Yandex Music, SoundCloud, Deezer, TIDAL, Bandcamp or VK. You can add the artist, song, style and year, or press **Tap the beat** while the song plays in your music app. The world picks its cleared in-game score from those details, and lanterns pulse at the song's tempo. **Open in …** takes you back to your app. The link is stored without its sharing code, and nothing is sent to the music service.
 
+**Playing.** **Build world** turns your description into a world. Mention someone ("I met Mira", "with my friend Aru") and they wait at the end with a short conversation. **Enter world** animates straight into full screen. A quest log tracks the two discoveries and the way out, and narrator lines quote your own words. **Esc** (or **☰ Menu** in the world) opens the game menu in the middle of the screen, with tabs for Game, Journal, Music and Settings.
+
+**Music from your apps.** **♫ Music** (in the header, or the menu's Music tab) opens Spotify, SoundCloud, Apple Music and YouTube Music. Search opens the app; paste a link and press **Play here** to play it in the app's own player. The game's music pauses meanwhile. Nothing loads from the app until you press **Play here**. Some hosts, including the claude.ai page, block embedded players; use the local app or the one-file version for this.
+
+**Controls.** WASD to walk, and drag or ← / → to look. Tap **Shift** for shift lock, where the mouse turns the camera (click to capture the cursor). Hold **Shift** while walking to run. **E** or **Space** interacts, **V** switches between first and third person, and **Esc** pauses. In full screen the world stays fixed and only the side panel scrolls. **Settings → Customize** sets the field of view, look sensitivity, ink line weight and text size.
+
+**Memory library.** **Library** in the header shows every world and day saved in this browser next to the five example days, with filters. Archive (import and export) and Create a memory are on the same page.
+
+**One-file version.** `npm run build:single` writes `dist-web/memory-worlds.html`, the whole game in one file that opens from disk or any web host.
+
+**First person and the ink look.** Worlds open through the walker's eyes. Drag on the world, or hold ← / →, to look around, and walk with WASD. Press **V** (or the toolbar button) for the over-the-shoulder camera. Worlds are drawn with toon shading, ink outlines and hatching. Both can be changed in **Settings → Camera**. On slower devices, the first seconds of a world measure the frame rate and lower the render resolution if needed.
+
+**Play online.** `npm run build:web` writes a static copy to `dist-web/` that works from any static host or sub-folder, using routes such as `#examples` and `#new--prompt`. The included GitHub Pages workflow publishes it on every push to `main`, once a repository admin sets **Settings → Pages → Source** to **GitHub Actions**.
+
+**Entering a world.** **Enter world** carries your words into a short transition and switches to full screen. The world's soundtrack then starts by itself. Press **Exit full screen** or Esc to return to the window; Esc in full screen also pauses the game. Turn either behaviour off in **Settings → Entering a world**. Songs from music apps are only linked: the game plays its cleared score, an authorized upload or your day's own audio.
+
+**Language.** Switch between English and Russian with **EN / RU** in the header or in **Settings**. Russian descriptions such as «Ночной парк у пруда» also set the time of day and weather.
+
 **Atmospheres.** Use **◐ View** in the header, or **Settings**, to choose GENESIS, Nebula, Daylight or Fog. With **Auto**, the interface follows the time of day and weather of the world you are in. The pixel filter renders 3D worlds at half resolution for the retro look, and it is also lighter on older devices.
 
 Choose **World preview** to orbit the foggy cove or covered night market and try the local soundtracks. Use the landmark buttons to inspect the route and **Overview** to reset the camera. Track choices and mute carry through world switches until you leave the page. These curated examples preview content for the planned prompt-generated game.
@@ -46,6 +64,12 @@ The build writes static output to `dist/`. The browser tests use an installed Mi
 Build the local case artifacts with `node scripts/package-case.mjs` after `npm run build`. The script uses Microsoft Edge and FFmpeg and writes into the ignored `submission-output/` folder. [Case package and verification](docs/submission.md).
 
 The [Egypt demo](egypt-demo.local/README.md) runs as a separate development preview. The production build uses the main application entry point.
+
+## Contributors
+
+- [margulankab](https://github.com/margulankab)
+- [Hacksutates](https://github.com/Hacksutates)
+- [eld1kz](https://github.com/eld1kz) (Eldar Ugay): Developer B: prompt-built worlds, title and pause menus, local game saves
 
 ## Zero-cost decision — 2026-11-21
 

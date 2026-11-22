@@ -54,17 +54,16 @@ test('AT-27: both prompt actions use the scene planner and failures require an e
   await expect(page.getByText('Planned with Gemini')).toBeVisible();
   await expect(page.getByText(/In the scene.*Pool basin/)).toBeVisible();
   await expect(page.getByText(/Written locally/)).toHaveCount(0);
-  await page.getByRole('button', { name: 'Build memory' }).click();
-  await expect(page.getByText('Planned with Gemini')).toBeVisible();
-  await expect(page.getByText(/Written locally/)).toBeVisible();
+  // One build button now: a description that names someone gets the written conversation.
   status = 429;
-  await page.getByRole('button', { name: 'Build memory' }).click();
+  await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByRole('alert')).toContainText('quota');
   await expect(page.getByRole('button', { name: 'Enter world' })).toHaveCount(0);
   await expect(description).toHaveValue('water park');
   await page.getByRole('button', { name: 'Build privately' }).click();
   await expect(page.getByText('Built privately')).toBeVisible();
-  expect(requests).toBe(3);
+  // Two planner calls now: the first build and the failed retry (one build button since 2026-11-22).
+  expect(requests).toBe(2);
 });
 
 test('edits cancel late plans and the main navigation confirms unsaved exits', async ({ page }) => {
@@ -87,10 +86,10 @@ test('edits cancel late plans and the main navigation confirms unsaved exits', a
   await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByText('Built privately')).toBeVisible();
   await page.getByRole('button', { name: 'Enter world' }).click();
-  await page.getByRole('link', { name: 'Archive', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Library' }).click();
   await expect(page.getByRole('dialog', { name: 'Leave without saving?' })).toBeVisible();
   await page.getByRole('button', { name: 'Save and leave' }).click();
-  await expect(page).toHaveURL(/\/archive$/);
+  await expect(page).toHaveURL(/\/library$/);
 });
 
 test('five fictional jury examples have thumbnails and refreshable links', async ({ page }, info) => {

@@ -21,7 +21,11 @@ import { placementHeight, placementSolids, recipes, sceneryPlacement } from './r
 import { routeTo } from './route';
 import { StoryCharacter } from './StoryCharacter';
 import { WorldPhotoFrame } from './WorldPhotoFrame';
-import { useStageDpr } from '../chrome/use-pixel';
+import { useT } from '../i18n/i18n';
+import { toggleView, useInk, useTuning, useView } from '../chrome/use-view';
+import { InkLook } from '../scene/InkLook';
+import { AdaptiveResolution, useRenderScale } from '../chrome/AdaptiveResolution';
+import { usePixel } from '../chrome/use-pixel';
 import { placementById, toWalkLayout } from './world-schema';
 import type { PromptWorld } from './world-schema';
 
@@ -30,6 +34,11 @@ type StageAudio = { activeAudio: HTMLAudioElement | null; music?: MemoryScene['m
 const NO_EXCLUSIONS: readonly RecipeId[] = [];
 
 const CAMERA = { y: 5.2, z: 6.4, ahead: 2 };
+/** First person: eye height, look limits and drag sensitivity. */
+const EYE = { y: 1.55, maxPitch: 0.62, dragYaw: 0.0055, dragPitch: 0.0042, turnSpeed: 2.1, bob: 0.035 };
+export interface Look { yaw: number; pitch: number; turn: number; orbit: number; zoom: number }
+/** Third-person orbit: elevation above the walker and distance, around the original framing. */
+const ORBIT = { base: Math.atan2(CAMERA.y, CAMERA.z), distance: Math.hypot(CAMERA.y, CAMERA.z), min: 0.1, max: 1.4, minZoom: 0.45, maxZoom: 2.2 };
 const KEYS: Record<string, Point> = {
   w: { x: 0, z: -1 }, arrowup: { x: 0, z: -1 }, s: { x: 0, z: 1 }, arrowdown: { x: 0, z: 1 },
   a: { x: -1, z: 0 }, arrowleft: { x: -1, z: 0 }, d: { x: 1, z: 0 }, arrowright: { x: 1, z: 0 },
@@ -40,23 +49,24 @@ const sky = {
   dusk: { background: '#5d4a5f', light: '#ffb27a', ambient: 0.6, sun: 1.4 },
   night: { background: '#151c2b', light: '#9db4e0', ambient: 0.35, sun: 0.55 },
 } as const;
-const grounds = { grass: '#5f7a4b', sand: '#b8a57f', paved: '#7f766e', floor: '#7b5f45' };
+const grounds = { grass: '#7f9f68', sand: '#d1bb8e', paved: '#9a8f84', floor: '#8d6b4c' };
 
-export function describeTarget(target: Target | null, world: StageWorld, revealed: ReadonlySet<string>, labels?: readonly [string, string]) {
-  const name = (id: string) => labelFor(world, id).toLowerCase();
+export function describeTarget(target: Target | null, world: StageWorld, revealed: ReadonlySet<string>, labels?: readonly [string, string],
+  t: (text: string, vars?: Record<string, string | number>) => string = (text, vars) => text.replace(/\{(\w+)\}/g, (m, k: string) => String(vars?.[k] ?? m))) {
+  const name = (id: string) => t(labelFor(world, id)).toLowerCase();
   if (!target) {
     const index = world.layout.discoveries.findIndex(({ placementId }) => !revealed.has(placementId));
-    if (index >= 0) return `Find the marked ${labels?.[index].toLowerCase() ?? name(world.layout.discoveries[index].placementId)}.`;
-    return world.story ? `Find ${world.story.npc.name} near the landmark.` : `Walk to the ${name(world.layout.landmark.placementId)}.`;
+    if (index >= 0) return t('Find the marked {thing}.', { thing: labels ? t(labels[index]).toLowerCase() : name(world.layout.discoveries[index].placementId) });
+    return world.story ? t('Find {name} near the landmark.', { name: world.story.npc.name }) : t('Walk to the {thing}.', { thing: name(world.layout.landmark.placementId) });
   }
   if (target.kind === 'ending') {
-    if (world.story) return target.ready ? `Press E to talk to ${world.story.npc.name}.` : 'Explore both objects before starting the conversation.';
+    if (world.story) return target.ready ? t('Press E to talk to {name}.', { name: world.story.npc.name }) : t('Explore both objects before starting the conversation.');
     const landmark = name(world.layout.landmark.placementId);
-    return target.ready ? `Press E at the ${landmark} to finish.` : `The ${landmark} opens once both discoveries are found.`;
+    return target.ready ? t('Press E at the {thing} to finish.', { thing: landmark }) : t('The {thing} opens once both discoveries are found.', { thing: landmark });
   }
   const id = world.layout.discoveries[target.index].placementId;
-  const label = labels?.[target.index].toLowerCase() ?? name(id);
-  return revealed.has(id) ? `The ${label} · already found` : `Press E to look at the ${label}.`;
+  const label = labels ? t(labels[target.index]).toLowerCase() : name(id);
+  return revealed.has(id) ? t('The {thing} · already found', { thing: label }) : t('Press E to look at the {thing}.', { thing: label });
 }
 
 /** A readable name for a placement, with the prompt's color word when it named one. */
@@ -68,7 +78,9 @@ export function labelFor(world: StageWorld, placementId: string) {
 }
 
 function WorldScene({ world, layout, revealed, ended, position, input, playerGroup, hud, compass, onTarget, paused,
-  conversationOpen, audio }: {
+  conversationOpen, audio, view, look }: {
+  view: 'first' | 'third';
+  look: RefObject<Look>;
   world: StageWorld;
   audio?: StageAudio;
   layout: WalkLayout;
@@ -116,39 +128,83 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
   const ready = revealed.size >= 2;
   const discoveryIds = world.layout.discoveries.map(({ placementId }) => placementId);
 
+  const firstPerson = view === 'first';
+  const stride = useRef(0);
   useEffect(() => {
     const { x, z } = position.current;
-    camera.position.set(x, CAMERA.y, z + CAMERA.z);
-    camera.lookAt(x, 0.6, z - CAMERA.ahead);
-  }, [camera, position]);
+    camera.rotation.order = 'YXZ';
+    if (firstPerson) {
+      camera.position.set(x, EYE.y, z);
+      camera.rotation.set(look.current.pitch, look.current.yaw, 0);
+    } else {
+      camera.position.set(x, CAMERA.y, z + CAMERA.z);
+      camera.lookAt(x, 0.6, z - CAMERA.ahead);
+    }
+  }, [camera, position, firstPerson, look]);
 
   useFrame((_, dt) => {
-    const next = paused ? position.current : stepPlayer(position.current, input.current, dt, layout);
+    const view = look.current;
+    if (!paused && view.turn) view.yaw += view.turn * EYE.turnSpeed * Math.min(dt, 0.1);
+    // WASD move relative to where the walker looks (yaw 0 looks toward -z, the original axes).
+    const raw = input.current;
+    const sin = Math.sin(view.yaw), cos = Math.cos(view.yaw);
+    const moving = { x: cos * raw.x + sin * raw.z, z: -sin * raw.x + cos * raw.z, run: raw.run };
+    const before = position.current;
+    const next = paused ? before : stepPlayer(before, moving, dt, layout);
     position.current = next;
     playerGroup.current?.position.set(next.x, 0, next.z);
+    if (playerGroup.current) {
+      playerGroup.current.visible = !firstPerson;
+      playerGroup.current.rotation.y = view.yaw;
+    }
     const k = reducedMotion ? 1 : 1 - Math.exp(-dt * 6);
     conversationBlend.current += (Number(conversationOpen) - conversationBlend.current) * k;
     const blend = conversationBlend.current;
-    const focusX = next.x + (layout.landmark.x - next.x) * blend;
-    const focusZ = next.z + (layout.landmark.z - next.z) * blend;
-    const wantedY = CAMERA.y + (1.9 - CAMERA.y) * blend;
-    const wantedZ = CAMERA.z + (3.4 - CAMERA.z) * blend;
-    let clearance = 1;
-    for (let t = .15; t < 1 && cameraBlockers.length; t += .06) {
-      const sampleY = .85 + (wantedY - .85) * t;
-      const sampleZ = focusZ + wantedZ * t;
-      if (cameraBlockers.some(({ solid, height }) => sampleY < height + .18 &&
-        (solid.shape === 'circle' ? Math.hypot(focusX - solid.x, sampleZ - solid.z) < solid.radius + .12
-          : Math.abs(focusX - solid.x) < solid.halfX + .12 && Math.abs(sampleZ - solid.z) < solid.halfZ + .12))) {
-        clearance = Math.max(.17, t - .08);
-        break;
-      }
+    // During a conversation the walker turns to face the character.
+    if (blend > 0.001 && conversationOpen) {
+      const toward = Math.atan2(-(layout.landmark.x - next.x), -(layout.landmark.z - next.z));
+      let delta = toward - view.yaw;
+      delta = Math.atan2(Math.sin(delta), Math.cos(delta));
+      view.yaw += delta * k;
+      if (firstPerson) view.pitch += (-0.08 - view.pitch) * k;
     }
-    const cameraK = clearance < 1 ? 1 : k;
-    camera.position.x += (focusX - camera.position.x) * cameraK;
-    camera.position.y += (.85 + (wantedY - .85) * clearance - camera.position.y) * cameraK;
-    camera.position.z += (focusZ + wantedZ * clearance - camera.position.z) * cameraK;
-    camera.lookAt(camera.position.x, 0.6 + 0.16 * blend, focusZ - CAMERA.ahead * (1 - blend));
+    if (firstPerson) {
+      const walked = Math.hypot(next.x - before.x, next.z - before.z);
+      stride.current = walked > 0 && !reducedMotion ? stride.current + walked * 3.1 : 0;
+      camera.position.set(next.x, EYE.y + Math.abs(Math.sin(stride.current)) * EYE.bob, next.z);
+      camera.rotation.set(view.pitch, view.yaw, 0);
+    } else {
+      // Over the shoulder: the camera sits behind the walker along the look direction.
+      const behindX = Math.sin(view.yaw), behindZ = Math.cos(view.yaw);
+      const focusX = next.x + (layout.landmark.x - next.x) * blend;
+      const focusZ = next.z + (layout.landmark.z - next.z) * blend;
+      // 360° orbit: yaw circles the walker, orbit raises or lowers the camera, zoom moves it in or out.
+      const elevation = Math.max(ORBIT.min, Math.min(ORBIT.max, ORBIT.base + view.orbit));
+      const reach = ORBIT.distance * view.zoom;
+      const orbitY = view.orbit === 0 && view.zoom === 1 ? CAMERA.y : Math.sin(elevation) * reach;
+      const orbitZ = view.orbit === 0 && view.zoom === 1 ? CAMERA.z : Math.cos(elevation) * reach;
+      const wantedY = orbitY + (1.9 - orbitY) * blend;
+      const wantedZ = orbitZ + (3.4 - orbitZ) * blend;
+      let clearance = 1;
+      for (let t = .15; t < 1 && cameraBlockers.length; t += .06) {
+        const sampleY = .85 + (wantedY - .85) * t;
+        const sampleX = focusX + behindX * wantedZ * t;
+        const sampleZ = focusZ + behindZ * wantedZ * t;
+        if (cameraBlockers.some(({ solid, height }) => sampleY < height + .18 &&
+          (solid.shape === 'circle' ? Math.hypot(sampleX - solid.x, sampleZ - solid.z) < solid.radius + .12
+            : Math.abs(sampleX - solid.x) < solid.halfX + .12 && Math.abs(sampleZ - solid.z) < solid.halfZ + .12))) {
+          clearance = Math.max(.17, t - .08);
+          break;
+        }
+      }
+      const cameraK = clearance < 1 ? 1 : k;
+      const wantX = focusX + behindX * wantedZ * clearance;
+      camera.position.x += (wantX - camera.position.x) * cameraK;
+      camera.position.y += (.85 + (wantedY - .85) * clearance - camera.position.y) * cameraK;
+      camera.position.z += (focusZ + behindZ * wantedZ * clearance - camera.position.z) * cameraK;
+      const lead = CAMERA.ahead * (1 - blend);
+      camera.lookAt(camera.position.x - wantX + focusX - behindX * lead, 0.6 + 0.16 * blend, focusZ - behindZ * lead);
+    }
     const target = targetAt(next, layout, revealedCount.current, discoveryIds.map(id => revealed.has(id)));
     const key = target ? target.kind + ('index' in target ? target.index : target.ready) : '';
     if (key !== lastKey.current) {
@@ -163,7 +219,7 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
       const goal = conversationOpen || ended ? null : nextIndex >= 0 ? layout.artifacts[nextIndex] : layout.landmark;
       const distance = goal ? Math.hypot(goal.x - next.x, goal.z - next.z) : 0;
       const text = goal && distance > layout.reach + 1.2
-        ? `${Math.round(Math.atan2(goal.x - next.x, next.z - goal.z) * 180 / Math.PI / 5) * 5}|${Math.round(distance)}` : '';
+        ? `${Math.round((Math.atan2(goal.x - next.x, next.z - goal.z) + view.yaw) * 180 / Math.PI / 5) * 5}|${Math.round(distance)}` : '';
       if (text !== compassText.current) {
         compassText.current = text;
         box.hidden = !text;
@@ -254,6 +310,33 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
           <icosahedronGeometry args={[0.17, 0]} />
           <meshStandardMaterial color="#f1dcb8" flatShading />
         </mesh>
+        {/* Walker details: knitted cap, scarf, a small backpack (toward the camera) and two boots. */}
+        <mesh position={[0, 1.1, 0]}>
+          <coneGeometry args={[0.16, 0.2, 7]} />
+          <meshStandardMaterial color="#c2453a" flatShading roughness={0.9} />
+        </mesh>
+        <mesh position={[0, 1.21, 0]}>
+          <icosahedronGeometry args={[0.045, 0]} />
+          <meshStandardMaterial color="#f3ead6" flatShading />
+        </mesh>
+        <mesh position={[0, 0.8, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.15, 0.045, 5, 10]} />
+          <meshStandardMaterial color="#2f6f73" flatShading roughness={0.9} />
+        </mesh>
+        <mesh position={[0, 0.55, 0.2]}>
+          <boxGeometry args={[0.28, 0.32, 0.14]} />
+          <meshStandardMaterial color="#5b4a8a" flatShading roughness={0.85} />
+        </mesh>
+        <mesh position={[0, 0.6, 0.275]}>
+          <boxGeometry args={[0.2, 0.1, 0.02]} />
+          <meshStandardMaterial color="#9be14b" flatShading />
+        </mesh>
+        {[-0.09, 0.09].map((x) => (
+          <mesh key={x} position={[x, 0.05, -0.03]}>
+            <boxGeometry args={[0.12, 0.1, 0.2]} />
+            <meshStandardMaterial color="#3b2f26" flatShading />
+          </mesh>
+        ))}
       </group>
     </>
   );
@@ -285,9 +368,23 @@ function Room({ area, door, whole }: { area: WalkLayout['bounds']; door: { x: nu
   );
 }
 
+/** Switch lens with the view: wider and closer in first person. */
+function FieldOfView({ view, fov }: { view: 'first' | 'third'; fov: number }) {
+  const camera = useThree(({ camera: c }) => c);
+  useEffect(() => {
+    if (!('fov' in camera)) return;
+    camera.fov = view === 'first' ? fov : 50;
+    camera.near = view === 'first' ? 0.05 : 0.1;
+    camera.updateProjectionMatrix();
+  }, [camera, view, fov]);
+  return null;
+}
+
 /** Walkable view of a prompt world. Movement and targeting come from A's controller. */
 export function WorldStage({ world, revealed, ended, position, paused, onReveal, onFinish, onUnavailable,
-  audio, areaLabel = 'Prompt world', artifactLabels, conversationOpen = false }: {
+  audio, areaLabel = 'Prompt world', artifactLabels, conversationOpen = false, overlay }: {
+  /** Game HUD drawn over the world (quest log, dialog, menu button). */
+  overlay?: React.ReactNode;
   world: StageWorld;
   audio?: StageAudio;
   areaLabel?: string;
@@ -301,6 +398,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
   onFinish: () => void;
   onUnavailable: () => void;
 }) {
+  const t = useT();
   const [layout] = useState(() => {
     const walk = toWalkLayout(world.layout);
     if (!world.story || world.layout.approaches) return walk;
@@ -314,13 +412,30 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
   const compass = useRef<HTMLDivElement | null>(null);
   const running = useRef(false);
   const [target, setTarget] = useState<Target | null>(null);
+  const view = useView();
+  const ink = useInk();
+  const look = useRef<Look>({ yaw: 0, pitch: -0.12, turn: 0, orbit: 0, zoom: 1 });
+  const turning = useRef(new Set<string>());
+  const drag = useRef<{ id: number; x: number; y: number } | null>(null);
+  const tuning = useTuning();
+  const sensitivity = useRef(tuning.sensitivity);
+  sensitivity.current = tuning.sensitivity;
+  // Shift lock: a quick tap of Shift turns mouse-look on or off; holding Shift while walking runs.
+  const [shiftLock, setShiftLock] = useState(false);
+  const shiftLockRef = useRef(shiftLock);
+  shiftLockRef.current = shiftLock;
+  const shiftTap = useRef<{ at: number; used: boolean } | null>(null);
+  const stageBox = useRef<HTMLDivElement | null>(null);
 
   const sync = useCallback(() => {
     let x = 0, z = 0;
     for (const d of held.current.values()) { x += d.x; z += d.z; }
     input.current = { x: Math.sign(x), z: Math.sign(z), run: running.current };
   }, []);
-  const release = useCallback(() => { held.current.clear(); running.current = false; sync(); }, [sync]);
+  const release = useCallback(() => {
+    held.current.clear(); turning.current.clear(); look.current.turn = 0; running.current = false; drag.current = null;
+    shiftTap.current = null; sync();
+  }, [sync]);
 
   const interact = useCallback(() => {
     const t = targetAt(position.current, layout, revealed.size, world.layout.discoveries.map(({ placementId }) => revealed.has(placementId)));
@@ -330,6 +445,78 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
   }, [world, paused, onFinish, onReveal, position, layout, revealed]);
   const interactRef = useRef(interact);
   interactRef.current = interact;
+  const viewRef = useRef(view);
+  viewRef.current = view;
+
+  // Drag on the world (mouse or finger) to look around in first person.
+  const turnBy = useCallback((dx: number, dy: number) => {
+    const view = look.current;
+    const speed = sensitivity.current;
+    // Cap single jumps (the pointer entering the view, a lagging frame) so the camera never snaps.
+    dx = Math.max(-80, Math.min(80, dx));
+    dy = Math.max(-80, Math.min(80, dy));
+    view.yaw -= dx * EYE.dragYaw * speed;
+    if (viewRef.current === 'first') view.pitch = Math.max(-EYE.maxPitch, Math.min(EYE.maxPitch, view.pitch - dy * EYE.dragPitch * speed));
+    else view.orbit = Math.max(ORBIT.min - ORBIT.base, Math.min(ORBIT.max - ORBIT.base, view.orbit + dy * EYE.dragPitch * speed));
+  }, []);
+  const lookHandlers = !paused ? {
+    onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => {
+      const canvas = event.currentTarget.querySelector('canvas');
+      if (event.target !== canvas) return;
+      // In shift lock a click on the world captures the cursor, so turning never hits the screen edge.
+      if (shiftLockRef.current && event.pointerType === 'mouse') {
+        if (document.pointerLockElement !== canvas) void Promise.resolve(canvas?.requestPointerLock?.()).catch(() => {});
+        return;
+      }
+      drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    },
+    onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => {
+      if (shiftLockRef.current && event.pointerType === 'mouse') { turnBy(event.movementX, event.movementY); return; }
+      const from = drag.current;
+      if (!from || from.id !== event.pointerId) return;
+      turnBy(event.clientX - from.x, event.clientY - from.y);
+      drag.current = { ...from, x: event.clientX, y: event.clientY };
+    },
+    onPointerUp: () => { drag.current = null; },
+    onPointerCancel: () => { drag.current = null; },
+  } : {};
+
+  // Leaving shift lock (or pausing) frees the cursor; the browser freeing it (Esc) ends shift lock.
+  useEffect(() => {
+    if ((!shiftLock || paused) && document.pointerLockElement) document.exitPointerLock();
+    if (paused && shiftLock) setShiftLock(false);
+  }, [shiftLock, paused]);
+  useEffect(() => {
+    const box = stageBox.current;
+    if (!box || view !== 'third' || paused) return;
+    const wheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const view = look.current;
+      view.zoom = Math.max(ORBIT.minZoom, Math.min(ORBIT.maxZoom, view.zoom * Math.exp(event.deltaY * 0.0012)));
+    };
+    box.addEventListener('wheel', wheel, { passive: false });
+    return () => box.removeEventListener('wheel', wheel);
+  }, [view, paused]);
+
+  useEffect(() => {
+    const mouse = (event: MouseEvent) => {
+      if (document.pointerLockElement && stageBox.current?.contains(document.pointerLockElement)) turnBy(event.movementX, event.movementY);
+    };
+    const lockChange = () => { if (!document.pointerLockElement) setShiftLock(false); };
+    document.addEventListener('mousemove', mouse);
+    let locked = false;
+    const watch = () => {
+      const now = Boolean(document.pointerLockElement && stageBox.current?.contains(document.pointerLockElement));
+      if (locked && !now) lockChange();
+      locked = now;
+    };
+    document.addEventListener('pointerlockchange', watch);
+    return () => {
+      document.removeEventListener('pointerlockchange', watch);
+      document.removeEventListener('mousemove', mouse);
+    };
+  }, [turnBy]);
 
   useEffect(() => {
     if (paused) { release(); return; }
@@ -339,13 +526,44 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
       if (element instanceof HTMLElement && (element.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(element.tagName))) return;
       const key = event.key.toLowerCase();
       if (running.current !== event.shiftKey) { running.current = event.shiftKey; sync(); }
+      if (key === 'shift') {
+        if (!event.repeat) shiftTap.current = { at: event.timeStamp, used: held.current.size > 0 };
+        return;
+      }
+      if (shiftTap.current) shiftTap.current.used = true;
+      // Space never scrolls the page while walking; on the world it interacts like E.
+      if (key === ' ' || key === 'spacebar') {
+        if (element instanceof HTMLElement && element.closest('button, a, summary, [role="button"]')) return;
+        event.preventDefault();
+        if (!event.repeat) interactRef.current();
+        return;
+      }
       if (key === 'e' && !event.repeat) { interactRef.current(); return; }
+      if (key === 'v' && !event.repeat) { toggleView(); return; }
+      // The left and right arrows turn; A and D step sideways.
+      if (key === 'arrowleft' || key === 'arrowright') {
+        event.preventDefault();
+        turning.current.add(key);
+        look.current.turn = (turning.current.has('arrowleft') ? 1 : 0) - (turning.current.has('arrowright') ? 1 : 0);
+        return;
+      }
       if (!KEYS[key]) return;
       event.preventDefault();
       held.current.set('key:' + key, KEYS[key]);
       sync();
     };
-    const up = (event: KeyboardEvent) => { running.current = event.shiftKey; held.current.delete('key:' + event.key.toLowerCase()); sync(); };
+    const up = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      running.current = event.shiftKey;
+      if (key === 'shift') {
+        const tap = shiftTap.current;
+        shiftTap.current = null;
+        if (tap && !tap.used && event.timeStamp - tap.at < 350) setShiftLock((on) => !on);
+      }
+      held.current.delete('key:' + key);
+      if (turning.current.delete(key)) look.current.turn = (turning.current.has('arrowleft') ? 1 : 0) - (turning.current.has('arrowright') ? 1 : 0);
+      sync();
+    };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('blur', release);
@@ -359,7 +577,8 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
     };
   }, [paused, release, sync]);
 
-  const dpr = useStageDpr();
+  const pixel = usePixel();
+  const { dpr, adapt, scale } = useRenderScale(pixel);
   const [supported] = useState(webglAvailable);
   const [lost, setLost] = useState(false);
   const loseContext = useCallback(() => { setLost(true); onUnavailable(); }, [onUnavailable]);
@@ -382,17 +601,25 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
   return (
     <section className="memory-stage" aria-label={areaLabel}>
       <StageBoundary fallback={unavailable} onFail={onUnavailable}>
-        <div className="stage-viewport walk-viewport" ref={(element) => { hud.current = element; }} data-player=""
-          data-walk-targets={JSON.stringify(layout)}>
-          <Canvas camera={{ position: [position.current.x, CAMERA.y, position.current.z + CAMERA.z], fov: 50 }} dpr={dpr} fallback={<Preview />}>
+        <div className="stage-viewport walk-viewport" ref={(element) => { hud.current = element; stageBox.current = element as HTMLDivElement | null; }} data-player=""
+          data-walk-targets={JSON.stringify(layout)} data-view={view} data-shift-lock={shiftLock ? 'on' : 'off'} {...lookHandlers}>
+          <Canvas camera={view === 'first'
+            ? { position: [position.current.x, EYE.y, position.current.z], fov: 68, near: 0.05 }
+            : { position: [position.current.x, CAMERA.y, position.current.z + CAMERA.z], fov: 50 }} dpr={dpr} fallback={<Preview />}>
             <ContextMonitor onLost={loseContext} />
             <WorldScene world={world} layout={layout} revealed={revealed} ended={ended} position={position} input={input}
               playerGroup={playerGroup} hud={hud} compass={compass} onTarget={setTarget} paused={paused}
-              conversationOpen={conversationOpen} audio={audio} />
+              conversationOpen={conversationOpen} audio={audio} view={view} look={look} />
+            {ink && <InkLook weight={tuning.inkWeight} />}
+            <FieldOfView view={view} fov={tuning.fov} />
+            {adapt && <AdaptiveResolution scale={scale} onScale={adapt} />}
           </Canvas>
+          {(view === 'first' || shiftLock) && <span className="walk-reticle" aria-hidden="true" />}
+          {shiftLock && <p className="walk-shift-lock" role="status">{t('Shift lock on: the mouse turns the camera. Click to capture it, tap Shift to release.')}</p>}
           <p className="walk-prompt" role="status">{conversationOpen
-            ? (ended ? 'The memory is complete.' : 'Choose how to reply.')
-            : describeTarget(target, world, revealed, artifactLabels)}</p>
+            ? (ended ? t('The memory is complete.') : t('Choose how to reply.'))
+            : describeTarget(target, world, revealed, artifactLabels, t)}</p>
+          {overlay}
           <div className="walk-compass" ref={compass} hidden aria-hidden="true"><span className="walk-compass-needle" /><span /></div>
           <div className="walk-pad" aria-label="Touch movement controls">
             {pad('up', 'Walk forward', '▲', { x: 0, z: -1 })}
@@ -400,11 +627,21 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
             {pad('right', 'Walk right', '▶', { x: 1, z: 0 })}
             {pad('down', 'Walk back', '▼', { x: 0, z: 1 })}
           </div>
-          <button type="button" className="walk-interact" disabled={!canInteract || paused} onClick={interact}>Interact</button>
+          <button type="button" className="walk-interact" disabled={!canInteract || paused} onClick={interact}>{t('Interact')}</button>
         </div>
         <div className="stage-toolbar">
-          <span>WASD or arrow keys to walk, Shift to run, E to interact, Esc to pause</span>
-          <button type="button" disabled={paused} onClick={() => { position.current = layout.spawn; }}>Reset position</button>
+          <span>{t(view === 'first'
+            ? 'WASD to walk, drag or ← → to look, tap Shift for shift lock, hold Shift to run, E or Space to interact, V to change view, Esc to pause'
+            : 'WASD to walk, drag or ← → to turn, tap Shift for shift lock, hold Shift to run, E or Space to interact, V to change view, Esc to pause')}</span>
+          <span className="stage-toolbar-actions">
+            <button type="button" className="shift-lock-toggle" aria-pressed={shiftLock} disabled={paused} onClick={() => setShiftLock(!shiftLock)}>
+              {t('Shift lock')}
+            </button>
+            <button type="button" className="view-toggle" aria-pressed={view === 'first'} onClick={toggleView}>
+              {t(view === 'first' ? 'First person' : 'Third person')}
+            </button>
+            <button type="button" disabled={paused} onClick={() => { position.current = layout.spawn; Object.assign(look.current, { yaw: 0, pitch: -0.12, orbit: 0, zoom: 1 }); }}>{t('Reset position')}</button>
+          </span>
         </div>
       </StageBoundary>
     </section>

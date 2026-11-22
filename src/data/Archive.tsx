@@ -85,7 +85,7 @@ export function Archive() {
       {importError && <p role="alert">{importError}</p>}
       {listError ? <p role="alert">The archive could not be opened. Reload to try again.</p> : (
         !memories ? <p role="status">Opening the archive…</p>
-          : memories.length === 0 ? <p>No saved memories yet.</p>
+          : memories.length === 0 ? <p className="empty-state">No saved memories yet. Create a memory, then choose <strong>Save to archive</strong>.</p>
           : <ul className="archive-list" aria-label="Saved memories">
             {memories.map(memory => <ArchiveCard key={memory.id} {...memory} />)}
           </ul>

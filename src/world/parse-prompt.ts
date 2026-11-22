@@ -63,6 +63,16 @@ const weather: Record<string, Interpretation['weather']> = {
   rain: 'rain', rainy: 'rain', storm: 'rain', stormy: 'rain', drizzle: 'rain',
   snow: 'snow', snowy: 'snow', winter: 'snow', frost: 'snow', frozen: 'snow',
 };
+/** Russian time and weather cues, matched by word stem because Russian words inflect (ночь, ночью, ночной). */
+const russianTime: [RegExp, Interpretation['timeOfDay']][] = [
+  [/^(?:рассвет|восход|утр)/u, 'dawn'], [/^(?:полдень|полдн|днём|днем|дневн|солнечн)/u, 'day'],
+  [/^(?:закат|вечер|сумер|сумрак)/u, 'dusk'], [/^(?:ноч|полноч|звёзд|звезд|лун)/u, 'night'],
+];
+const russianWeather: [RegExp, Interpretation['weather']][] = [
+  [/^(?:туман|дымк|мгл)/u, 'fog'], [/^(?:дожд|ливн|ливен|гроз)/u, 'rain'], [/^(?:снег|снеж|зим|мороз)/u, 'snow'],
+];
+const russianCue = <T,>(cues: [RegExp, T][], word: string) => /[а-яё]/u.test(word) ? cues.find(([stem]) => stem.test(word))?.[1] : undefined;
+
 const colorWords: Record<string, Term['color']> = {
   ...Object.fromEntries(colorNames.map((name) => [name, name])), gray: 'grey', golden: 'yellow', crimson: 'red', scarlet: 'red',
 };
@@ -115,7 +125,9 @@ export function parsePrompt(prompt: string): Interpretation {
   for (let i = 0; i < tokens.length; i += 1) {
     const { word } = tokens[i];
     if (Object.hasOwn(time, word)) timeOfDay = time[word];
+    else timeOfDay = russianCue(russianTime, word) ?? timeOfDay;
     if (Object.hasOwn(weather, word)) weatherCue = weather[word];
+    else weatherCue = russianCue(russianWeather, word) ?? weatherCue;
     for (const [words, kind] of relationCues) {
       if (words.every((w, k) => tokens[i + k]?.word === w)) {
         relationAt.set(i, { kind, length: words.length });

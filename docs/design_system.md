@@ -34,6 +34,12 @@
 
 Measured WCAG contrast for each atmosphere's text pairs: body text, secondary text and muted hints on both background levels, accent links, alerts, button labels on lime, and title-bar labels. The lowest pair is 4.7:1 (Daylight muted on the second background); all others are 7:1 or higher. Violet surfaces that carry white text use a darker per-theme `--key` color (7.7:1 or better). Focus is a 3 px yellow outline, and notched corners are removed on focus so the outline is never clipped. Animation (cursor, REC light, ticker, window pop) stops when Settings → Reduced motion is on, or when it follows a device that asks for reduced motion.
 
+### Entering a world (added 2026-11-21)
+
+The one orchestrated motion in the interface is the jump from writing to walking. The words you typed lift out of the text box as a lime-framed card. The world title appears in Unbounded beneath them, and a short build log types in pixel type (`> reading your words`, `> placing 17 objects`, `> tuning soundtrack: Warm Tape`, `> opening the world`). The screen then opens on the world through a circular iris. It takes about 1.9 s and never blocks input. With reduced motion, it is a still card that fades in 0.25 s. In full screen the status bar hides, the masthead compacts and the stage takes the screen height. The masthead keeps **EN / RU** next to **◐ View**.
+
+In the 3D view, a gradient sky with horizon hills, a sun or moon and stars at night gives each atmosphere its own silhouette. The walker wears a red cap, a teal scarf and a violet backpack with a lime tag, which echo the interface palette.
+
 ## Superseded: "mixtape of days" concept (earlier on 2026-11-21)
 
 *Replaced the same day at the team's request to follow the GENESIS.EXE visual language. Kept for the record; the track-list hints, song card and cassette motif carry over.*

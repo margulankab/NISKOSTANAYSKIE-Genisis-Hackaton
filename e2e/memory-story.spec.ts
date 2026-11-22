@@ -27,13 +27,14 @@ async function revealInStaticPreview(page: Page) {
 }
 
 test('a private memory can be walked, saved in the conversation, and reopened with the selected reply', async ({ page }, testInfo) => {
-  test.setTimeout(60_000);
+  // Larger outdoor worlds (2026-11-21): this walk alone takes close to a minute under software rendering.
+  test.setTimeout(120_000);
   const storyRequests: string[] = [];
   page.on('request', (request) => {
     if (request.url().endsWith('/api/scene-plan')) storyRequests.push(request.url());
   });
   await openPrompt(page);
-  await page.getByRole('button', { name: 'Build memory' }).click();
+  await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByText(/Written locally/)).toBeVisible();
   await page.getByRole('button', { name: 'Enter world' }).click();
   await expect(page.getByText(/before meeting Mira/)).toBeVisible();
@@ -79,7 +80,7 @@ test('a fictional prompt can use structured Gemini output and falls back on inva
   });
   await openPrompt(page, fictionalMarket);
   await page.getByRole('checkbox', { name: /Send this fictional prompt/ }).check();
-  await page.getByRole('button', { name: 'Build memory' }).click();
+  await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByText('Planned with Gemini')).toBeVisible();
   await expect(page.getByLabel('Soundtrack', { exact: true })).toHaveValue('lantern-market');
   await page.getByRole('button', { name: 'Enter world' }).click();
@@ -92,7 +93,7 @@ test('a fictional prompt can use structured Gemini output and falls back on inva
   valid = false;
   await openPrompt(page, fictionalMarket);
   await page.getByRole('checkbox', { name: /Send this fictional prompt/ }).check();
-  await page.getByRole('button', { name: 'Build memory' }).click();
+  await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByRole('alert')).toBeVisible();
   await page.getByRole('button', { name: 'Build privately' }).click();
   await expect(page.getByText('Built privately')).toBeVisible();

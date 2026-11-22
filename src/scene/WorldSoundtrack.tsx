@@ -5,32 +5,37 @@ import {
 import type { ResolvedWorldSoundtrack } from '../media/world-soundtrack';
 import { AudioPlayer } from './AudioPlayer';
 import { useAssetUrl } from './use-asset-url';
+import { useT } from '../i18n/i18n';
 
 type ActiveAudioHandler = (audio: HTMLAudioElement | null) => void;
 
-function TrackPreview({ assetId, blob, loop, muted, paused, onActiveAudio }: {
+function TrackPreview({ assetId, blob, loop, muted, paused, onActiveAudio, autoPlay }: {
   assetId: string;
   blob: Blob;
   loop: boolean;
   muted: boolean;
   paused: boolean;
   onActiveAudio: ActiveAudioHandler;
+  autoPlay: boolean;
 }) {
   const resolveAsset = useCallback(async () => blob, [blob]);
   const media = useAssetUrl(assetId, resolveAsset);
   if (media.status === 'loading') return <p role="status">Opening soundtrack…</p>;
   if (media.status === 'error') return <p role="alert">The soundtrack could not be opened.</p>;
   return <AudioPlayer key={media.url} url={media.url} loop={loop} muted={muted} paused={paused}
-    preview onActiveAudio={onActiveAudio} />;
+    preview autoPlay={autoPlay} onActiveAudio={onActiveAudio} />;
 }
 
-export function WorldSoundtrack({ value, onChange, onActiveAudio, paused = false, mute }: {
+export function WorldSoundtrack({ value, onChange, onActiveAudio, paused = false, mute, autoPlay = false }: {
   value: ResolvedWorldSoundtrack;
   onChange: (soundtrack: ResolvedWorldSoundtrack) => void;
   onActiveAudio: ActiveAudioHandler;
   paused?: boolean;
   mute?: { value: boolean; onChange: (muted: boolean) => void };
+  /** Start the first track as soon as it is ready (only right after Enter world). */
+  autoPlay?: boolean;
 }) {
+  const t = useT();
   const picker = useId();
   const fileInput = useId();
   const [localMuted, setLocalMuted] = useState(false);
@@ -70,10 +75,10 @@ export function WorldSoundtrack({ value, onChange, onActiveAudio, paused = false
   }
 
   return (
-    <section className="world-soundtrack" aria-label="World soundtrack">
-      <label htmlFor={picker}>Soundtrack</label>
+    <section className="world-soundtrack" aria-label={t('World soundtrack')}>
+      <label htmlFor={picker}>{t('Soundtrack')}</label>
       <select id={picker} value={current} onChange={(event) => select(event.currentTarget.value)}>
-        <option value="">Silence</option>
+        <option value="">{t('Silence')}</option>
         {current === 'saved' && record.kind !== 'silent' && <option value="saved">{record.title}</option>}
         {soundtrackCatalog.map(({ id, title }) => <option key={id} value={id}>{title}</option>)}
       </select>
@@ -84,16 +89,16 @@ export function WorldSoundtrack({ value, onChange, onActiveAudio, paused = false
           {blob ? (
             <>
               <TrackPreview key={record.assetId} assetId={record.assetId} blob={blob}
-                loop={record.kind === 'catalog'} muted={muted} paused={paused} onActiveAudio={onActiveAudio} />
+                loop={record.kind === 'catalog'} muted={muted} paused={paused} onActiveAudio={onActiveAudio} autoPlay={autoPlay} />
               <label><input type="checkbox" checked={muted} onChange={(event) => setMuted(event.currentTarget.checked)} />
-                Mute soundtrack
+                {t('Mute soundtrack')}
               </label>
             </>
           ) : <p role="alert">The saved soundtrack is unavailable. Choose another track or upload an authorized file.</p>}
         </>
       )}
       <details>
-        <summary>Upload an authorized soundtrack</summary>
+        <summary>{t('Upload an authorized soundtrack')}</summary>
         <label>
           <input type="checkbox" checked={authorized} disabled={uploading}
             onChange={(event) => setAuthorized(event.currentTarget.checked)} />

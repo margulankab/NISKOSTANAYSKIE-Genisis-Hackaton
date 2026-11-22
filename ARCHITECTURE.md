@@ -1,5 +1,97 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Full-screen play, game menu, lore, 360° camera and music-app players — 2026-11-22
+
+**Playing in full screen.** In full screen the world covers the screen and nothing sits beside it. Everything else on the page (header, soundtrack, discovery cards, notes) gets `visibility: hidden` but stays mounted, so the score keeps playing. Story choices and closing cards float over the world. The story wrapper's fade animation is switched off there, because it trapped the fixed stage under later content. A saved world opened from Continue or Load Game shows a **Play** button, because browsers need a click for full screen. `enterWorld` also asks for Keyboard Lock (`navigator.keyboard.lock(['Escape'])`), so in Chrome and Edge a tap of Esc opens the game menu while holding it leaves full screen. Elsewhere, leaving full screen opens the menu.
+
+**Game menu** ([`PauseMenu`](src/world/PauseMenu.tsx)). A centered, animated card with tabs:
+- **Game:** Resume, Save, Save & Quit, Main menu, Exit full screen.
+- **Journal:** the quests, plus the player's quotes once found.
+- **Music:** the score's name and a mute toggle, plus the music-app picker.
+- **Settings** ([`QuickSettings`](src/menus/QuickSettings.tsx)): camera, field of view, sensitivity, volume, ink lines and language, applied at once.
+
+The world's HUD has **Menu** and **⚙** buttons that open it on Game or Settings. Only the active tab renders, so windowed layouts never duplicate controls.
+
+**One build button.** "Build world" now composes both kinds of world. [`mentionsPerson`](src/world/compose-memory-story.ts) adds the story character when the description names or refers to someone: "met Mira", "with my mom", "my friend Aru", "встретил друга". The character's name also comes from "friend/brother/… Name".
+
+**Lore** ([`src/story`](src/story)). `buildLore` makes three quests: the two discoveries, then talk to the character or reach the landmark. It also writes narrator lines for arrival, each find, both found and the end. Quotes are exact slices of the player's words: the discovery excerpts, or the day's first sentence. All other lines are generic game voice, translated through i18n. `useLoreFeed` queues lines once per beat; restored saves skip beats already played. `DialogBox` types lines (instantly with reduced motion), advances on click or after reading time, and never blocks walking. `QuestLog` stamps finished quests. Day memories with a composed world use the same lore, built from the entry, the date and the two artifacts.
+
+**360° camera.** In third person, drag sideways to orbit fully around the walker, and drag up or down to change the elevation (0.1–1.4 rad). The wheel zooms (0.45–2.2×). The defaults reproduce the earlier framing exactly.
+
+**Music-app players** ([`src/music`](src/music)). `embedFor` maps a parsed link to the provider's official embed: Spotify, Apple Music, SoundCloud, YouTube or YouTube Music, Deezer, Yandex Music and TIDAL. Bandcamp, VK and Spotify search links return none, and the picker explains that. The **♫ Music** header button and the menu's Music tab offer:
+- app tabs, where search opens the app in a new tab;
+- a paste-a-link field with **Play here**;
+- the world's song of the day as a shortcut.
+
+`MiniPlayer` is a fixed, collapsible card that survives in-app navigation. While it is loaded, the game's score pauses (`useNowPlaying`). See the AGENTS.md amendment for the opt-in and terms conditions.
+
+**Library.** It now opens with a featured card for the latest save, a search field beside the filters, and an ink horizon line that draws itself under the title. Cards are taped postcards, each at a small seeded angle that straightens on hover.
+
+**Web build links.** In hash builds, in-app links are rewritten to real hash addresses (`#library`). The route is kept in `data-route`, so opening a link in a new tab or copying it works from the one-file release. The game's "leave without saving?" check reads `data-route`.
+
+**Tests.** `playwright.config.ts` now starts each test with `fullscreen: false` in settings, so most specs exercise the windowed layout where every panel is on the page. `e2e/immersive.spec.ts` opts back into full screen (`test.use({ storageState: … })`) for the full-screen layout, the centered menu and the Play overlay.
+
+## Site, memory library, shift lock and the single-file release — 2026-11-22
+
+**Site.** The masthead is now the wordmark (a home link labelled "Main menu") and three links: Library, New game, Settings. The status bar, title ticker, cassette aside and "World preview" link were removed. Archive and Create a memory moved onto the Library page, and World preview is still reachable at `/world-preview`. The title screen has four actions (New Game, Continue, Load Game, Library) beside a fanned showcase of three memory cards.
+
+**Memory library** (`/library`, [`src/library`](src/library)). `useLibrary` merges `localGames.listGames()` with `localMemories.list()` (for day thumbnails) and adds the five example days. `GameSummary` gained optional `timeOfDay`, `weather` and `date` for cards. A filter group shows All, Worlds, Days or Examples. Each `MemoryCard` is a postcard: a photo or the day's thumbnail, or else `WorldArt`, a seeded SVG landscape (sky by time of day, inked hills, pines, hatching). Cards tilt toward the pointer with a moving glint and enter with a staggered rise.
+
+**Animations.** Title letters rise in sequence. Library cards rise in with a stagger. Page changes use view transitions: `@view-transition { navigation: auto }` for path routes, and `document.startViewTransition` in the hash build. Its update callback waits for the route change with a task, not an animation frame, because frames pause during a transition. Every animation is off with Settings → Reduced motion, or when the device asks for reduced motion.
+
+**Game controls.**
+- **Both views follow the look direction:** WASD moves relative to yaw in both views, and the third-person camera orbits behind the walker. At yaw 0 everything matches the earlier axes.
+- **Shift lock:** a quick tap of Shift (under 350 ms, with no movement key in between) toggles it, and holding Shift while walking still runs. In shift lock, mouse movement over the world turns the camera without dragging. A click captures the cursor with Pointer Lock, and Esc or another tap releases it. Single movements are capped at 80 px so the camera never snaps.
+- **Space:** interacts like E and never scrolls the page, unless a button has focus.
+- **Locked game screen:** in full screen the stage is fixed to the screen (left of a `--panel`-wide side column). The menu, title, soundtrack and discoveries scroll in the side column. On narrow screens, the stage takes the top 62% and the panel sits below it.
+
+**Customize.** Settings gained `fov` (55–95°), `sensitivity` (0.4–2.5×), `inkWeight` (fine, medium, bold) and `textScale` (90–130%, applied with CSS `zoom` to reading surfaces only, never the canvas). All are defaulted, so older saved settings still parse.
+
+**Single-file release.** `npm run build:single` runs the web build, then [`scripts/single-file.mjs`](scripts/single-file.mjs) inlines the stylesheet, fonts (as data URIs) and the module script into `dist-web/memory-worlds.html` (about 2 MB). The file opens straight from disk, and the same build is published as the team's claude.ai page.
+
+## First-person worlds, ink look and the web build — 2026-11-22
+
+Implemented on `claude/keen-bell-fkqitv` after merging `main` and `B_development` (B's 3–7-word titles that end on a described object, empty states and the pause hint; the GENESIS interface kept where both changed a screen). Settings gained `view` (`first` | `third`, default `first`) and `ink` (default on). The pixel filter now defaults to off, because the ink look reads best at full resolution.
+
+**First person** ([`WorldStage`](src/world/WorldStage.tsx)). The camera sits at a 1.55 m eye height with a 68° lens and a small reticle. A `Look` ref holds yaw and pitch.
+- **Looking:** drag on the world (mouse or finger), or hold ← / →, to turn. Pitch is limited to ±0.62 rad.
+- **Moving:** W/A/S/D and the touch pad move relative to yaw. At yaw 0 this is the old axis mapping, so routes, saves and the walking tests are unchanged. `stepPlayer` and collisions are untouched.
+- **Head bob:** a 3.5 cm bob plays only while the position changes, and never with reduced motion, so a world at rest is still.
+- **Conversation:** the head turns toward the character and the camera tilts slightly down.
+- **Compass:** shows the goal's bearing relative to where you look.
+- **Switching:** V or the toolbar button switches to the earlier over-the-shoulder camera, and the choice is saved.
+
+**Ink look** ([`InkLook`](src/scene/InkLook.tsx)), used in walkable worlds, the examples and World preview. It is our own shader and geometry, in the spirit of hand-inked, flat-coloured adventure games.
+1. Each frame, lit `MeshStandardMaterial`s are swapped for `MeshToonMaterial` twins with a three-band ramp. The twins copy colour, emissive and opacity from the originals each frame, so the music pulse and reveal states still animate.
+2. The scene renders into a half-float target with a depth texture.
+3. A screen pass draws dark-teal ink where depth jumps (silhouettes) or colour changes (inner lines). It thins far lines, hatches the darkest band with diagonal strokes, and lifts colours toward a printed pastel. It then applies the usual tone mapping and sRGB output.
+
+Line width scales with resolution. Nothing in the pass depends on time or noise, so screenshots at rest are identical. A per-pixel paper grain was tried and removed: it made every frame incompressible, and PNG captures took twice as long.
+
+**Adaptive resolution** ([`AdaptiveResolution`](src/chrome/AdaptiveResolution.tsx)). The stage owns its render scale and passes it to `<Canvas dpr>`. An earlier version changed the scale through R3F's `setDpr`, and the canvas prop reset it on every stage re-render. In the first ~3 s of a world, two frame-rate measurements may lower the scale, in quarter steps, to as low as 0.5 when the frame rate is under 30 fps. The scale then stays fixed for the visit, and the device's choice is remembered in `localStorage`. With the pixel filter on, the scale is a fixed 0.5. In this container's software GPU, the same prompt-world test runs in 39 s, against 2.8 min without it.
+
+**Web build and hosting.** `npm run build:web` sets `VITE_ROUTER=hash` (`.env.web`) and uses relative asset paths (`--base ./`), writing `dist-web/`. In that build, [`route.ts`](src/chrome/route.ts) keeps the route in a plain hash name: `#examples`, `#new--prompt`, `#play--<id>`, and `#options` for Settings, because some hosts reserve `#settings` and pass only plain names. Link clicks become hash navigation after the game's unsaved-progress check has run. The page remounts per route, as a full page load would. Normal builds, `npm run dev` and the tests still use path routes. [`.github/workflows/pages.yml`](.github/workflows/pages.yml) runs the unit tests and deploys `dist-web/` to GitHub Pages on pushes to `main`, once an admin sets Pages → Source → GitHub Actions.
+
+## Language, entering a world, music on entry and sky detail — 2026-11-21
+
+Implemented on `claude/keen-bell-fkqitv` after `b72d30c`. Settings gained three defaulted fields, so earlier saved settings still parse: `lang` (`en` | `ru`, default `en`), `autoplay` (default on) and `fullscreen` (default on).
+
+**Interface language.** [`src/i18n/i18n.ts`](src/i18n/i18n.ts) keys translations by the English phrase, with `{name}` variables. `useT()` re-renders when the language changes, and `applyAppearance` sets `<html lang>`. Missing phrases fall back to English, and player-written text is never translated. A unit test parses every `t('…')` literal in `src/` and requires a Russian entry. The masthead (EN/RU) and Settings both switch the language. The prompt reader also recognizes Russian time-of-day and weather cues by word stem (ночь, вечером, туман, снег …), so a Russian description sets the world's sky and atmosphere.
+
+**Entering a world** ([`src/chrome/immersive.ts`](src/chrome/immersive.ts), [`WorldWarp`](src/chrome/WorldWarp.tsx)). The click on **Enter world** is the user gesture browsers require for full screen and sound, so it runs `enterWorld` synchronously:
+
+1. It records the text box's position and the player's own words, the world title and four build lines.
+2. It sets `data-immersive="on"` and scrolls to the top.
+3. It requests full screen on `<html>` (not the canvas), so the masthead, HUD, pause dialog and soundtrack controls stay inside it.
+
+A decorative overlay (`aria-hidden`, `pointer-events: none`) lifts the typed words from the text box (FLIP), types the build log and opens an iris onto the world, which has already mounted underneath. With reduced motion, a still card fades out. While a world is open, `useImmersiveSession` keeps the immersive layout: the stage fills the screen height and the masthead compacts. When the browser leaves full screen (Esc belongs to the browser there), the game pauses, unless the player used the in-game **Exit full screen** button. Leaving the world exits full screen. The day-memory flow gets the same entry on its new **Enter world** button after **Generate memory**.
+
+**Music on entry.** `AudioPlayer` takes `autoPlay`. `GameSession` passes it for the first track only, right after Enter world. Choosing another track, restoring a save or opening an example never autoplays. Autoplay also resumes after the pause menu, until the player presses the soundtrack button themselves. If a browser still refuses (`NotAllowedError`, common on phones), the hint says music starts with the first step, and the next key or tap in the world starts it. Only the cleared catalog score, an authorized upload or the day's own authorized audio plays. Songs in Spotify and other music apps are still only linked.
+
+**Sky and walker detail.** [`SkyDome`](src/scene/SkyDome.tsx) adds a vertex-coloured dome from the fog colour to a per-atmosphere zenith. It also adds 34 seeded low-poly hills on the horizon, a sun or moon in front of the camera, and seeded stars at dusk and night. A hemisphere light adds a soft sky fill. The walker gained a cap, a scarf, a backpack and boots. All of it is static and deterministic, so the screenshot-equality checks for a scene at rest still hold.
+
+**Examples layout.** At 1,100 px and wider, the fixture list becomes a sticky sidebar, so the 3D world opens above the fold.
+
 ## Song of the day, larger worlds and interface atmospheres — 2026-11-21
 
 Implemented on `claude/keen-bell-fkqitv` over `dedf7ad`. Saved worlds and day bundles from earlier builds stay valid, because every new field is optional or defaulted.

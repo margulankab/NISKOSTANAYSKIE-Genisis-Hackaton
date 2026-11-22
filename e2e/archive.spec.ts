@@ -8,7 +8,7 @@ import { createTestTone } from '../src/fixtures/test-tone';
 
 const firstEntry = 'I watched the last light drain from the river before walking home.';
 const secondEntry = 'I watched the last light drain from the river before catching the bus.';
-const title = 'Remembering last light drain';
+const title = 'Remembering the last light drain';
 const root = `${title}/`;
 const photoBytes = await readFile(new URL('../src/fixtures/media/nostalgic-park.png', import.meta.url));
 const otherPhotoBytes = await readFile(new URL('../src/fixtures/media/calm-city.png', import.meta.url));
@@ -75,8 +75,10 @@ test('saves duplicate titles, reloads the archive, and reopens the stored bundle
   const second = await save(page);
   expect(second).not.toBe(first);
 
-  await page.getByRole('link', { name: 'Archive', exact: true }).click();
+  // The archive now lives in the memory library; the main navigation still asks before leaving.
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Library' }).click();
   await page.getByRole('button', { name: 'Leave without saving' }).click();
+  await page.getByRole('link', { name: 'Archive', exact: true }).click();
   await page.reload();
   const choices = page.getByRole('list', { name: 'Saved memories' }).getByRole('link');
   await expect(choices).toHaveCount(2);
@@ -166,8 +168,10 @@ test('a quota failure preserves the preview, allows ZIP export, and rolls back t
   await visitArtifact(page, 1);
   await expect(page.locator('blockquote')).toHaveText(firstEntry);
   inspect(await download(page));
-  await page.getByRole('link', { name: 'Archive', exact: true }).click();
+  // The archive now lives in the memory library; the main navigation still asks before leaving.
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Library' }).click();
   await page.getByRole('button', { name: 'Leave without saving' }).click();
+  await page.getByRole('link', { name: 'Archive', exact: true }).click();
   await expect(page.getByText('No saved memories yet.')).toBeVisible();
   await page.goto('/memory/80463325-9914-44c7-9008-fefa57d76bde');
   await expect(page.getByRole('alert')).toHaveText('This memory was not found in this browser.');

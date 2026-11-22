@@ -1,5 +1,102 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-22 — One-file release: menu buttons in restricted viewers
+
+**Report:** in the HTML file only the menu showed, and pressing a button did nothing. In Chromium, opened directly and inside a sandboxed frame, the buttons worked, so the cause is the viewer. The web build navigated by changing `location.hash`, which some viewers (file previews, in-app browsers) block or ignore.
+
+**Fix:** in hash builds the route now lives in memory ([`route.ts`](src/chrome/route.ts)). The address is mirrored with `history.replaceState` inside a try, and typed `#addresses` still work through `hashchange`.
+
+**Checks:**
+- `npm test` passed 188 unit tests.
+- The rebuilt `release/memory-worlds.html` walked through all routes and in-page links from `file://`, inside a `sandbox="allow-scripts"` frame, and with `history.replaceState` forced to throw. Title → New Game → From a prompt → Library all changed screens, and a world played with music.
+- The full-screen, first-person and navigation-guard specs passed.
+
+## 2026-11-22 — Full-screen play, centered game menu, lore, 360° camera and music-app players
+
+Enter world now goes straight into a full-screen world with nothing beside it. Saved worlds opened from Continue offer a **Play** button. Esc, or the in-world ☰ Menu or ⚙ buttons, opens a centered, animated game menu with Game, Journal, Music and Settings tabs. Other changes:
+- One **Build world** button: naming or referring to a person adds the story character.
+- **Lore:** quests and narrator lines that quote the player's own words, for prompt worlds and day memories.
+- **Camera:** a 360° third-person orbit with elevation and wheel zoom.
+- **Music apps (opt-in):** official players from Spotify, SoundCloud, Apple Music, YouTube Music, Deezer, Yandex and TIDAL in a floating mini player. This was the owner's decision, recorded in AGENTS.md.
+- **Library:** a featured card, search, taped postcards and a drawn horizon.
+- **One-file release:** links get real `#hash` addresses, the file was rebuilt, and the claude.ai page republished (version 4).
+
+[Architecture](ARCHITECTURE.md#full-screen-play-game-menu-lore-360-camera-and-music-app-players--2026-11-22).
+
+**Checks run (Linux container, Chromium headless with SwiftShader):**
+
+- `npm run typecheck` passed. `npm test` passed **188** unit tests, including new `tests/lore.test.ts` (person detection and exact quotes) and `tests/embed.test.ts` (embed URLs for eight link types).
+- Full browser suite, `--workers=2`, **58 tests**: 54 passed. The 4 failures were then fixed and passed with `--last-failed` (4 of 4):
+  - **Person detection:** the case-insensitive flag let "with a wooden table" count as a name, so the market and mixed worlds became story worlds. Names now must be capitalised.
+  - **AT-27:** now expects two planner requests, because the two build buttons are one.
+  - **AT-25:** hit its 60 s limit under two workers and passed alone. Its limit is now 120 s.
+- New or updated specs:
+  - full screen: the stage covers the viewport, the menu is centered, its tabs work, and Play from Continue enters full screen;
+  - music apps: nothing loads before Play here, the embed URL is right, search opens a new tab, and collapse and close work.
+
+  The other specs start windowed (`fullscreen: false` in the config's storage state).
+- The one-file release opened from `file://`: every route rendered with no broken images, in-app links carried `#hash` addresses, and a world played with its soundtrack. The only messages were a three.js deprecation warning and an aborted blob request when the audio element is replaced.
+
+**Not verified here:** real Spotify, SoundCloud and Apple Music playback (the network here can't reach them, so the tests answer the frames locally), Keyboard Lock on a real screen, and phones. The claude.ai page blocks third-party frames, so the mini player stays empty there. The music providers' terms still need review before a public release.
+
+## 2026-11-22 — Combined site, memory library, shift lock and the one-file release
+
+The site was minimised: the header is now the wordmark (home), Library, New game and Settings, and the status bar, ticker, cassette aside and World preview link were removed. The title screen shows a fanned memory showcase. The new `/library` page holds saved worlds and days and the five example days, plus Archive and Create a memory. Animations: title letters rise, library cards rise in sequence, and pages use view transitions. In the game, a tap of Shift toggles shift lock, holding Shift runs, and Space interacts without scrolling. In full screen the world is fixed and only the side panel scrolls. Settings gained Customize (field of view, look sensitivity, ink weight, text size). `npm run build:single` writes the whole game as one file, committed as `release/memory-worlds.html`. The claude.ai page (https://claude.ai/artifact/D1tFJaQ9gxwUxkErVw2a4v) was republished with this build. [Architecture](ARCHITECTURE.md#site-memory-library-shift-lock-and-the-single-file-release--2026-11-22).
+
+**Checks run (Linux container, Chromium headless with SwiftShader):**
+
+- `npm run typecheck` passed, and `npm test` passed **168** unit tests.
+- Full browser suite, `--workers=2`, **56 tests**: 47 passed on the first run.
+  - The 9 failures shared one cause: the walk helper clicked `link "New Game"`, which now also matched the header's "New game". With `exact: true`, all 9 passed on rerun (`--last-failed`).
+  - Four specs were updated for the new navigation: Library instead of the Archive header link, and a direct `/world-preview` visit.
+- New tests in `e2e/first-person.spec.ts`:
+  - shift lock toggles on a Shift tap, the mouse turns without dragging, and holding Shift while walking keeps the lock;
+  - Space leaves the scroll position unchanged;
+  - the library lists a saved world with the five examples, filters to Examples and opens one.
+- The one-file build opened from `file://`: library, New game → prompt → Enter world, the Russian night prompt, all four fonts loaded, and the soundtrack played. A first test of it exposed hash-mode view transitions timing out, because their callback waited for an animation frame. Fixed and rechecked.
+- Screenshots at 1366 px (title, library, the locked full-screen game), and the library at 390 px with no horizontal overflow.
+
+**Not verified here:** pointer lock and shift lock with a real mouse, phones in full screen, and the claude.ai page's frame permissions for pointer lock.
+
+## 2026-11-22 — First-person worlds, ink look, merged branches and a playable web build
+
+Merged `main` (PR #5) and `B_development` (B's titles, empty states and pause hint) into `claude/keen-bell-fkqitv`. Where both branches changed the same screen, the GENESIS interface was kept. `claude/practical-carson-k6sox5` holds the superseded 2026-11-20 prototype and was not merged. Worlds now open in first person, with drag or ←/→ to look and V for third person. A toon-and-ink look is drawn over every 3D view. Render resolution adapts to the device. A static web build runs from any host. The fictional-days example library is unchanged. [Architecture](ARCHITECTURE.md#first-person-worlds-ink-look-and-the-web-build--2026-11-22).
+
+**Online:** the web build (`npm run build:web`, hash routes) is published as a private claude.ai artifact for the team: https://claude.ai/artifact/D1tFJaQ9gxwUxkErVw2a4v. The owner shares it from the page's Share menu. Inside that page, ZIP export downloads are blocked by the host. Use the local app to export. `.github/workflows/pages.yml` deploys the same build to GitHub Pages after a merge to `main`, once Pages → Source is set to GitHub Actions. That deployment has not run yet.
+
+**Checks run (Linux container, Chromium headless with SwiftShader):**
+
+- `npm run typecheck` passed. `npm test` passed **168** unit tests, including the new `tests/route.test.ts` (route names round-trip and use plain `[A-Za-z0-9-]` hash names).
+- The web build was served from a sub-folder (`python3 -m http.server`, `/dist-web/index.html`). Title → New Game → From a prompt → Build world → Enter world → walk → Pause → Save → Main menu → Continue restored the position. `#options` opened Settings and `#examples` rendered a 3D example. There were no page errors and no failed requests.
+- Full browser suite, `--workers=2`: **51 of 52** passed. `soundtrack.spec.ts:63` failed once while waiting for the clip to end and then passed 2 of 2 when run alone. The new `e2e/first-person.spec.ts` (2) and the entry and song specs (6) passed together, 8 of 8.
+- Fixed during this milestone:
+  - **Adaptive resolution:** the `<Canvas dpr>` prop reset the adaptive scale on every stage re-render. AT-25 took 2.8 min against 40 s before; after the fix, 39 s.
+  - **Paper grain:** per-pixel grain made frames incompressible, so screenshots took twice as long. Removed.
+  - **Favicon:** B's favicon data URI had unescaped quotes, and the dev server reported malformed HTML. Rewritten.
+
+**Not verified here:** real-GPU frame rates and the first-person feel on phones and laptops. Fullscreen and pointer behaviour inside the claude.ai artifact frame on mobile are also untested, as is the GitHub Pages deployment itself.
+
+## 2026-11-21 — Music apps, GENESIS atmospheres, language, music on entry and full-screen worlds
+
+Branch `claude/keen-bell-fkqitv`. This covers commit `b72d30c` and the follow-up commit. `b72d30c` added the song of the day with music-app links, larger outdoor worlds with run and compass, and the GENESIS-style interface with four atmospheres and the pixel filter. The follow-up adds an EN/RU interface language, the typed-words-to-world transition with full screen, the soundtrack starting on Enter world, a sky dome and walker detail, Russian time and weather cues, and an examples sidebar. [Architecture](ARCHITECTURE.md#language-entering-a-world-music-on-entry-and-sky-detail--2026-11-21) · [Design](docs/design_system.md).
+
+**Checks run (Linux container, Chromium 1.65 headless with SwiftShader, so rendering is software-only):**
+
+- `npm run typecheck` passed. `npm test` passed **159** unit tests, including new `tests/i18n.test.ts` (8), `tests/song.test.ts` and `tests/extend-world.test.ts`. The i18n test requires a Russian entry for every `t('…')` phrase in `src/`.
+- `npm run build` passed with the existing bundle-size warning.
+- `npx playwright test --workers=2` with a scratch config pointing at the container's Chromium: **51 of 52** passed in each of the last two full runs.
+  - The single failures were walking tests that hit their 60 s limit: the covered market, then the private memory story. Each passed alone (market 2/2; memory story 4/4 with autoplay on, 3/4 with autoplay off). Their limits are now 120 s, because the larger outdoor worlds lengthen the walk.
+  - Earlier failures were caused by this work and fixed:
+    - the soundtrack test's canvas fell below the fold on Examples (now a sidebar);
+    - the preview test measured the drawing-buffer height that the pixel filter halves (now the on-screen height);
+    - the "no external requests" check counted local `blob:` audio;
+    - hiding the main navigation in full screen broke the unsaved-exit confirmation (now compacted, not hidden).
+- New browser specs:
+  - `e2e/song-and-atmosphere.spec.ts` (3): song link, cues and soundtrack, save and load, no external requests, settings persistence and the View panel syncing with Settings.
+  - `e2e/immersive.spec.ts` (3): Russian switch and persistence, a Russian night prompt, the transition, full screen, autoplay, pause stopping and resuming music, leaving full screen, and autoplay/full screen turned off.
+
+**Not verified here:** real-device full screen and autoplay on iOS Safari and Android Chrome, though the code falls back to starting music on the first step. Microsoft Edge runs, frame-time measurements and a Russian-language review by a native speaker are also still to do. The Russian prompt reader covers time and weather only; objects are still matched from the existing catalog words.
+
 ## 2026-11-21 — Held-out gameplay and atmosphere review
 
 Created four new fictional prompt worlds and one journal day in fresh Edge profiles. All four worlds passed the sampled AT-17–20 and AT-23 walking, discovery, and ending flows. The cavern completed in reverse discovery order. AT-24 gesture-started playback advanced for every tested track. AT-25 Continue restored the completed prompt visits and their positions. For AT-06/07, the journal reopened and refreshed from the saved URL, and a fresh-profile ZIP import started at spawn. The export preserved both input media files byte for byte. The unsupported planetarium preserved the prompt and offered revision. Private runs recorded zero external HTTP requests and zero page errors. The [playtest report](docs/playtests/2026-11-21/PLAYTEST.md) includes 51 browser screenshots, a contact sheet, and the importable fictional diary.

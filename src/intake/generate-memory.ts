@@ -40,6 +40,10 @@ const photoProps = {
 } as const;
 const titleStopWords = new Set('a an and as at be but by for from had i in is it me my of on or our she that the then they this to was we were with you'.split(' '));
 const titleLeadVerbs = new Set(['feel', 'felt', 'remember', 'remembered', 'saw', 'watched']);
+// A title ends before a new clause ("…kitchen as rain reached…") and keeps a leading article or subject.
+const titleClauseBreaks = new Set('and as because but so then until when where while'.split(' '));
+const titleArticles = new Set(['a', 'an', 'my', 'our', 'the']);
+const titleSubjects = new Set(['he', 'i', 'she', 'they', 'we', 'you']);
 
 function words(text: string) {
   return text.match(/[\p{L}\p{N}][\p{L}\p{M}\p{N}]*/gu) ?? [];
@@ -77,8 +81,16 @@ function createTitle(excerpt: string, entryText: string, date: string) {
     const lower = word.toLowerCase();
     return !titleStopWords.has(lower) && !titleLeadVerbs.has(lower);
   });
-  const chosen = sourceWords.slice(Math.max(0, start), Math.max(0, start) + 4);
+  const from = Math.max(0, start);
+  const chosen = sourceWords.slice(from, from + 5);
+  const cut = chosen.findIndex((word, i) => i > 0
+    && (titleClauseBreaks.has(word.toLowerCase()) || titleLeadVerbs.has(word.toLowerCase())));
+  if (cut > 0) chosen.splice(cut);
   while (chosen.length > 1 && titleStopWords.has(chosen[chosen.length - 1].toLowerCase())) chosen.pop();
+  const before = from > 0 ? sourceWords[from - 1].toLowerCase() : '';
+  if (chosen.length > 1 && (titleArticles.has(before) || (titleSubjects.has(before) && /ed$/i.test(chosen[0])))) {
+    chosen.unshift(before === 'i' ? 'I' : before);
+  }
   if (chosen.length === 0) return `Remembering The Day ${date}`;
   if (chosen.length === 1) return `Remembering A Day With ${chosen[0]}`;
   return `Remembering ${chosen.join(' ')}`;

@@ -6,18 +6,24 @@ import { getMusicMotion } from './music-motion';
 import { prefersReducedMotion, subscribeToReducedMotion } from './reduced-motion';
 import { getWorldRecipe, placementScale, worldAccents } from './world-recipes';
 import type { WorldPlacement } from './world-recipes';
+import { SkyDome } from './SkyDome';
 
 const atmospheres = {
   dawn: { sky: '#c9a99b', light: '#ffd2a8', ambient: 0.75, key: 1.6, fog: [22, 48] },
   dusk: { sky: '#5d4a5f', light: '#ffb27a', ambient: 0.6, key: 1.4, fog: [19, 44] },
   rain: { sky: '#8292a5', light: '#dbe3ef', ambient: 0.85, key: 1.45, fog: [14, 32] },
   snow: { sky: '#e3e7ea', light: '#eef4ff', ambient: 1.05, key: 1.65, fog: [12, 31] },
-  daylight: { sky: '#a7b8b1', light: '#fff0ce', ambient: 1.1, key: 2.2, fog: [26, 56] },
+  daylight: { sky: '#bcd6c6', light: '#fff4dc', ambient: 1.15, key: 2.2, fog: [26, 58] },
   fog: { sky: '#748d8d', light: '#e1eed9', ambient: 1.2, key: 1.6, fog: [11, 30] },
   night: { sky: '#34374c', light: '#dedafb', ambient: 0.85, key: 1.55, fog: [14, 38] },
 } as const;
 
 export type WorldAtmosphere = keyof typeof atmospheres;
+
+const keyLight: Record<WorldAtmosphere, readonly [number, number, number]> = {
+  dawn: [9, 4, -5], dusk: [-9, 4, 5], night: [-5, 8, -7],
+  rain: [-7, 10, 6], snow: [-7, 10, 6], daylight: [-7, 10, 6], fog: [-7, 10, 6],
+};
 
 function WorldObject({ placement, lights }: {
   placement: WorldPlacement;
@@ -74,6 +80,7 @@ export function WorldScenery({ placements, atmosphere, activeAudio, music, reduc
   const invalidate = useThree(({ invalidate }) => invalidate);
   const animate = !!music?.meanEnergy && !!activeAudio && !reducedMotion && !systemReducedMotion;
   const { sky, light, ambient, key, fog } = atmospheres[atmosphere];
+  const keyFrom = keyLight[atmosphere];
   const lanterns = atmosphere === 'night'
     ? placements.filter(({ recipe }) => recipe === 'lamp').slice(0, 2)
     : [];
@@ -99,8 +106,9 @@ export function WorldScenery({ placements, atmosphere, activeAudio, music, reduc
       <color attach="background" args={[sky]} />
       <fog attach="fog" args={[sky, ...fog]} />
       <ambientLight ref={ambientLight} intensity={ambient * ambientScale} />
-      <directionalLight position={atmosphere === 'dawn' ? [9, 4, -5] : atmosphere === 'dusk' ? [-9, 4, 5]
-        : atmosphere === 'night' ? [-5, 8, -7] : [-7, 10, 6]} color={lightColor ?? light} intensity={key} />
+      <SkyDome atmosphere={atmosphere} horizon={sky} lightFrom={keyFrom} />
+      <hemisphereLight args={[sky, '#3a3328', 0.35]} />
+      <directionalLight position={keyFrom} color={lightColor ?? light} intensity={key} />
       {lanterns.map((placement) => (
         <pointLight key={placement.id} position={[placement.at[0], (placement.height ?? 0) + 2.03 * placementScale(placement), placement.at[1]]}
           color="#ffb970" intensity={12} distance={5.5} />

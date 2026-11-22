@@ -160,7 +160,7 @@ test('generates and plays a memory offline using the original entry and selected
   await submit(page);
   await page.getByRole('button', { name: 'Generate memory' }).click();
   await expect(page.getByText('Memory preview ready.', { exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Remembering last light drain' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Remembering the last light drain' })).toBeVisible();
   await visitArtifact(page, 1);
   await expect(page.locator('blockquote')).toHaveText(text);
   await visitArtifact(page, 0);
