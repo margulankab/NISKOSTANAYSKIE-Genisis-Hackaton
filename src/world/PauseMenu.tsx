@@ -53,6 +53,7 @@ export function PauseMenu({ save, confirmLeave, onResume, onSave, onSaveAndQuit,
           </>
         )}
         {busy && <p role="status">{t('Saving…')}</p>}
+        {!confirmLeave && save.status === 'idle' && <p className="pause-hint">{t('Press Esc to resume')}</p>}
         {save.status === 'saved' && <p role="status">{save.message}</p>}
         {save.status === 'error' && <p role="alert">{save.message}</p>}
       </div>

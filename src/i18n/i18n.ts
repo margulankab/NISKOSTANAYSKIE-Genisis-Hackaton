@@ -131,6 +131,7 @@ const ru: Record<string, string> = {
   'Leave without saving': 'Выйти без сохранения',
   'Keep playing': 'Играть дальше',
   'Saving…': 'Сохраняем…',
+  'Press Esc to resume': 'Esc — продолжить',
   // Settings
   'Soundtrack volume: {value}%': 'Громкость саундтрека: {value}%',
   'Reduced motion': 'Меньше анимации',

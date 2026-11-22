@@ -51,6 +51,12 @@ Build the local case artifacts with `node scripts/package-case.mjs` after `npm r
 
 The [Egypt demo](egypt-demo.local/README.md) runs as a separate development preview. The production build uses the main application entry point.
 
+## Contributors
+
+- [margulankab](https://github.com/margulankab)
+- [Hacksutates](https://github.com/Hacksutates)
+- [eld1kz](https://github.com/eld1kz) (Eldar Ugay): Developer B: prompt-built worlds, title and pause menus, local game saves
+
 ## Zero-cost decision — 2026-11-21
 
 The active P0 plan now expects **$0 in new service spend**: static Cloudflare Pages Free hosting, deterministic browser-local generation, IndexedDB/ZIP storage, local media analysis, open-source libraries/tests, authorized free or owned media, and OBS. Paid Gemini, Gemini prepayment, Pages Functions, Workers Paid, Supabase Pro, paid TTS, and purchased assets are not P0 dependencies. The older paid-model estimates below are retained as historical research and are superseded where they conflict.
