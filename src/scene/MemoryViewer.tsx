@@ -108,7 +108,7 @@ function MemoryOpening({ manifest, entryText, world, song, trackName, resolveAss
   // Lore for a day: quests named after the day's objects, and lines that quote the entry word for word.
   const lore = useMemo(() => buildLore({
     title: manifest.title, date: manifest.date, landmark: t('end of the path'),
-    discoveries: [artifactNames[manifest.artifacts[0].kind], artifactNames[manifest.artifacts[1].kind]],
+    discoveries: [t(artifactNames[manifest.artifacts[0].kind]), t(artifactNames[manifest.artifacts[1].kind])],
     excerpts: manifest.artifacts.map(({ excerpt }) => excerpt ? entryText.slice(excerpt.start, excerpt.end) : undefined) as [string | undefined, string | undefined],
     opening: firstSentence(entryText),
   }, t), [manifest, entryText, t]);
@@ -154,7 +154,7 @@ function MemoryOpening({ manifest, entryText, world, song, trackName, resolveAss
           <h2 id={headingId}>{manifest.title}</h2>
           {entered && <ImmersiveSession pause={pause.open} />}
           {entered && <FullscreenButton />}
-          {game && <button type="button" ref={pause.pauseButton} onClick={pause.open}>Pause</button>}
+          {game && <button type="button" ref={pause.pauseButton} onClick={pause.open}>{t('Pause')}</button>}
         </header>
         {plotVisit && !plotVisit.completed && <p className="story-opening">{plotVisit.plot.opening}</p>}
         {song && <SongCard song={song} />}

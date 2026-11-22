@@ -71,7 +71,7 @@ export function Library() {
           <span className="library-featured-text">
             <span className="library-featured-kicker">{t('Last saved')}</span>
             <strong>{featured.title}</strong>
-            <span>{featured.meta}</span>
+            <span>{featured.meta.split(' · ').map(part => t(part)).join(' · ')}</span>
             <span className="library-featured-go">{t('Continue')} ▸</span>
           </span>
         </a>

@@ -9,6 +9,7 @@ import type { GameState } from '../world/checkpoint';
 import { loadDayCheckpoint } from './game-repository';
 import { localMemories, saveDayProgress } from './indexed-memory-repository';
 import { MemoryActions } from './MemoryActions';
+import { useT } from '../i18n/i18n';
 import type { DaySummary } from './repository';
 
 function ArchiveCard({ id, title, date, palette, thumbnail, photo }: DaySummary) {
@@ -102,6 +103,7 @@ type LoadedMemory = {
 };
 
 export function SavedMemory({ id }: { id: string }) {
+  const t = useT();
   const [memory, setMemory] = useState<LoadedMemory | 'missing' | 'error'>();
   const [restart, setRestart] = useState(false);
   useEffect(() => {
@@ -121,9 +123,9 @@ export function SavedMemory({ id }: { id: string }) {
 
   return (
     <section className="intake">
-      <a href="/archive">Back to archive</a>
-      {!memory ? <p role="status">Opening saved memory…</p>
-        : memory === 'missing' ? <p role="alert">This memory was not found in this browser.</p>
+      <a href="/archive">{t('Back to archive')}</a>
+      {!memory ? <p role="status">{t('Opening saved memory…')}</p>
+        : memory === 'missing' ? <p role="alert">{t('This memory was not found in this browser.')}</p>
         : memory === 'error' ? <p role="alert">This saved memory could not be opened.</p>
         : memory.checkpointProblem && !restart ? (
           <div>

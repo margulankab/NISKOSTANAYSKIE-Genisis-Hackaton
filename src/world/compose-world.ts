@@ -88,6 +88,10 @@ export function titleFromPrompt(prompt: string, fallback: string, termStarts: re
   if (lastTerm >= 2) picked.splice(lastTerm + 1);
   while (picked.length && titleStops.has(picked[picked.length - 1][0].toLowerCase())) picked.pop();
   const title = picked.length >= 3 ? picked.map((w) => w[0]) : [fallback, 'Memory', 'World'];
+  // Russian titles use sentence case: «Ночной рынок на улице».
+  if (title.filter(w => /[а-яё]/i.test(w)).length > title.length / 2) {
+    return title.map((w, i) => i === 0 ? w[0].toUpperCase() + w.slice(1) : w.toLowerCase()).join(' ');
+  }
   return title.map((w, i) => i > 0 && titleStops.has(w.toLowerCase()) ? w.toLowerCase() : w[0].toUpperCase() + w.slice(1)).join(' ');
 }
 

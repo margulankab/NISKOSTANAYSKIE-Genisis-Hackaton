@@ -88,8 +88,8 @@ function FixtureLibrary({ slug }: { slug?: string }) {
               <button type="button" aria-pressed={fixture === selected} onClick={() => setSelected(fixture)}>
                 <span className="day-card-image" aria-hidden="true" style={{ backgroundImage: `url("${fixture.image}")` }} />
                 <time dateTime={fixture.date}>{fixture.date}</time>
-                <span className="memory-context">{fixture.mood.primary} · {fixture.context.environment}</span>
-                <span>{fixture.title}</span>
+                <span className="memory-context">{t(fixture.mood.primary)} · {t(fixture.context.environment)}</span>
+                <span>{t(fixture.title)}</span>
               </button>
             </li>
           ))}
@@ -132,7 +132,7 @@ function FixturePanel({ fixture }: { fixture: (typeof fixtures)[number] }) {
       const playable = playableFixture(state.bundle, fixture);
       const { manifest } = playable;
       enterWorld({
-        words: playable.entryText, title: manifest.title, from: enterButton.current,
+        words: playable.entryText, title: t(manifest.title), from: enterButton.current,
         lines: [
           t('reading your words'),
           t('placing {count} objects', { count: manifest.artifacts.length + manifest.photos.length }),

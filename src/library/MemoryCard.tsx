@@ -100,8 +100,9 @@ export function MemoryCard({ item, index, label }: { item: LibraryItem; index: n
           <span className="memory-card-kind">{label(kindLabel[item.kind])}</span>
         </span>
         <span className="memory-card-text">
-          <strong>{item.title}</strong>
-          <span>{item.meta}</span>
+          {/* Example days are fixed fictional data, so their titles and tags are shown in the interface language. */}
+          <strong>{item.kind === 'example' ? label(item.title) : item.title}</strong>
+          <span>{item.meta.split(' · ').map(part => label(part)).join(' · ')}</span>
         </span>
       </a>
     </li>
