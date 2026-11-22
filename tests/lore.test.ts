@@ -12,6 +12,8 @@ describe('one build button', () => {
     ['Вечером я встретил друга у фонтана.', true],
     ['A sunny park with a gazebo and benches.', false],
     ['A covered market under a railway bridge.', false],
+    ['A quiet kitchen with a wooden table, then a garden with two oak trees.', false],
+    ['A covered night market under a railway bridge, with lanterns above the stalls.', false],
   ])('%s → character: %s', (prompt, expected) => {
     expect(mentionsPerson(prompt)).toBe(expected);
   });

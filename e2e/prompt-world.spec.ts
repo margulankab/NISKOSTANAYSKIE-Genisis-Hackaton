@@ -13,7 +13,8 @@ async function pause(page: Page) {
 }
 
 test('AT-25: start from the title menu, save mid-visit, Continue, finish, Save & Quit and Load Game', async ({ page }, testInfo) => {
-  test.setTimeout(60_000);
+  // Larger worlds and the lore HUD: the full visit runs close to a minute with two browsers at once.
+  test.setTimeout(120_000);
   await page.goto('/');
   await expect(page.getByText('No saved game yet')).toBeVisible();
   await startPromptGame(page, lighthouse);

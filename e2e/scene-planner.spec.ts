@@ -62,7 +62,8 @@ test('AT-27: both prompt actions use the scene planner and failures require an e
   await expect(description).toHaveValue('water park');
   await page.getByRole('button', { name: 'Build privately' }).click();
   await expect(page.getByText('Built privately')).toBeVisible();
-  expect(requests).toBe(3);
+  // Two planner calls now: the first build and the failed retry (one build button since 2026-11-22).
+  expect(requests).toBe(2);
 });
 
 test('edits cancel late plans and the main navigation confirms unsaved exits', async ({ page }) => {

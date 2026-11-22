@@ -1,5 +1,33 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-22 — Full-screen play, centered game menu, lore, 360° camera and music-app players
+
+Enter world now goes straight into a full-screen world with nothing beside it. Saved worlds opened from Continue offer a **Play** button. Esc, or the in-world ☰ Menu or ⚙ buttons, opens a centered, animated game menu with Game, Journal, Music and Settings tabs. Other changes:
+- One **Build world** button: naming or referring to a person adds the story character.
+- **Lore:** quests and narrator lines that quote the player's own words, for prompt worlds and day memories.
+- **Camera:** a 360° third-person orbit with elevation and wheel zoom.
+- **Music apps (opt-in):** official players from Spotify, SoundCloud, Apple Music, YouTube Music, Deezer, Yandex and TIDAL in a floating mini player. This was the owner's decision, recorded in AGENTS.md.
+- **Library:** a featured card, search, taped postcards and a drawn horizon.
+- **One-file release:** links get real `#hash` addresses, the file was rebuilt, and the claude.ai page republished (version 4).
+
+[Architecture](ARCHITECTURE.md#full-screen-play-game-menu-lore-360-camera-and-music-app-players--2026-11-22).
+
+**Checks run (Linux container, Chromium headless with SwiftShader):**
+
+- `npm run typecheck` passed. `npm test` passed **188** unit tests, including new `tests/lore.test.ts` (person detection and exact quotes) and `tests/embed.test.ts` (embed URLs for eight link types).
+- Full browser suite, `--workers=2`, **58 tests**: 54 passed. The 4 failures were then fixed and passed with `--last-failed` (4 of 4):
+  - **Person detection:** the case-insensitive flag let "with a wooden table" count as a name, so the market and mixed worlds became story worlds. Names now must be capitalised.
+  - **AT-27:** now expects two planner requests, because the two build buttons are one.
+  - **AT-25:** hit its 60 s limit under two workers and passed alone. Its limit is now 120 s.
+- New or updated specs:
+  - full screen: the stage covers the viewport, the menu is centered, its tabs work, and Play from Continue enters full screen;
+  - music apps: nothing loads before Play here, the embed URL is right, search opens a new tab, and collapse and close work.
+
+  The other specs start windowed (`fullscreen: false` in the config's storage state).
+- The one-file release opened from `file://`: every route rendered with no broken images, in-app links carried `#hash` addresses, and a world played with its soundtrack. The only messages were a three.js deprecation warning and an aborted blob request when the audio element is replaced.
+
+**Not verified here:** real Spotify, SoundCloud and Apple Music playback (the network here can't reach them, so the tests answer the frames locally), Keyboard Lock on a real screen, and phones. The claude.ai page blocks third-party frames, so the mini player stays empty there. The music providers' terms still need review before a public release.
+
 ## 2026-11-22 — Combined site, memory library, shift lock and the one-file release
 
 The site was minimised: the header is now the wordmark (home), Library, New game and Settings, and the status bar, ticker, cassette aside and World preview link were removed. The title screen shows a fanned memory showcase. The new `/library` page holds saved worlds and days and the five example days, plus Archive and Create a memory. Animations: title letters rise, library cards rise in sequence, and pages use view transitions. In the game, a tap of Shift toggles shift lock, holding Shift runs, and Space interacts without scrolling. In full screen the world is fixed and only the side panel scrolls. Settings gained Customize (field of view, look sensitivity, ink weight, text size). `npm run build:single` writes the whole game as one file, committed as `release/memory-worlds.html`. The claude.ai page (https://claude.ai/artifact/D1tFJaQ9gxwUxkErVw2a4v) was republished with this build. [Architecture](ARCHITECTURE.md#site-memory-library-shift-lock-and-the-single-file-release--2026-11-22).

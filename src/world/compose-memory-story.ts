@@ -41,11 +41,14 @@ function localStory(world: PromptWorld) {
   });
 }
 
-const people = /(?:\b(?:with|met|named|called)\s+[\p{Lu}][\p{L}'’-]{1,35}(?=\s|[.,!?]|$))|\b(?:friend|friends|mom|mum|mother|dad|father|grandma|grandpa|grandmother|grandfather|sister|brother|wife|husband|partner|girlfriend|boyfriend|teacher|neighbou?r|cousin|aunt|uncle|daughter|son)\b|(?:встретил|встретила|друг|друга|подруг|мам|пап|бабушк|дедушк|брат|сестр|сосед)/iu;
+// A name after "with/met/named/called" must start with a capital letter (case-sensitive on purpose:
+// "with a wooden table" is not a person); relation words match in any case.
+const namedPerson = /\b(?:with|met|named|called)\s+[\p{Lu}][\p{L}'’-]{1,35}(?=\s|[.,!?]|$)/u;
+const relation = /\b(?:friend|friends|mom|mum|mother|dad|father|grandma|grandpa|grandmother|grandfather|sister|brother|wife|husband|partner|girlfriend|boyfriend|teacher|neighbou?r|cousin|aunt|uncle|daughter|son)\b|(?:встретил|встретила|друг|друга|подруг|мам|пап|бабушк|дедушк|брат|сестр|сосед)/iu;
 
 /** Whether a description mentions someone, so the world ends with a character instead of a landmark. */
 export function mentionsPerson(prompt: string) {
-  return people.test(prompt);
+  return namedPerson.test(prompt) || relation.test(prompt);
 }
 
 /** Write around the same resolved landmarks in either planning mode. */
