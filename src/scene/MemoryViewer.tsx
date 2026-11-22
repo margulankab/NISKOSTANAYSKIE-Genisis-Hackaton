@@ -12,6 +12,8 @@ import { PauseMenu } from '../world/PauseMenu';
 import type { MenuTab } from '../world/PauseMenu';
 import { buildLore, firstSentence } from '../story/lore';
 import { DialogBox, QuestLog, useLoreFeed } from '../story/LoreHud';
+import { RevealMoment } from '../story/RevealMoment';
+import type { Moment } from '../story/RevealMoment';
 import { MusicPicker } from '../music/MusicApps';
 import { useT } from '../i18n/i18n';
 import { useGamePause } from '../world/use-game-pause';
@@ -79,6 +81,7 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
   const headingId = useId();
   const artifactGroupId = useId();
   const [revealed, setRevealed] = useState<ReadonlySet<string>>(() => game?.initial?.revealed ?? new Set());
+  const [moment, setMoment] = useState<Moment | null>(null);
   const [complete, setComplete] = useState(game?.initial?.ended ?? false);
   const [activeAudio, setActiveAudio] = useState<HTMLAudioElement | null>(null);
   const [staticMode, setStaticMode] = useState(false);
@@ -111,6 +114,11 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
   });
 
   function reveal(id: string) {
+    if (revealed.has(id)) return;
+    const artifact = manifest.artifacts.find((item) => item.id === id);
+    if (artifact) setMoment({ id, count: revealed.size + 1, title: t(artifactNames[artifact.kind]),
+      quote: artifact.excerpt ? entryText.slice(artifact.excerpt.start, artifact.excerpt.end) : undefined,
+      photoUrl: artifact.photoId && firstPhoto.status === 'ready' ? firstPhoto.url : undefined });
     setRevealed((previous) => previous.has(id) ? previous : new Set([...previous, id]));
   }
 
@@ -160,6 +168,7 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
                   first: revealed.has(manifest.artifacts[0].id), second: revealed.has(manifest.artifacts[1].id), end: complete,
                 }} />
                 <DialogBox line={feed.line} left={feed.left} onNext={feed.next} hint={t('click to continue')} />
+                <RevealMoment moment={moment} />
                 {game && (
                   <div className="hud-buttons">
                     <button type="button" className="hud-menu" onClick={() => { setMenuTab('game'); pause.open(); }} disabled={paused}>
