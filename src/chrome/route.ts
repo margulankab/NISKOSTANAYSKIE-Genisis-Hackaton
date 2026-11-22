@@ -23,9 +23,24 @@ export function pathFor(hash: string) {
   return '/' + parts.join('/');
 }
 
+/**
+ * In the web build the route lives in memory and is mirrored to the address when the viewer allows it.
+ * Some viewers (file previews, in-app browsers, sandboxed frames) refuse or ignore address changes;
+ * the game must still move between screens there.
+ */
+let memoryRoute: string | null = null;
+const routeListeners = new Set<() => void>();
+function setRoute(path: string) {
+  memoryRoute = path;
+  for (const listener of routeListeners) listener();
+}
+function safeHash() {
+  try { return window.location.hash; } catch { return ''; }
+}
+
 /** The app route, such as "/" or "/examples/park". */
 export function currentPath() {
-  const raw = hashRouting ? pathFor(window.location.hash) : window.location.pathname;
+  const raw = hashRouting ? memoryRoute ?? pathFor(safeHash()) : window.location.pathname;
   return raw.replace(/\/$/, '') || '/';
 }
 
@@ -36,19 +51,18 @@ export function navigate(to: string) {
   const path = url.hash && url.pathname === window.location.pathname ? pathFor(url.hash) : url.pathname;
   const hash = hashFor(path);
   const go = () => {
-    if (window.location.hash.replace(/^#/, '') === hash) window.dispatchEvent(new HashChangeEvent('hashchange'));
-    else window.location.hash = hash;
+    setRoute(path);
+    try { if (safeHash().replace(/^#/, '') !== hash) history.replaceState(null, '', '#' + hash); } catch { /* the viewer keeps its own address */ }
     window.scrollTo({ top: 0 });
   };
   // Same page-turn as the path build's cross-document transition, where the browser supports it.
   const motion = document.documentElement.dataset.motion;
   const reduced = motion === 'off' || (motion === 'system' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   if (!document.startViewTransition || reduced) { go(); return; }
-  document.startViewTransition(() => new Promise<void>((resolve) => {
-    // Animation frames pause during a transition, so wait for React's commit with a task instead.
-    window.addEventListener('hashchange', () => setTimeout(resolve, 30), { once: true });
-    go();
-  }));
+  // Animation frames pause during a transition, so wait for React's commit with a short task instead.
+  try {
+    document.startViewTransition(() => new Promise<void>((resolve) => { go(); setTimeout(resolve, 30); }));
+  } catch { go(); }
 }
 
 /**
@@ -83,6 +97,9 @@ export function installHashLinks() {
 
 export function subscribeToRoute(listener: () => void) {
   if (!hashRouting) return () => {};
-  window.addEventListener('hashchange', listener);
-  return () => window.removeEventListener('hashchange', listener);
+  // Typing a new #address still works where the viewer allows it.
+  const fromAddress = () => setRoute(pathFor(safeHash()));
+  routeListeners.add(listener);
+  window.addEventListener('hashchange', fromAddress);
+  return () => { routeListeners.delete(listener); window.removeEventListener('hashchange', fromAddress); };
 }

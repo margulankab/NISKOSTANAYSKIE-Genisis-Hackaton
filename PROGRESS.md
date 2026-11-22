@@ -1,5 +1,16 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-22 — One-file release: menu buttons in restricted viewers
+
+**Report:** in the HTML file only the menu showed, and pressing a button did nothing. In Chromium, opened directly and inside a sandboxed frame, the buttons worked, so the cause is the viewer. The web build navigated by changing `location.hash`, which some viewers (file previews, in-app browsers) block or ignore.
+
+**Fix:** in hash builds the route now lives in memory ([`route.ts`](src/chrome/route.ts)). The address is mirrored with `history.replaceState` inside a try, and typed `#addresses` still work through `hashchange`.
+
+**Checks:**
+- `npm test` passed 188 unit tests.
+- The rebuilt `release/memory-worlds.html` walked through all routes and in-page links from `file://`, inside a `sandbox="allow-scripts"` frame, and with `history.replaceState` forced to throw. Title → New Game → From a prompt → Library all changed screens, and a world played with music.
+- The full-screen, first-person and navigation-guard specs passed.
+
 ## 2026-11-22 — Full-screen play, centered game menu, lore, 360° camera and music-app players
 
 Enter world now goes straight into a full-screen world with nothing beside it. Saved worlds opened from Continue offer a **Play** button. Esc, or the in-world ☰ Menu or ⚙ buttons, opens a centered, animated game menu with Game, Journal, Music and Settings tabs. Other changes:
