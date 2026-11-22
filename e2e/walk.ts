@@ -51,11 +51,13 @@ export async function walkTo(page: Page, goal: Pt) {
   await goTo(page, goal, reach - 0.4);
 }
 
-export async function walkToGoal(page: Page, goal: Target) {
-  const layout = await targets(page);
-  if (!('solids' in layout)) {
-    return walkTo(page, goal.kind === 'artifact' ? layout.artifacts[goal.index] : layout.landmark);
+export async function walkToGoal(page: Page, goal: Target, landmark?: Pt) {
+  const measured = await targets(page);
+  if (!('solids' in measured)) {
+    return walkTo(page, goal.kind === 'artifact' ? measured.artifacts[goal.index] : landmark ?? measured.landmark);
   }
+  const offstage = { x: -100, z: -100 };
+  const layout: WalkLayout = landmark ? { ...measured, landmark, artifacts: [offstage, offstage] } : measured;
   let lastError: unknown;
   const matchTarget = (position: Pt) => JSON.stringify(targetAt(position, layout, 2,
     goal.kind === 'ending' ? [true, true] : goal.index === 0 ? [false, true] : [true, false])) === JSON.stringify(goal);
@@ -74,6 +76,16 @@ export async function walkToGoal(page: Page, goal: Target) {
     }
   }
   throw lastError ?? new Error('No route to ' + JSON.stringify(goal));
+}
+
+export async function playMoment(page: Page, count: number, options: { timing?: boolean; wait?: boolean } = {}) {
+  const point = await viewport(page).getAttribute('data-moment-point');
+  if (!point) throw new Error('The world has no active moment.');
+  await walkToGoal(page, { kind: 'ending', ready: true }, JSON.parse(point));
+  await expect(page.locator('.walk-interact')).toBeEnabled();
+  await page.keyboard.press('e');
+  if (options.timing) await page.getByRole('button', { name: 'Continue without timing' }).click();
+  if (options.wait !== false) await expect(page.getByText(new RegExp(`^${count} of \\d+ moments complete$`))).toBeVisible({ timeout: 15_000 });
 }
 
 export async function visitArtifact(page: Page, index: number) {

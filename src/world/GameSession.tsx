@@ -16,6 +16,8 @@ import { prefersReducedMotion, subscribeToReducedMotion } from '../scene/reduced
 import { SongCard } from '../music/SongOfTheDay';
 import { songCues } from '../music/song';
 import { atmosphereFor, setWorldAtmosphere } from '../menus/settings';
+import { PlotProgress, usePlotVisit } from './PlotVisit';
+import { SceneDirectionDetails } from './SceneDirectionDetails';
 
 /** One play session of a prompt world: walking, discoveries, ending, pause menu and saving. */
 export function GameSession({ world, initial, initialSoundtrack, repository = localGames, leave = () => window.location.assign('/') }: {
@@ -38,9 +40,10 @@ export function GameSession({ world, initial, initialSoundtrack, repository = lo
   const [soundtrack, setSoundtrack] = useState(initialSoundtrack);
   const [activeAudio, setActiveAudio] = useState<HTMLAudioElement | null>(null);
   const [staticMode, setStaticMode] = useState(false);
+  const plotVisit = usePlotVisit(world.layout.plot, initial?.momentsCompleted);
   const menu = useGamePause({
     initial, selection: JSON.stringify([soundtrack.record, soundtrack.muted]),
-    progress: () => ({ position: position.current, revealed, ended, storyStep }),
+    progress: () => ({ position: position.current, revealed, ended: plotVisit?.ended ?? ended, storyStep, momentsCompleted: plotVisit?.completed }),
     persist: (state) => repository.saveGame(world, createCheckpoint(world, state), soundtrack),
     leave,
   });
@@ -73,6 +76,7 @@ export function GameSession({ world, initial, initialSoundtrack, repository = lo
     setRevealed(new Set());
     setEnded(false);
     setStoryStep(undefined);
+    plotVisit?.reset();
     setVisit((count) => count + 1);
   }
 
@@ -96,6 +100,7 @@ export function GameSession({ world, initial, initialSoundtrack, repository = lo
           </div>
           <button type="button" ref={menu.pauseButton} onClick={menu.open}>Pause</button>
         </header>
+        {plotVisit && !plotVisit.completed && <p className="story-opening">{plotVisit.plot.opening}</p>}
         {story && !storyStep && <p className="story-opening">{story.opening}</p>}
         {story && !storyStep && latestDiscovery && (
           <p className="story-discovery" role="status">{discoveryNotes?.[latestDiscovery === discoveries[0].placementId ? 0 : 1]}</p>
@@ -119,19 +124,22 @@ export function GameSession({ world, initial, initialSoundtrack, repository = lo
           </section>
         )}
         {staticMode && (
-          <p className="static-note" role="status">Static preview — the 3D world is unavailable here. Reveal each discovery from the list below.</p>
+          <p className="static-note" role="status">Static preview — the 3D world is unavailable here. {plotVisit ? 'Play through the moments below.' : 'Reveal each discovery from the list below.'}</p>
         )}
         <div key={visit} className={story && !reducedMotion ? `story-stage${ended ? ' story-stage-ended' : ''}` : undefined}>
-          <WorldStage world={world} revealed={revealed} ended={ended} position={position} paused={paused || !!storyStep}
-            conversationOpen={!!storyStep} audio={{ activeAudio, music, ...(songTempo && { songPulse: { bpm: songTempo.tempo, energy: songTempo.energyLevel } }) }} onReveal={reveal} onFinish={finish} onUnavailable={useStatic} />
+          <WorldStage world={world} revealed={revealed} ended={plotVisit?.ended ?? ended} position={position} paused={paused || !!storyStep}
+            conversationOpen={!!storyStep} visit={plotVisit} audio={{ activeAudio, music, muted: soundtrack.muted, ...(songTempo && { songPulse: { bpm: songTempo.tempo, energy: songTempo.energyLevel } }) }} onReveal={reveal} onFinish={finish} onUnavailable={useStatic} />
         </div>
-        <div className="memory-actions">
+        {plotVisit ? <PlotProgress visit={plotVisit} staticMode={staticMode} onReplay={replay} /> : <div className="memory-actions">
           <p role="status">{revealed.size} of 2 discoveries found</p>
-        </div>
+        </div>}
         {world.song && <SongCard song={world.song} />}
+        {world.layout.direction && <SceneDirectionDetails direction={world.layout.direction} interpretation={world.interpretation}
+          prompt={world.prompt} soundtrack={soundtrack} song={Boolean(world.song)}
+          momentBed={plotVisit?.playing || plotVisit?.completed ? (plotVisit.current ?? plotVisit.plot.moments.at(-1))?.ambience : undefined} />}
         <WorldSoundtrack value={soundtrack} onChange={changeTrack} onActiveAudio={setActiveAudio} paused={paused}
           mute={{ value: soundtrack.muted, onChange: (muted) => setSoundtrack((previous) => ({ ...previous, muted })) }} />
-        <div className="artifact-grid">
+        {!plotVisit && <><div className="artifact-grid">
           {discoveries.map(({ placementId, excerpt }, index) => {
             const open = revealed.has(placementId);
             return (
@@ -159,10 +167,10 @@ export function GameSession({ world, initial, initialSoundtrack, repository = lo
               <button type="button" onClick={replay}>Replay visit</button>
             </div>
           )}
-        </footer>
+        </footer></>}
         <details className="interpretation-details">
           <summary>How this world was built</summary>
-          <p>{world.scene?.processing === 'gemini' ? 'Gemini planned this fictional scene.' : 'The scene was built privately on this device.'}
+          <p>{plotVisit ? 'Gemini wrote this dramatization from the fictional prompt.' : world.scene?.processing === 'gemini' ? 'Gemini planned this fictional scene.' : 'The scene was built privately on this device.'}
             {story && ' The conversation is imagined.'}</p>
           {story && (
             <>

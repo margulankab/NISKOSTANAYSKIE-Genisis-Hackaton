@@ -1,5 +1,9 @@
 # Memory Worlds — three-developer exploration game plan
 
+## Playable plots and atmosphere — 2026-11-22
+
+Every new world receives a Gemini-authored plot through the free-tier gateway. A owns the action player, camera, accessibility and checkpoints. B owns the fictional-prompt boundary, hosted adapter, archives and verification. C owns original stage pieces, atmosphere, and both gallery reviews. Use the same action vocabulary across settings. Review emotional pacing with contrasting prompts in the same place as well as the park and water park benchmarks. Keep journal text and media on the device. A separately written fictional scene prompt supplies Gemini with the material for the visit. See [the current architecture](../ARCHITECTURE.md#gemini-plot-visits--2026-11-22) and [verification evidence](../PROGRESS.md).
+
 ## Active delivery plan — 2026-11-21
 
 The [Memory Worlds implementation plan](memory_worlds_implementation_plan.md) specifies the current prompt-world product direction. It adds an LLM scene planner, a 100-model release floor, and park and water-park benchmarks. The case deadline and private diary flow have a separate delivery track. The earlier expansion decisions and gate estimates follow below.

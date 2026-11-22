@@ -1,11 +1,12 @@
-import { useId, useState } from 'react';
-import { atmospheres, readSettings, writeSettings } from './settings';
+import { useEffect, useId, useState } from 'react';
+import { atmospheres, readSettings, subscribeToSettings, writeSettings } from './settings';
 import type { Settings } from './settings';
 
 export function SettingsMenu() {
   const volumeId = useId();
   const [settings, setSettings] = useState(readSettings);
   const [saved, setSaved] = useState(false);
+  useEffect(() => subscribeToSettings(() => setSettings(readSettings())), []);
 
   function update(next: Settings) {
     setSettings(next);

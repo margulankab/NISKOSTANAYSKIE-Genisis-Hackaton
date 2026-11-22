@@ -17,6 +17,8 @@ import type { ResolveAsset } from './use-asset-url';
 import { WalkStage } from './WalkStage';
 import { SceneExplanation } from './SceneExplanation';
 import { getSceneStyle } from './scene-style';
+import { PlotProgress, usePlotVisit } from '../world/PlotVisit';
+import { SceneDirectionDetails } from '../world/SceneDirectionDetails';
 
 function ArtifactPhoto({ photo, resolveAsset }: { photo: MemoryScene['photos'][number]; resolveAsset: ResolveAsset }) {
   const media = useAssetUrl(photo.assetId, resolveAsset);
@@ -69,11 +71,13 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
   }, [manifest.context.timeOfDay]);
   const headingId = useId();
   const artifactGroupId = useId();
-  const [revealed, setRevealed] = useState<ReadonlySet<string>>(() => game?.initial?.revealed ?? new Set());
+  const [legacyRevealed, setRevealed] = useState<ReadonlySet<string>>(() => game?.initial?.revealed ?? new Set());
   const [complete, setComplete] = useState(game?.initial?.ended ?? false);
   const [activeAudio, setActiveAudio] = useState<HTMLAudioElement | null>(null);
   const [staticMode, setStaticMode] = useState(false);
   const [visit, setVisit] = useState(0);
+  const plotVisit = usePlotVisit(world?.layout.plot, game?.initial?.momentsCompleted, onComplete);
+  const revealed = plotVisit ? new Set(manifest.artifacts.slice(0, plotVisit.ended ? 2 : plotVisit.completed > 0 ? 1 : 0).map(({ id }) => id)) : legacyRevealed;
   const finished = useRef(complete);
   const allRevealed = revealed.size === manifest.artifacts.length;
   const style = getSceneStyle(manifest);
@@ -81,7 +85,7 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
   const [spawn] = useState(() => world?.layout.spawn ?? createWalkLayout(style).spawn);
   const position = useRef<Point>(game?.initial?.position ?? spawn);
   const pause = useGamePause({
-    initial: game?.initial, progress: () => ({ position: position.current, revealed, ended: complete }),
+    initial: game?.initial, progress: () => ({ position: position.current, revealed, ended: plotVisit?.ended ?? complete, momentsCompleted: plotVisit?.completed }),
     persist: game?.save,
   });
   const { paused } = pause;
@@ -102,6 +106,7 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
     finished.current = false;
     setRevealed(new Set());
     setComplete(false);
+    plotVisit?.reset();
     setVisit((count) => count + 1);
   }
 
@@ -115,12 +120,13 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
           <h2 id={headingId}>{manifest.title}</h2>
           {game && <button type="button" ref={pause.pauseButton} onClick={pause.open}>Pause</button>}
         </header>
+        {plotVisit && !plotVisit.completed && <p className="story-opening">{plotVisit.plot.opening}</p>}
         {song && <SongCard song={song} />}
         {staticMode && (
-          <p className="static-note" role="status">Static preview — the 3D world is unavailable here. Reveal each object from the list below.</p>
+          <p className="static-note" role="status">Static preview — the 3D world is unavailable here. {plotVisit ? 'Play through the moments below.' : 'Reveal each object from the list below.'}</p>
         )}
         {world ? (
-          <WorldStage key={visit} world={world} areaLabel="Memory world" position={position} paused={paused} ended={complete}
+          <WorldStage key={visit} world={world} areaLabel="Memory world" position={position} paused={paused} ended={plotVisit?.ended ?? complete} visit={plotVisit}
             artifactLabels={[artifactNames[manifest.artifacts[0].kind], artifactNames[manifest.artifacts[1].kind]]}
             revealed={new Set(world.layout.discoveries.filter((_, index) => revealed.has(manifest.artifacts[index].id))
               .map(({ placementId }) => placementId))}
@@ -136,7 +142,12 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
           <WalkStage key={visit} manifest={manifest} style={style} revealed={revealed} activeAudio={activeAudio}
             playerPosition={position} paused={paused} onReveal={reveal} onFinish={finish} onUnavailable={useStatic} />
         )}
-        <SceneExplanation manifest={manifest} style={style} generated={Boolean(world)} />
+        {plotVisit && <PlotProgress visit={plotVisit} staticMode={staticMode} onReplay={replay} />}
+        {world?.layout.direction
+          ? <SceneDirectionDetails direction={world.layout.direction} interpretation={world.interpretation}
+            prompt={world.scenePrompt ?? ''} journal photoAccent={`rgb(${style.accentPalette[1].join(',')})`}
+            momentBed={plotVisit?.playing || plotVisit?.completed ? (plotVisit.current ?? plotVisit.plot.moments.at(-1))?.ambience : undefined} />
+          : <SceneExplanation manifest={manifest} style={style} generated={Boolean(world)} />}
         <div className="memory-actions">
           <p role="status">{revealed.size} of {manifest.artifacts.length} artifacts revealed</p>
           <MemoryAudio id={manifest.source.audioId} resolveAsset={resolveAsset} onActiveAudio={setActiveAudio} paused={paused} />
@@ -169,7 +180,7 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
             );
           })}
         </div>
-        <footer className="memory-ending">
+        {!plotVisit && <footer className="memory-ending">
           {staticMode && !complete && (
             <button type="button" disabled={!allRevealed} onClick={finish}>Finish memory</button>
           )}
@@ -181,7 +192,7 @@ function MemoryOpening({ manifest, entryText, world, song, resolveAsset, onCompl
               <button type="button" onClick={replay}>Replay visit</button>
             </div>
           )}
-        </footer>
+        </footer>}
       </article>
       {paused && <PauseMenu {...pause.menu} />}
     </>

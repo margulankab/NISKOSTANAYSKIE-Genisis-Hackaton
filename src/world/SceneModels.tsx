@@ -6,6 +6,7 @@ import { originalModel } from './original-models';
 import type { ModelPart } from './original-models';
 import type { Placement, WorldLayout } from './layout-schema';
 import type { RecipeId } from './recipes';
+import { groundHeight, hasPlotRelief } from './plot-terrain';
 
 const shapes = {
   box: new BoxGeometry(),
@@ -54,7 +55,7 @@ function BatchedGeometry({ batch }: { batch: Batch }) {
       current.setMatrixAt(i, dummy.matrix.premultiply(parent.matrix));
       paint.set(model.color);
       if (placement.color) paint.lerp(accent.setRGB(...placement.color.map(value => value / 255) as [number, number, number]).convertSRGBToLinear(), .68);
-      else if (tint) paint.lerp(accent.set(tint), .2);
+      else if (tint && placement.recipe !== 'pool-basin') paint.lerp(accent.set(tint), .2);
       current.setColorAt(i, paint);
     }
     current.instanceMatrix.needsUpdate = true;
@@ -84,6 +85,7 @@ const groundDetails: Record<NonNullable<WorldLayout['profile']>, RecipeId[]> = {
   interior: ['rug', 'tea-set', 'picture-frame', 'fern'], woodland: ['grass', 'fern', 'mushroom', 'log', 'shrub'],
   city: ['bollard', 'poster-column', 'fern', 'shrub'], rural: ['grass', 'fern', 'shrub', 'haystack'],
   fantasy: ['crystal', 'rock-ledge', 'grass', 'mushroom'], station: ['fern', 'bollard', 'crystal', 'rock-ledge'],
+  ballfield: ['grass', 'shrub', 'fern'],
 };
 
 export function GroundsDressing({ layout, excluded = [], tint }: { layout: WorldLayout; excluded?: readonly RecipeId[]; tint?: string }) {
@@ -102,6 +104,7 @@ export function GroundsDressing({ layout, excluded = [], tint }: { layout: World
       const point = { x: bounds.minX + rand() * (bounds.maxX - bounds.minX), z: bounds.minZ + rand() * (bounds.maxZ - bounds.minZ) };
       const inside = (area: typeof bounds) => point.x >= area.minX && point.x <= area.maxX && point.z >= area.minZ && point.z <= area.maxZ;
       if (drySurfaces && !drySurfaces.some(inside) || water && inside(water) || indoor && inside(indoor.area) && layout.profile !== 'interior') continue;
+      if (layout.profile === 'ballfield' && Math.abs(point.x) < 7.5 && point.z < 3 && point.z > -12) continue;
       if (Math.hypot(point.x - layout.spawn.x, point.z - layout.spawn.z) < 2.1 ||
           paths.some(path => path.some((from, n) => n + 1 < path.length && distanceToSegment(point, from, path[n + 1]) < 1.25)) ||
           layout.placements.some(p => Math.hypot(p.x - point.x, p.z - point.z) < 1.15)) continue;
@@ -109,8 +112,9 @@ export function GroundsDressing({ layout, excluded = [], tint }: { layout: World
       const recipe = available[Math.floor(rand() * available.length)];
       result.push({ ...point, id: `detail-${i}`, recipe, y: 0, rotation: (rand() - .5) * 6, scale: .48 + rand() * .34, term: null, color: null });
     }
-    if (['park', 'water-park', 'woodland', 'coast', 'city', 'market', 'rural', 'fantasy'].includes(layout.profile)) {
-      const silhouette: RecipeId[] = layout.profile === 'water-park' ? ['palm', 'cabana', 'shrub'] :
+    if (!layout.direction && ['park', 'water-park', 'woodland', 'coast', 'city', 'market', 'rural', 'fantasy', 'ballfield'].includes(layout.profile)) {
+      const silhouette: RecipeId[] = layout.profile === 'fantasy' && layout.placements.some(p => p.recipe === 'cavern') ? ['rock-ledge', 'standing-stone', 'rock-ledge'] :
+        layout.profile === 'water-park' ? ['palm', 'cabana', 'shrub'] :
         layout.profile === 'city' || layout.profile === 'market' ? ['apartment', 'storefront', 'water-tower'] :
         layout.profile === 'coast' ? ['rock-ledge', 'pine', 'shrub'] : ['pine', 'birch', 'shrub'];
       const allowed = silhouette.filter(recipe => !excluded.includes(recipe));
@@ -134,8 +138,8 @@ export function GroundsDressing({ layout, excluded = [], tint }: { layout: World
   }, [layout, excluded]);
   const { bounds } = layout;
   return <>
-    {details.length > 0 && <OriginalModels placements={details} tint={tint} />}
-    {layout.profile && layout.profile !== 'interior' && (
+    {details.length > 0 && <OriginalModels placements={details.map(p => ({ ...p, y: p.y + groundHeight(layout, p.x, p.z) }))} tint={tint} />}
+    {!layout.direction && layout.profile && layout.profile !== 'interior' && (
       <mesh position={[(bounds.minX + bounds.maxX) / 2, -.23, (bounds.minZ + bounds.maxZ) / 2]}>
         <boxGeometry args={[bounds.maxX - bounds.minX + 36, .23, bounds.maxZ - bounds.minZ + 34]} />
         <meshStandardMaterial color={layout.profile === 'water-park' ? '#a89177' : layout.profile === 'coast' ? '#587d88' : '#5d7353'} />
@@ -148,19 +152,28 @@ export function GroundsDressing({ layout, excluded = [], tint }: { layout: World
 function RouteSurface({ layout }: { layout: WorldLayout }) {
   const segments = useMemo(() => (layout.paths ?? []).flatMap(path => path.slice(1).map((to, index) => {
     const from = path[index], dx = to.x - from.x, dz = to.z - from.z;
-    return { x: (from.x + to.x) / 2, z: (from.z + to.z) / 2, length: Math.hypot(dx, dz), angle: Math.atan2(dx, dz) };
-  })), [layout.paths]);
+    const length = Math.hypot(dx, dz);
+    const steps = hasPlotRelief(layout) ? Math.max(1, Math.ceil(length / .6)) : 1;
+    return Array.from({ length: steps }, (_, step) => {
+      const x = from.x + (step + .5) * dx / steps, z = from.z + (step + .5) * dz / steps;
+      const y1 = groundHeight(layout, x - dx / steps / 2, z - dz / steps / 2);
+      const y2 = groundHeight(layout, x + dx / steps / 2, z + dz / steps / 2);
+      return { x, z, y: (y1 + y2) / 2, length: Math.hypot(length / steps, y2 - y1), angle: Math.atan2(dx, dz), pitch: Math.atan2(y1 - y2, length / steps) };
+    });
+  }).flat()), [layout]);
   const mesh = useRef<InstancedMesh>(null);
   const corners = useRef<InstancedMesh>(null);
   const joints = useMemo(() => [...new Map((layout.paths ?? []).flat().map(point => [point.x + ',' + point.z, point])).values()], [layout.paths]);
   const width = layout.profile === 'water-park' ? .64 : 1.04;
-  const color = layout.profile === 'water-park' ? '#ddccab' : layout.indoor ? '#ae9470' : '#b49b72';
+  const color = layout.direction
+    ? '#' + new Color(layout.direction.palette.surface).lerp(new Color('#d1bd94'), .45).getHexString()
+    : layout.profile === 'water-park' ? '#ddccab' : layout.indoor ? '#ae9470' : '#b49b72';
   useLayoutEffect(() => {
     const current = mesh.current;
     if (!current) return;
     for (const [i, segment] of segments.entries()) {
-      dummy.position.set(segment.x, .025 + i * .000015, segment.z);
-      dummy.rotation.set(0, segment.angle, 0);
+      dummy.position.set(segment.x, segment.y + .025 + i * .000015, segment.z);
+      dummy.rotation.set(segment.pitch, segment.angle, 0, 'YXZ');
       dummy.scale.set(width, .018, segment.length);
       dummy.updateMatrix();
       current.setMatrixAt(i, dummy.matrix);
@@ -170,7 +183,7 @@ function RouteSurface({ layout }: { layout: WorldLayout }) {
     const caps = corners.current;
     if (!caps) return;
     for (const [i, joint] of joints.entries()) {
-      dummy.position.set(joint.x, .022 + i * .000012, joint.z);
+      dummy.position.set(joint.x, groundHeight(layout, joint.x, joint.z) + .022 + i * .000012, joint.z);
       dummy.rotation.set(0, 0, 0);
       dummy.scale.set(width, .018, width);
       dummy.updateMatrix();
@@ -178,7 +191,7 @@ function RouteSurface({ layout }: { layout: WorldLayout }) {
     }
     caps.instanceMatrix.needsUpdate = true;
     caps.computeBoundingSphere();
-  }, [segments, joints, width]);
+  }, [segments, joints, layout, width]);
   return segments.length ? <>
     <instancedMesh key={segments.length} ref={mesh} args={[undefined, undefined, segments.length]}>
       <primitive object={shapes.box} attach="geometry" /><meshStandardMaterial color={color} roughness={.96} />

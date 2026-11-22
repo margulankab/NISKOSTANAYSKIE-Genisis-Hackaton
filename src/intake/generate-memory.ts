@@ -1,6 +1,3 @@
-import { composeWorld } from '../world/compose-world';
-import { composeSceneTemplate } from '../world/compose-scene-template';
-import { PROMPT_MAX } from '../world/layout-schema';
 import { analyzePhoto, photoThumbnail } from '../media/photo-analysis';
 import { dayBundleSchema, resolvePresentation } from '../shared/memory-schema';
 import type { DayBundle, MemoryScene } from '../shared/memory-schema';
@@ -97,7 +94,7 @@ function artifactId(entryId: string, mask: 1 | 2) {
   return `${entryId.slice(0, -1)}${(parseInt(entryId.slice(-1), 16) ^ mask).toString(16)}`;
 }
 
-export async function generateMemory(draft: ValidatedDayDraft): Promise<DayBundle> {
+export async function generateMemory(draft: ValidatedDayDraft, world?: NonNullable<DayBundle['world']>): Promise<DayBundle> {
   const { entryId, entryText, date, rights } = draft;
   const textWords = words(entryText.toLowerCase());
   const matchedMood = strongestMatch(textWords, moodWords);
@@ -124,10 +121,6 @@ export async function generateMemory(draft: ValidatedDayDraft): Promise<DayBundl
   const thumbnail = await photoThumbnail(photos[0].blob).catch(() => undefined);
   const availableProps = photoProps[environment];
 
-  const locationText = entryText.slice(0, PROMPT_MAX);
-  const composed = composeSceneTemplate(locationText, { id: entryId });
-  const placed = composed.ok ? composed : composeWorld(locationText, { id: entryId, seed });
-  const world = placed.ok ? { layout: placed.world.layout, interpretation: placed.world.interpretation } : undefined;
   return dayBundleSchema.parse({
     manifest: {
       id: entryId,

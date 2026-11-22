@@ -1,5 +1,11 @@
 # Memory Worlds tools and resource ledger
 
+## Plot visit additions — 2026-11-22
+
+- **Gemini 3.1 Flash-Lite** writes structured plots for explicitly fictional scene prompts. Gemini receives the fictional prompt only. The original journal, photo, and associated song stay on the device. Hosted free-tier eligibility and live model quality are release checks.
+- **Original stage assets** include the baseball diamond, dugout, scoreboard, articulated actors, and original synthesized ambience and action cues. The library window, station frontage, and cavern mouth received geometry revisions. The supplied HTML served as a camera and gameplay reference.
+- **Scene direction** uses Gemini to select a palette, describe its artistic choices, pick from the cleared soundtrack catalog, and write fictional subtitles. The dog, guest groups, waterfront, slide animation, and ambience loops use original project code and geometry. Scene audio is synthesized locally and the subtitles use text only.
+
 ## Application and verification
 
 | Source | Use and attribution |

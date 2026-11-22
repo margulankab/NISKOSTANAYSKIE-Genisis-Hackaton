@@ -229,7 +229,12 @@ export const dayBundleSchema = z.strictObject({
     'Expected a PNG thumbnail within the photo size limit.',
   ).optional(),
 }).superRefine(({ manifest, entryText, photos, audio, rights, world }, ctx) => {
-  if (world) checkWorldLayout(entryText.slice(0, PROMPT_MAX), world.interpretation, world.layout, ctx);
+  if (world) {
+    if (Boolean(world.scenePrompt) !== Boolean(world.layout.plot)) {
+      ctx.addIssue({ code: 'custom', path: ['world'], message: 'The generated plot and its scene prompt belong together.' });
+    }
+    checkWorldLayout(world.scenePrompt ?? entryText.slice(0, PROMPT_MAX), world.interpretation, world.layout, ctx);
+  }
   const photoIds = new Set(photos.map(({ id }) => id));
   if (photos.length !== manifest.source.photoIds.length
       || manifest.source.photoIds.some((id) => !photoIds.has(id))

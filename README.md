@@ -1,5 +1,15 @@
 # Memory Worlds
 
+## Gemini-generated visits
+
+**Build memory** and **Build world** send a fictional scene description to Gemini 3.1 Flash-Lite. Gemini writes the sequence of moments. The game stages it with original props, characters, and actions. Try **First home run** in the prompt form, follow the marker, and select **Step up to bat**. Drag the view to orbit, use WASD or the touch pad to move, and press E or the action button to play a moment.
+
+To enable generation in the development app, use `GEMINI_API_KEY` from a verified **unbilled** Gemini project and `GEMINI_FREE_TIER=true` in the ignored `.env.local`, then restart `npm run dev`. A hosted Cloudflare Pages build uses the same setting and a secret binding for the key. The hosted adapter is in `functions/api/scene-plan.ts`. Verify audience eligibility and free quota before enabling the preview. [Gemini terms](https://aistudio.google.com/docs/terms) · [Gemini free-tier limits](https://aistudio.google.com/docs/rate-limits).
+
+For a journal world, enter a separate fictional scene prompt after validating the draft. The original journal, photo, and associated song remain in the local bundle and ZIP. Once the production app has cached its shell, saved visits can reopen offline. The developer model gallery is at `/e2e/support/model-gallery.html` on the Vite development server.
+
+The earlier optional-Gemini workflow below records the previous build.
+
 ## Exploration game plan
 
 Memory Worlds is a walkable low-poly diary and prompt game. Each visit has two discoveries, a closing landmark, a soundtrack and local saves. Start with `park` or `water park` to see generated scenery, or create a day from a journal entry, original photos and its associated song. [Current implementation plan](docs/memory_worlds_implementation_plan.md).

@@ -1,13 +1,12 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { SoundtrackChoice } from '../media/world-soundtrack';
 import { WorldSoundtrack } from '../scene/WorldSoundtrack';
-import { withMemoryStory } from './compose-memory-story';
-import { composeSceneTemplate } from './compose-scene-template';
-import type { ComposeResult } from './compose-world';
 import { GameSession } from './GameSession';
+import { SceneDirectionDetails } from './SceneDirectionDetails';
 import { InterpretationPanel } from './InterpretationPanel';
 import { PROMPT_MAX, promptLength, promptSchema } from './layout-schema';
 import { promptSoundtrack } from './prompt-soundtrack';
+import { requestPlotWorld } from './request-plot-world';
 import { recipes } from './recipes';
 import type { PromptWorld } from './world-schema';
 import { SongOfTheDay } from '../music/SongOfTheDay';
@@ -21,12 +20,12 @@ export function NewPromptGame() {
   const active = useRef<AbortController | null>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const [prompt, setPrompt] = useState('');
-  const [result, setResult] = useState<ComposeResult | null>(null);
+  const [result, setResult] = useState<PromptWorld | null>(null);
   const [playing, setPlaying] = useState<PromptWorld | null>(null);
   const [soundtrack, setSoundtrack] = useState<SoundtrackChoice | null>(null);
   const [fictional, setFictional] = useState(false);
-  const [phase, setPhase] = useState<'planning' | 'building' | null>(null);
-  const [failed, setFailed] = useState<{ story: boolean; reason: string } | null>(null);
+  const [pending, setPending] = useState(false);
+  const [failure, setFailure] = useState('');
   const [song, setSong] = useState<Song | null>(null);
   useEffect(() => () => active.current?.abort(), []);
 
@@ -35,10 +34,10 @@ export function NewPromptGame() {
   function clear() {
     active.current?.abort();
     active.current = null;
-    setPhase(null);
+    setPending(false);
     setResult(null);
     setSoundtrack(null);
-    setFailed(null);
+    setFailure('');
   }
 
   function edit(value: string) {
@@ -47,122 +46,103 @@ export function NewPromptGame() {
     setFictional(false);
   }
 
-  async function generate(story: boolean, useGemini: boolean) {
+  async function generate() {
     clear();
     const checked = promptSchema.safeParse(prompt);
     if (!checked.success) {
-      setResult({ ok: false, reason: checked.error.issues[0].message, interpretation: null });
+      setFailure(checked.error.issues[0].message);
       input.current?.focus();
       return;
     }
+    if (!fictional) { setFailure('Confirm the prompt contains fictional details before sending it to Gemini.'); return; }
     const controller = new AbortController();
     active.current = controller;
-    setPhase(useGemini ? 'planning' : 'building');
-    let plan: unknown;
+    setPending(true);
     try {
-      if (useGemini) {
-        const response = await fetch('/api/scene-plan', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt, fictional: true }),
-          signal: AbortSignal.any([controller.signal, AbortSignal.timeout(21_000)]),
-        });
-        if (!response.ok) throw new Error(response.status === 429 ? 'Gemini is busy or has reached its quota.' : 'Gemini could not complete this scene.');
-        plan = await response.json();
-        if (plan === null || typeof plan !== 'object') throw new Error('Gemini returned an invalid scene specification.');
-        if (controller.signal.aborted) return;
-        setPhase('building');
-      }
-      await new Promise<void>(resolve => window.setTimeout(resolve, 0));
-      if (controller.signal.aborted) return;
-      const built = composeSceneTemplate(prompt, { id: crypto.randomUUID(), plan, processing: useGemini ? 'gemini' : 'private' });
-      if (useGemini && !built.ok) throw new Error(built.reason);
-      const storied = story ? withMemoryStory(built) : built;
-      const next = storied.ok && song ? { ...storied, world: { ...storied.world, song } } : storied;
+      const built = await requestPlotWorld(checked.data, crypto.randomUUID(), controller.signal);
+      const next = song ? { ...built, song } : built;
       setResult(next);
-      if (next.ok) setSoundtrack(promptSoundtrack(next.world));
+      setSoundtrack(promptSoundtrack(next));
     } catch (error) {
       if (controller.signal.aborted) return;
-      const reason = error instanceof DOMException && error.name === 'TimeoutError'
-        ? 'Gemini exceeded its planning time.' : error instanceof Error ? error.message : 'Scene planning was unavailable.';
-      setFailed({ story, reason });
+      setFailure(error instanceof Error ? error.message : 'Scene planning is unavailable.');
     } finally {
       if (active.current === controller) {
         active.current = null;
-        setPhase(null);
+        setPending(false);
       }
     }
   }
 
-  const scene = result?.ok ? result.world.scene : null;
-  const features = result?.ok ? [...new Set(result.world.layout.placements.map(({ recipe }) => recipes[recipe].label))] : [];
+  const scene = result?.scene;
+  const features = result ? [...new Set(result.layout.placements.map(({ recipe }) => recipes[recipe].label))] : [];
+  const gaps = scene?.coverage.filter(item => item.status !== 'placed'
+    && (!result?.layout.direction || scene.plan.intent.features[item.feature].origin === 'requested')) ?? [];
   return (
     <section className="intake prompt-game" data-win="prompt_world.exe">
       <h1>New game from a prompt</h1>
-      <p>Describe a place to explore. Build a memory to meet a fictional character after two discoveries, or build a world to end your walk at a landmark.</p>
+      <p>Describe a fictional place or moment. Gemini will turn it into a visit you can play.</p>
       <form onSubmit={event => {
         event.preventDefault();
-        const submitter = (event.nativeEvent as SubmitEvent).submitter;
-        if (!phase) void generate(!(submitter instanceof HTMLButtonElement && submitter.value === 'world'), fictional);
+        if (!pending) void generate();
       }}>
         <label htmlFor={inputId}>Describe the world</label>
         <textarea ref={input} id={inputId} value={prompt} rows={4} placeholder={EXAMPLE}
           onChange={event => edit(event.target.value)} aria-describedby="prompt-hint" />
         <p className="field-hint" id="prompt-hint">{promptLength(prompt)} / {PROMPT_MAX} · A place name is enough. Add objects, weather, or where things belong to shape the visit.</p>
         <div className="prompt-actions" aria-label="Fill with an example">
-          {['park', 'water park'].map(example => <button key={example} type="button" onClick={() => { edit(example); input.current?.focus(); }}>{example}</button>)}
+          {['park', 'water park', 'First home run'].map(example => <button key={example} type="button" onClick={() => {
+            edit(example === 'First home run' ? 'At dusk I hit my first home run. Dad watched the ball clear the fence, then we celebrated together.' : example);
+            setFictional(true);
+            input.current?.focus();
+          }}>{example}</button>)}
         </div>
-        {import.meta.env.DEV && (
-          <label className="story-consent">
-            <input type="checkbox" checked={fictional} onChange={event => { clear(); setFictional(event.target.checked); }} />
-            Send this fictional prompt to Google Gemini. Use invented details only.
-          </label>
-        )}
+        <label className="story-consent">
+          <input type="checkbox" checked={fictional} onChange={event => { clear(); setFictional(event.target.checked); }} />
+          Send this fictional prompt to Google Gemini. Use invented details only.
+        </label>
+        <p className="field-hint">Google may use fictional submissions to improve its services. <a href="https://aistudio.google.com/docs/terms#data-use-unpaid" target="_blank" rel="noreferrer">Gemini terms</a></p>
         <SongOfTheDay value={song} onChange={value => { clear(); setSong(value); }} />
-        <p className="field-hint">Processing · {fictional ? 'Gemini scene planner' : 'Private on this device'}</p>
         <div className="prompt-actions">
-          <button type="submit" disabled={Boolean(phase)}>Build memory</button>
-          <button type="submit" value="world" disabled={Boolean(phase)}>Build world</button>
+          <button type="submit" disabled={pending}>Build memory</button>
+          <button type="submit" disabled={pending}>Build world</button>
         </div>
       </form>
-      {phase && <p role="status">{phase === 'planning' ? 'Planning the scene with Gemini…' : 'Building the scene and checking the route…'}</p>}
-      {failed && (
+      {pending && <p role="status">Writing the plot and checking the route…</p>}
+      {failure && (
         <div className="prompt-result">
-          <p role="alert">{failed.reason}</p>
+          <p role="alert">{failure}</p>
           <div className="prompt-actions">
-            <button type="button" onClick={() => void generate(failed.story, fictional)}>Try again</button>
-            {fictional && <button type="button" onClick={() => { setFictional(false); void generate(failed.story, false); }}>Build privately</button>}
+            {fictional && <button type="button" onClick={() => void generate()}>Try again</button>}
+            <button type="button" onClick={() => input.current?.focus()}>Revise prompt</button>
           </div>
         </div>
       )}
-      {result && !result.ok && (
+      {result && soundtrack && (
         <div className="prompt-result">
-          <p role="alert">{result.reason}</p>
-          {result.interpretation && <InterpretationPanel prompt={prompt} interpretation={result.interpretation} />}
-        </div>
-      )}
-      {result?.ok && soundtrack && (
-        <div className="prompt-result">
-          <h2>{result.world.title}</h2>
-          <p role="status">{scene?.processing === 'gemini' ? 'Planned with Gemini' : 'Built privately'}</p>
-          {result.world.story && <p>{result.world.story.place} · {result.world.story.mood} · Written locally</p>}
+          <h2>{result.title}</h2>
+          <p role="status">Planned with Gemini</p>
+          {result.layout.plot && <p>{result.layout.plot.opening}</p>}
           <p><strong>In the scene</strong> {features.join(', ')}</p>
-          {scene && scene.coverage.some(item => item.status !== 'placed') && (
+          {scene && gaps.length > 0 && (
             <ul aria-label="Substitutions and missing features">
-              {scene.coverage.filter(item => item.status !== 'placed').map(item =>
+              {gaps.map(item =>
                 <li key={item.feature}>{scene.plan.intent.features[item.feature].phrase} · {item.status} · {item.reason}</li>)}
             </ul>
           )}
-          {result.world.interpretation.relations.some(relation => relation.status === 'unsupported') && (
+          {result.interpretation.relations.some(relation => relation.status === 'unsupported') && (
             <p>Some requested positions could not be matched. Try changing the relationship or naming additional space around the object.</p>
           )}
+          {result.layout.direction && <SceneDirectionDetails direction={result.layout.direction}
+            interpretation={result.interpretation} prompt={result.prompt} soundtrack={soundtrack} song={Boolean(result.song)} />}
           <details><summary>World interpretation</summary>
-            <InterpretationPanel prompt={result.world.prompt} interpretation={result.world.interpretation} />
+            <InterpretationPanel prompt={result.prompt} interpretation={result.interpretation} />
           </details>
           <WorldSoundtrack value={soundtrack} onActiveAudio={ignoreAudio}
             onChange={choice => setSoundtrack({ ...choice, muted: soundtrack.muted })}
             mute={{ value: soundtrack.muted, onChange: muted => setSoundtrack({ ...soundtrack, muted }) }} />
           <div className="prompt-actions">
-            <button type="button" onClick={() => setPlaying(result.world)}>Enter world</button>
+            <button type="button" onClick={() => setPlaying(result)}>Enter world</button>
             <button type="button" onClick={() => { clear(); input.current?.focus(); }}>Revise prompt</button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { planFictionalScene } from '../server/gemini-story';
+import { planGeminiPlot } from '../server/plot-gateway';
+import { simulatedPlot } from '../e2e/support/plot-fixtures';
 import { blocked } from '../src/gameplay/controller';
 import { catalog } from '../src/world/catalog';
 import { composeSceneTemplate } from '../src/world/compose-scene-template';
@@ -97,12 +98,13 @@ describe('scene template composition', () => {
     expect(composeSceneTemplate('water park with no cabana', { id, plan }).ok).toBe(false);
   });
 
-  it('uses two model stages and performs a single targeted repair', async () => {
+  it('uses one model request and performs a single targeted repair', async () => {
     const plan = privateScenePlan('park')!;
-    const complete = vi.fn().mockResolvedValueOnce(plan.intent).mockResolvedValueOnce({ groups: [] }).mockResolvedValueOnce(plan.template);
-    await expect(planFictionalScene('park', complete, AbortSignal.timeout(1000))).resolves.toEqual(plan);
-    expect(complete).toHaveBeenCalledTimes(3);
-    expect(complete.mock.calls[2][2]).toHaveProperty('correction');
+    const plot = simulatedPlot('park');
+    const complete = vi.fn().mockResolvedValueOnce({ groups: [] }).mockResolvedValueOnce({ intent: plan.intent, plot });
+    await expect(planGeminiPlot('park', complete, AbortSignal.timeout(1000))).resolves.toEqual({ plan, plot });
+    expect(complete).toHaveBeenCalledTimes(2);
+    expect(complete.mock.calls[1][0].correction).toContain('plot');
   });
 
   it('ships at least 100 distinct original authored templates with finite geometry and credits', () => {

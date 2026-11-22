@@ -1,12 +1,15 @@
 import { expect, test } from '@playwright/test';
+import { mockPromptPlots } from './support/plot-fixtures';
 
 const PROMPT = 'An autumn park at dusk with a bench, a lamp and a pond.';
 
 test('a song of the day shapes the soundtrack, links out, survives saving, and the world sets the atmosphere', async ({ page }) => {
+  await mockPromptPlots(page);
   const requests: string[] = [];
-  page.on('request', request => { if (!request.url().startsWith('http://127.0.0.1')) requests.push(request.url()); });
+  page.on('request', request => { if (/^https?:/.test(request.url()) && !request.url().startsWith('http://127.0.0.1')) requests.push(request.url()); });
   await page.goto('/new/prompt');
   await page.getByLabel('Describe the world').fill(PROMPT);
+  await page.getByLabel(/Send this fictional prompt/).check();
   await page.getByLabel('Link from your music app').fill('https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC?si=private-share-code');
   await expect(page.getByText('Recognized: Spotify track. Sharing codes are removed before saving.')).toBeVisible();
   await page.getByLabel('Artist').fill('Frank Sinatra');
@@ -16,7 +19,7 @@ test('a song of the day shapes the soundtrack, links out, survives saving, and t
   await expect(page.getByRole('list', { name: 'How the song shapes the world' })).toContainText('Jazz suggests nostalgic');
 
   await page.getByRole('button', { name: 'Build world' }).click();
-  const track = page.getByLabel('Soundtrack');
+  const track = page.getByLabel('Soundtrack', { exact: true });
   await expect(track).toHaveValue('warm-tape');
   await page.getByRole('button', { name: 'Enter world' }).click();
 
@@ -42,8 +45,10 @@ test('a song of the day shapes the soundtrack, links out, survives saving, and t
 });
 
 test('an unsupported link is explained and does not block building the world', async ({ page }) => {
+  await mockPromptPlots(page);
   await page.goto('/new/prompt');
   await page.getByLabel('Describe the world').fill(PROMPT);
+  await page.getByLabel(/Send this fictional prompt/).check();
   await page.getByLabel('Link from your music app').fill('https://example.com/song');
   await expect(page.getByRole('alert')).toContainText('not from a supported music app');
   await page.getByRole('button', { name: 'Build world' }).click();

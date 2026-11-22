@@ -24,7 +24,7 @@ const bar = (a: [number, number, number], b: [number, number, number], width: nu
   return shape('box', (a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2,
     width, Math.hypot(dx, dy, dz), width, color, [Math.atan2(dz, dy), 0, -Math.atan2(dx, Math.hypot(dy, dz))]);
 };
-const slidePoint = (t: number): ModelPart['at'] =>
+export const slidePoint = (t: number): ModelPart['at'] =>
   [Math.sin(t * Math.PI) * .78, .44 + (1 - t) ** 1.24 * 2.55, -.44 + t * 2.64];
 const stairs = (steps: number, width: number, rise: number, tread: number, color: string) =>
   Array.from({ length: steps }, (_, i) => box(0, (i + 1) * rise / 2, (steps / 2 - i) * tread, width, (i + 1) * rise, tread + .01, color));
@@ -46,6 +46,23 @@ const structure = (family: ModelFamily, label: string, radius: number, parts: Mo
 
 /** Original, ground-pivoted low-poly models for the Memory Worlds catalog. */
 export const originalModels = {
+  'baseball-diamond': structure('recreation', 'Baseball diamond', 0, [
+    round(0, .022, -.2, 2.85, .044, 2.85, '#b68056'),
+    round(0, .023, -4, 1.8, .046, 1.8, '#b68056'),
+    shape('box', 0, .017, -4, 5.68, .034, 5.68, '#a9734d', [0, Math.PI / 4, 0]),
+    shape('box', 0, .031, -4, 4.78, .008, 4.78, '#708b45', [0, Math.PI / 4, 0]),
+    ...[[0, 0], [-4, -4], [4, -4], [0, -8]].map(([x, z]) => shape('box', x, .055, z, .28, .052, .28, '#faf1d7', [0, Math.PI / 4, 0])),
+    ...[-1, 1].map(x => shape('box', x * 3.2, .044, -3.2, .055, .012, 9.05, '#f1e3bd', [0, -x * Math.PI / 4, 0])),
+    ...[-6, -4, -2, 0, 2, 4, 6].flatMap(x => [post(x, -11, 1.48, '#426159'),
+      box(x, .65, -11, 2, .095, .1, '#557865'), box(x, 1.18, -11, 2, .075, .1, '#567866')]),
+    ...[-2, 2].map(x => post(x, 1.67, 2.25, '#51615b')),
+    box(0, 2.2, 1.67, 4.2, .075, .12, metal),
+  ], ['ball diamond', 'home plate']),
+  dugout: structure('recreation', 'Field dugout', .89, [box(0, .6, -.45, 2.55, 1.2, .14, '#576857'),
+    ...corners(1.19, .45, 1.39, wood), box(0, 1.42, -.02, 2.7, .13, 1.22, '#866351'),
+    box(0, .32, -.19, 1.93, .1, .46, light), box(0, .05, 0, 2.55, .1, 1.08, '#b59f84')]),
+  scoreboard: model('recreation', 'Field scoreboard', .42, [post(-.49, 0, 1.6, slate), post(.49, 0, 1.6, slate),
+    box(0, 1.58, 0, 1.79, .88, .17, '#314f4c'), ...[-.51, 0, .51].map(x => box(x, 1.53, .1, .23, .28, .04, '#dcb566'))]),
   pine: model('landscape', 'Pine', .24, [post(0, 0, 2.3), cone(0, 1.2, 0, 1.65, 1.7, 1.65, '#40634c'), cone(0, 1.92, 0, 1.22, 1.55, 1.22, '#527c59')], ['fir', 'spruce']),
   birch: model('landscape', 'Birch', .21, [post(0, 0, 2.7, '#e8e2d2'), ...[.35, .9, 1.46].map(y => box(.01, y, .01, .16, .06, .16, slate)), ball(-.2, 2.3, 0, 1.05, 1.32, .96, '#91ac61'), ball(.32, 2.67, .2, 1.05, 1.2, .9, '#b8c878')]),
   willow: model('landscape', 'Willow', .32, [post(0, 0, 2.1), ball(0, 2.15, 0, 2.5, 1.3, 2, leaf), ...[-.84, -.38, .46, .9].map((x, i) => ball(x, 1.45, (i % 2) * .55, .43, 1.46, .52, '#789252'))]),
@@ -78,6 +95,8 @@ export const originalModels = {
     ...[-1.6, -.75, .1, 1.05].map((x, i) => box(x, -.057, i % 2 ? .52 : -.38, .065, .01, 2.1, '#74d0d9'))], ['pool', 'swimming pool']),
   'tube-slide': structure('recreation', 'Tube slide', 1.06, [
     post(-.58, -.65, 3.05, slate), post(.57, -.65, 3.05, slate), box(0, 3.05, -.65, 1.55, .15, 1.12, light),
+    ...[-.41, .41].map(x => bar([x, .11, -1.82], [x, 3.12, -.96], .075, slate)),
+    ...Array.from({ length: 10 }, (_, index) => box(0, .19 + index * .3, -1.80 + index * .086, .83, .065, .16, light)),
     ...Array.from({ length: 11 }, (_, i) => {
       const segment = bar(slidePoint(i / 12), slidePoint((i + 1) / 12), .72, rose);
       return { ...segment, shape: 'round' as const, size: [.72, segment.size[1] + .18, .72] as ModelPart['size'] };
@@ -116,7 +135,13 @@ export const originalModels = {
   'footbridge': model('passage', 'Footbridge', .65, [...slats(9, 1.04, .19, .18, wood), ...corners(.55, .74, .58), ...[-.55, .55].map(x => bar([x, .48, -.78], [x, .64, .8], .09, light))]),
   storefront: structure('urban', 'Shopfront', .78, [cabinet(1.61, 1.76, .92, '#b98d74'), box(0, .76, .473, 1.22, .9, .08, '#6b9da2'), shape('box', 0, 1.19, .65, 1.68, .12, .56, rose, [.25, 0, 0]), box(0, 1.53, .49, 1.11, .19, .09, light)], ['shop', 'store']),
   kiosk: structure('urban', 'Ticket kiosk', .5, [cabinet(.94, 1.37, .72, teal), box(0, .95, .367, .58, .35, .035, slate), box(0, 1.43, 0, 1.18, .15, .91, light), box(0, .74, .47, .71, .08, .23, wood)]),
-  'station-facade': structure('urban', 'Station facade', 1.05, [cabinet(2.25, 2.03, .9, '#ad8065'), box(0, 1.06, .465, .93, 1.42, .05, slate), ...[-.8, .8].map(x => box(x, 1.15, .48, .38, .71, .06, '#86b2bf')), round(0, 1.84, .5, .35, .07, .35, light)].map((p, i) => i === 4 ? { ...p, rotation: [Math.PI / 2, 0, 0] } : p), ['train station']),
+  'station-facade': structure('urban', 'Station facade', 1.05, [cabinet(2.25, 2.03, .9, '#ad8065'),
+    box(0, 1.05, .465, .72, 1.32, .05, '#374f55'), box(0, 1.72, .62, 2.43, .12, .52, '#415958'),
+    ...[-.83, .83].flatMap(x => [box(x, 1.04, .48, .49, .66, .06, '#8db4b3'), box(x, .54, .52, .54, .08, .13, light)]),
+    box(0, 2.07, 0, 2.44, .13, 1.08, '#54625d'), box(0, .08, .69, 2.65, .16, .66, '#ad9c88'),
+    shape('round', 0, 1.92, .49, .27, .075, .27, light, [Math.PI / 2, 0, 0]),
+    box(0, 1.945, .536, .021, .093, .012, '#47524e'), shape('box', -.025, 1.924, .541, .071, .019, .012, '#47524e', [0, 0, -.47]),
+  ], ['train station']),
   apartment: structure('urban', 'Apartment block', .79, [cabinet(1.46, 3.09, 1.16, slate), ...[.75, 1.44, 2.14, 2.79].flatMap(y => [-.41, .37].map(x => box(x, y, .589, .33, .32, .035, light))), box(0, 2.59, .7, 1.54, .09, .37, metal)], ['apartment building']),
   'water-tower': structure('urban', 'Water tower', .59, [...corners(.48, .48, 2.4, slate), round(0, 2.48, 0, 1.32, .87, 1.32, '#989b92'), cone(0, 3, 0, 1.4, .25, 1.4, slate)]),
   'clock-tower': structure('urban', 'Clock tower', .48, [cabinet(.77, 2.92, .8, '#ba876c'), cone(0, 3.28, 0, 1.1, .83, 1.1, slate), shape('round', 0, 2.57, .42, .48, .06, .48, light, [Math.PI / 2, 0, 0]), box(0, 2.63, .47, .036, .14, .024, slate), box(.075, 2.57, .47, .14, .034, .024, slate)], ['clocktower']),
@@ -136,7 +161,10 @@ export const originalModels = {
   armchair: model('interior', 'Armchair', .4, [box(0, .23, 0, .77, .34, .68, wood), box(0, .47, .04, .62, .28, .6, teal), box(0, .65, -.28, .78, .67, .23, teal), ...[-.35, .35].map(x => box(x, .53, 0, .19, .25, .68, teal))]),
   sofa: model('interior', 'Sofa', .59, [box(0, .31, 0, 1.34, .42, .69, wood), box(0, .52, -.29, 1.4, .64, .2, '#ae795e'), ...[-.31, .31].map(x => box(x, .48, .09, .59, .23, .51, '#d7a07a')), ...[-.65, .65].map(x => box(x, .57, 0, .15, .25, .69, '#ae795e'))], ['couch']),
   bookcase: model('interior', 'Bookcase', .48, [...[-.43, .43].map(x => box(x, .88, 0, .12, 1.76, .39, wood)), ...[.09, .51, .95, 1.39, 1.76].map(y => box(0, y, 0, .96, .09, .42, wood)), ...[.3, .71, 1.16].flatMap(y => [-.28, -.13, .06, .22].map((x, i) => box(x, y, .08, .09 + .02 * i, .29 - .035 * i, .2, [rose, teal, light, leaf][i])))], ['bookshelf']),
-  window: model('interior', 'Freestanding window', .49, [box(0, 1.21, 0, 1.16, .98, .14, wood), box(0, 1.21, .083, .99, .78, .035, '#8dc2c9'), box(0, 1.21, .11, .075, .82, .05, light), box(0, 1.21, .11, 1.02, .075, .05, light), ...[-.47, .47].map(x => post(x, 0, 1.23))]),
+  window: model('interior', 'Window and sill', .49, [box(0, .38, 0, 1.16, .76, .18, '#bda990'),
+    box(0, .79, .025, 1.21, .09, .31, wood), box(0, 1.22, 0, 1.16, .93, .14, wood),
+    box(0, 1.22, .083, .99, .78, .035, '#8dc2c9'), box(0, 1.22, .11, .055, .82, .05, light),
+    box(0, 1.22, .11, 1.02, .055, .05, light)]),
   bed: model('interior', 'Bed', .69, [box(0, .23, 0, 1.09, .38, 1.55, wood), box(0, .48, 0, 1.07, .22, 1.48, light), box(0, .59, .25, 1.08, .1, .97, teal), ball(0, .65, -.49, .63, .18, .48, '#f0e3cf'), box(0, .56, -.8, 1.2, .74, .13, wood)]),
   'floor-lamp': model('interior', 'Floor lamp', .18, [round(0, .06, 0, .47, .11, .47, slate), post(0, 0, 1.55, slate), cone(0, 1.57, 0, .61, .38, .61, light)]),
   'tea-set': model('interior', 'Tea tray', .16, [box(0, .05, 0, .64, .09, .4, wood), ball(-.16, .19, 0, .31, .21, .28, teal), ring(-.31, .2, 0, .18, .17, .23, teal), round(.15, .14, .04, .16, .12, .15, light), ring(.24, .16, .04, .12, .1, .2, light)], ['teapot']),
@@ -173,7 +201,10 @@ export const originalModels = {
   'lantern-shrine': structure('fantasy', 'Lantern shrine', .52, [round(0, .1, 0, .98, .2, .84, slate), round(0, .37, 0, .29, .44, .29, slate), box(0, .69, 0, .6, .29, .53, '#efb665'), cone(0, .92, 0, .85, .28, .8, slate)], ['shrine']),
   'floating-slab': model('fantasy', 'Floating slab', .5, [cone(0, .76, 0, 1.18, .63, .95, slate, [0, 0, Math.PI]), box(0, 1.075, 0, 1.02, .09, .72, leaf), ball(0, .075, 0, .48, .13, .41, '#809cb8')]),
   'observatory': structure('fantasy', 'Observatory', 1.04, [round(0, .5, 0, 1.84, 1, 1.84, slate), ball(0, 1.1, 0, 1.74, 1.19, 1.74, metal), shape('round', .48, 1.52, .17, .28, .84, .28, '#40536b', [0, 0, -.67]), box(0, .45, .84, .42, .9, .19, light)]),
-  cavern: structure('fantasy', 'Cavern mouth', 1.03, [ball(-.62, .62, 0, .91, 1.39, 1.16, slate), ball(.65, .58, 0, .77, 1.45, 1.08, slate), ball(0, 1.22, -.12, 1.95, .76, 1.2, slate), box(0, .44, -.34, .91, .86, .15, '#373b48')], ['cave', 'grotto']),
+  cavern: structure('fantasy', 'Cavern mouth', 1.03, [ball(-.76, .63, -.2, .98, 1.55, 1.73, '#545968'),
+    ball(.76, .56, -.22, .85, 1.61, 1.67, slate), ball(.02, 1.35, -.31, 2.32, .98, 1.68, '#4e5360'),
+    ball(.13, .77, -.72, 2.37, 1.46, .58, '#2e303d'), ball(-.56, .11, .37, .62, .27, .55, '#626576'),
+    ball(.58, .23, .38, .78, .35, .68, '#5a6072'), box(0, .03, -.27, 1.51, .06, 1.2, '#474952')], ['cave', 'grotto']),
 } satisfies Record<string, Model>;
 
 export type OriginalModelId = keyof typeof originalModels;

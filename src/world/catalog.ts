@@ -3,7 +3,7 @@ import { recipeIds, recipes } from './recipes';
 import type { RecipeId } from './recipes';
 
 export const SCENE_CATALOG_VERSION = 3;
-export const sceneFamilies = ['park', 'water-park', 'coast', 'market', 'interior', 'woodland', 'city', 'rural', 'fantasy', 'station'] as const;
+export const sceneFamilies = ['park', 'water-park', 'coast', 'market', 'interior', 'woodland', 'city', 'rural', 'fantasy', 'station', 'ballfield'] as const;
 export type SceneFamily = typeof sceneFamilies[number];
 export const surfaces = ['grass', 'deck', 'pool', 'sand', 'water', 'paved', 'floor', 'rock'] as const;
 export type Surface = typeof surfaces[number];
@@ -37,7 +37,7 @@ export const catalogById = Object.fromEntries(catalog.map(entry => [entry.id, en
 
 export const familySurfaces: Record<SceneFamily, Surface> = {
   park: 'grass', 'water-park': 'deck', coast: 'sand', market: 'paved', interior: 'floor',
-  woodland: 'grass', city: 'paved', rural: 'grass', fantasy: 'rock', station: 'floor',
+  woodland: 'grass', city: 'paved', rural: 'grass', fantasy: 'rock', station: 'floor', ballfield: 'grass',
 };
 
 export const familyDefaults: Record<SceneFamily, ReadonlyArray<readonly [RecipeId, number]>> = {
@@ -52,6 +52,7 @@ export const familyDefaults: Record<SceneFamily, ReadonlyArray<readonly [RecipeI
   rural: [['barn', 1], ['windmill', 1], ['haystack', 3], ['well', 1], ['fence', 3]],
   fantasy: [['ruin', 1], ['crystal', 4], ['standing-stone', 2], ['rock', 3], ['lantern-shrine', 1]],
   station: [['station-module', 1], ['control-panel', 1], ['airlock', 1], ['porthole', 1], ['rover', 1]],
+  ballfield: [['baseball-diamond', 1], ['scoreboard', 1], ['dugout', 1], ['pine', 3], ['bench', 1]],
 };
 
 function normalize(value: string) {

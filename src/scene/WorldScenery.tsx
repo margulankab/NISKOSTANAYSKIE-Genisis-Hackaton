@@ -1,6 +1,7 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import type { AmbientLight, MeshStandardMaterial } from 'three';
+import { Color } from 'three';
+import type { AmbientLight, DirectionalLight, MeshStandardMaterial } from 'three';
 import type { MemoryScene } from '../shared/memory-schema';
 import { getMusicMotion } from './music-motion';
 import { prefersReducedMotion, subscribeToReducedMotion } from './reduced-motion';
@@ -56,7 +57,8 @@ function WorldObject({ placement, lights }: {
   );
 }
 
-export function WorldScenery({ placements, atmosphere, activeAudio, music, reducedMotion = false, lightColor, ambientScale = 1, ambientMotion = false, songPulse }: {
+export function WorldScenery({ placements, atmosphere, activeAudio, music, reducedMotion = false, lightColor, ambientScale = 1, ambientMotion = false, songPulse,
+  horizon, shoreSide, paused }: {
   placements: readonly WorldPlacement[];
   lightColor?: string;
   ambientScale?: number;
@@ -67,8 +69,13 @@ export function WorldScenery({ placements, atmosphere, activeAudio, music, reduc
   reducedMotion?: boolean;
   /** Tempo and 0–1 energy of the player's song of the day; lanterns breathe on its half-time beat. */
   songPulse?: { bpm: number; energy: number };
+  horizon?: string;
+  shoreSide?: number;
+  paused?: boolean;
 }) {
   const ambientLight = useRef<AmbientLight>(null);
+  const keyLight = useRef<DirectionalLight>(null);
+  const paint = useRef(new Color()).current;
   const lights = useRef(new Set<MeshStandardMaterial>()).current;
   const systemReducedMotion = useSyncExternalStore(subscribeToReducedMotion, prefersReducedMotion);
   const invalidate = useThree(({ invalidate }) => invalidate);
@@ -80,27 +87,30 @@ export function WorldScenery({ placements, atmosphere, activeAudio, music, reduc
 
   useEffect(() => { invalidate(); }, [animate, activeAudio, music, invalidate]);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, dt) => {
     const playing = animate && !activeAudio.paused && !activeAudio.ended && !activeAudio.seeking;
     const audioPulse = playing && music
       ? getMusicMotion(activeAudio.currentTime, music, { pulseGain: 0.04, motionSpeed: .25 + .75 * music.meanEnergy }).scale - 1
       : 0;
-    const songBeat = songPulse && !reducedMotion && !systemReducedMotion
+    const songBeat = songPulse && !paused && !reducedMotion && !systemReducedMotion
       ? (0.015 + 0.035 * songPulse.energy) * (0.5 + 0.5 * Math.sin(clock.elapsedTime * Math.PI * songPulse.bpm / 60))
       : 0;
     const pulse = Math.max(audioPulse, songBeat);
-    if (ambientMotion && ambientLight.current) ambientLight.current.intensity = ambient * ambientScale + pulse * 0.6;
+    const blend = reducedMotion || systemReducedMotion ? 1 : 1 - Math.exp(-dt * 3);
+    if (ambientMotion && ambientLight.current) ambientLight.current.intensity += (ambient * ambientScale + pulse * .6 - ambientLight.current.intensity) * blend;
+    if (horizon && keyLight.current) keyLight.current.color.lerp(paint.set(lightColor ?? light), blend);
     for (const material of lights) material.emissiveIntensity = 0.22 + pulse;
     if (playing) invalidate();
   });
 
   return (
     <>
-      <color attach="background" args={[sky]} />
-      <fog attach="fog" args={[sky, ...fog]} />
-      <ambientLight ref={ambientLight} intensity={ambient * ambientScale} />
-      <directionalLight position={atmosphere === 'dawn' ? [9, 4, -5] : atmosphere === 'dusk' ? [-9, 4, 5]
-        : atmosphere === 'night' ? [-5, 8, -7] : [-7, 10, 6]} color={lightColor ?? light} intensity={key} />
+      <color attach="background" args={[horizon ?? sky]} />
+      <fog attach="fog" args={[horizon ?? sky, ...fog]} />
+      <ambientLight ref={ambientLight} intensity={ambientMotion ? ambient : ambient * ambientScale} />
+      <directionalLight ref={keyLight} position={shoreSide && (atmosphere === 'dusk' || atmosphere === 'dawn') ? [shoreSide * 12, 3, -5]
+        : atmosphere === 'dawn' ? [9, 4, -5] : atmosphere === 'dusk' ? [-9, 4, 5]
+        : atmosphere === 'night' ? [-5, 8, -7] : [-7, 10, 6]} color={horizon ? light : lightColor ?? light} intensity={key} />
       {lanterns.map((placement) => (
         <pointLight key={placement.id} position={[placement.at[0], (placement.height ?? 0) + 2.03 * placementScale(placement), placement.at[1]]}
           color="#ffb970" intensity={12} distance={5.5} />

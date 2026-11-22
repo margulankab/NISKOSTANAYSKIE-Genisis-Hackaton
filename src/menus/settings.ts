@@ -20,7 +20,7 @@ const settingsSchema = z.strictObject({
   pixel: z.boolean().default(true),
 });
 export type Settings = z.infer<typeof settingsSchema>;
-const defaults: Settings = { volume: 0.8, reducedMotion: 'system', theme: 'auto', pixel: true };
+const defaults: Settings = { volume: 0.8, reducedMotion: 'system', theme: 'auto', pixel: false };
 const listeners = new Set<() => void>();
 
 export function readSettings(): Settings {

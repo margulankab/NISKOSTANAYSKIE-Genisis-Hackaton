@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { GameState } from './checkpoint';
 import type { SaveStatus } from './PauseMenu';
 
-const snapshot = ({ position, revealed, ended, storyStep }: GameState, selection: string) =>
-  JSON.stringify([position.x, position.z, [...revealed].sort(), ended, storyStep, selection]);
+const snapshot = ({ position, revealed, ended, storyStep, momentsCompleted }: GameState, selection: string) =>
+  JSON.stringify([position.x, position.z, [...revealed].sort(), ended, storyStep, momentsCompleted, selection]);
 
 function reasonOf(error: unknown) {
   if (error instanceof DOMException && error.name === 'QuotaExceededError') return 'this browser is out of storage space';

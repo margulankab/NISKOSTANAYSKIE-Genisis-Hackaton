@@ -45,12 +45,15 @@ export const promptWorldSchema = z.strictObject({
   /** The player's song of the day: a music-app link and/or description. Optional, so older saves stay valid. */
   song: songSchema.optional(),
   scene: z.strictObject({ processing: z.enum(['private', 'gemini']), plan: scenePlanSchema, coverage: sceneTemplateSchema.shape.coverage }).optional(),
-}).superRefine(({ prompt, interpretation, layout, versions, scene }, ctx) => {
+}).superRefine(({ prompt, interpretation, layout, versions, scene, story }, ctx) => {
   if ((layout.geometryVersion ?? 1) !== versions.layout || versions.layout !== versions.catalog
       || (versions.layout === 3) !== Boolean(scene)
       || (versions.layout < 3 && layout.placements.some(placement => originalModel(placement.recipe)))
       || (versions.layout === 1 && layout.placements.some((placement) => placement.recipe === 'canopy'))) {
     ctx.addIssue({ code: 'custom', path: ['versions'], message: 'The world layout and recipe versions do not match.' });
+  }
+  if (layout.plot && (scene?.processing !== 'gemini' || story)) {
+    ctx.addIssue({ code: 'custom', path: ['layout', 'plot'], message: 'A playable plot requires a Gemini scene and a single story format.' });
   }
   if (scene) {
     const { intent, template } = scene.plan;

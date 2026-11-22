@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { captureScene } from './scene-capture';
 import { playerAt, settledShot, targets, walkToGoal } from './walk';
-import { startPromptGame } from './world-walk';
+import { openLegacyPromptGame } from './world-walk';
+import { mockPromptPlots } from './support/plot-fixtures';
 
 const lighthouse = 'A lighthouse above a foggy cove with a red rowboat beside a pier.';
 const market = 'A covered night market under a railway bridge, with lanterns above the stalls and a blue bench beside a lamp.';
@@ -12,11 +13,11 @@ async function pause(page: Page) {
   await expect(page.getByRole('dialog', { name: 'Paused' })).toBeVisible();
 }
 
-test('AT-25: start from the title menu, save mid-visit, Continue, finish, Save & Quit and Load Game', async ({ page }, testInfo) => {
+test('AT-25: save a legacy visit mid-visit, Continue, finish, Save & Quit and Load Game', async ({ page }, testInfo) => {
   test.setTimeout(60_000);
   await page.goto('/');
   await expect(page.getByText('No saved game yet')).toBeVisible();
-  await startPromptGame(page, lighthouse);
+  await openLegacyPromptGame(page, lighthouse);
   await expect(page.getByRole('heading', { name: 'Lighthouse Above a Foggy Cove' })).toBeVisible();
 
   await walkToGoal(page, { kind: 'artifact', index: 0 });
@@ -86,7 +87,7 @@ test('AT-25: start from the title menu, save mid-visit, Continue, finish, Save &
 });
 
 test('AT-25: a failed save keeps the session open, and leaving unsaved progress asks first', async ({ page }) => {
-  await startPromptGame(page, market);
+  await openLegacyPromptGame(page, market);
   await page.keyboard.down('ArrowUp');
   await page.waitForTimeout(300);
   await page.keyboard.up('ArrowUp');
@@ -107,7 +108,7 @@ test('AT-25: a failed save keeps the session open, and leaving unsaved progress 
   await expect(page.locator('.game-header h2')).toHaveText(/Covered Night Market/);
   await page.getByRole('button', { name: 'Save & Quit' }).click();
   await expect(page.getByRole('dialog').getByRole('alert')).toContainText('out of storage space');
-  await expect(page).toHaveURL(/\/new\/prompt$/);
+  await expect(page).toHaveURL(/\/play\//);
 
   await page.evaluate(() => (window as unknown as { restorePut: () => void }).restorePut());
   await page.getByRole('button', { name: 'Save Game' }).click();
@@ -118,7 +119,7 @@ test('AT-25: a failed save keeps the session open, and leaving unsaved progress 
 });
 
 test('AT-25: an invalid checkpoint offers a labeled restart from spawn', async ({ page }) => {
-  await startPromptGame(page, lighthouse);
+  await openLegacyPromptGame(page, lighthouse);
   await pause(page);
   await page.getByRole('button', { name: 'Save & Quit' }).click();
   await expect(page).toHaveURL(/\/$/);
@@ -164,15 +165,17 @@ test('AT-25: a version 1 archive is upgraded in place and its days appear in Loa
 });
 
 test('AT-23: unsupported details are listed and a failed prompt is kept for revision', async ({ page }) => {
+  await mockPromptPlots(page);
   await page.goto('/new/prompt');
   const field = page.getByLabel('Describe the world');
   await field.fill('Just a feeling of warmth and a carousel.');
+  await page.getByLabel(/Send this fictional prompt/).check();
   await page.getByRole('button', { name: 'Build world' }).click();
-  await expect(page.getByRole('alert')).toContainText('This place could not be resolved');
-  await expect(page.getByText(/Not built yet.*carousel/)).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('Try again or revise the scene');
   await expect(field).toHaveValue('Just a feeling of warmth and a carousel.');
 
   await field.fill('A carousel beside a red lighthouse at dusk.');
+  await page.getByLabel(/Send this fictional prompt/).check();
   await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByRole('list', { name: 'Substitutions and missing features' })).toContainText('carousel');
   await page.getByRole('button', { name: 'Revise prompt' }).click();
@@ -192,7 +195,7 @@ for (const [name, prompt, track] of [
 ]) {
   test(`AT-23/24: walks both discoveries and the ending in a ${name}`, async ({ page }, testInfo) => {
     test.setTimeout(60_000);
-    await startPromptGame(page, prompt);
+    await openLegacyPromptGame(page, prompt);
     await expect(page.getByLabel('Soundtrack', { exact: true })).toHaveValue(track);
     await captureScene(page.getByRole('region', { name: 'Prompt world' }).locator('canvas'), testInfo.outputPath('generated-world.png'));
     for (const index of [0, 1] as const) {
@@ -207,7 +210,7 @@ for (const [name, prompt, track] of [
 }
 
 test('AT-24: a missing saved soundtrack can be replaced, and a failed update rolls back both writes', async ({ page }) => {
-  await startPromptGame(page, market);
+  await openLegacyPromptGame(page, market);
   await pause(page);
   await page.getByRole('button', { name: 'Save & Quit' }).click();
   await expect(page).toHaveURL(/\/$/);
