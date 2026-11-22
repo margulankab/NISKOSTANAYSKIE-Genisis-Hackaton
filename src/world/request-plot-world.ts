@@ -4,8 +4,9 @@ import { promptSchema } from './layout-schema';
 import { plotSchema } from './plot-schema';
 import { scenePlanSchema } from './scene-template-schema';
 import { sceneDirectionSchema } from './scene-direction';
+import { sitePlanSchema } from './site-plan';
 
-export const plotSceneSchema = z.strictObject({ plan: scenePlanSchema, plot: plotSchema, direction: sceneDirectionSchema.optional() });
+export const plotSceneSchema = z.strictObject({ plan: scenePlanSchema, plot: plotSchema, direction: sceneDirectionSchema.optional(), site: sitePlanSchema.optional() });
 
 export async function requestPlotWorld(prompt: string, id: string, cancel: AbortSignal) {
   const checked = promptSchema.safeParse(prompt);
@@ -35,8 +36,8 @@ export async function requestPlotWorld(prompt: string, id: string, cancel: Abort
   cancel.throwIfAborted();
   const parsed = plotSceneSchema.safeParse(data);
   if (!parsed.success) throw new Error('Gemini returned an invalid plot. Try again.');
-  const { plot, plan, direction } = parsed.data;
-  const composed = composeSceneTemplate(prompt, { id, plan, plot, direction, processing: 'gemini' });
+  const { plot, plan, direction, site } = parsed.data;
+  const composed = composeSceneTemplate(prompt, { id, plan, plot, direction, site, processing: 'gemini' });
   if (!composed.ok) throw new Error(composed.reason);
   const { layout } = composed.world;
   if (layout.geometryVersion !== 3) throw new Error('Gemini did not return a composed scene.');

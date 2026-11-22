@@ -15,6 +15,8 @@ import type { Plot } from './plot-schema';
 import { waterfrontWords } from './scene-direction';
 import type { SceneDirection } from './scene-direction';
 import { reachableCells } from './route';
+import { applySitePlan } from './site-plan';
+import type { SitePlan } from './site-plan';
 
 export function validateScenePlan(prompt: string, input: unknown) {
   const parsed = scenePlanSchema.safeParse(input);
@@ -101,8 +103,10 @@ function realizedRelation(layout: WorldLayout, { kind, subject, object }: Interp
   return Math.hypot(a.x - b.x, a.z - b.z) < 3.6;
 }
 
-export function composeSceneTemplate(prompt: string, { id, plan: input, processing = 'private', plot, direction }: {
+export function composeSceneTemplate(prompt: string, { id, plan: input, processing = 'private', plot, direction, site }: {
   id: string; plan?: unknown; processing?: 'private' | 'gemini'; plot?: Plot; direction?: SceneDirection;
+  /** The planner's site plan: where each feature's copies stand. Applied wherever it keeps the visit walkable. */
+  site?: SitePlan;
 }): ComposeResult {
   const promptResult = promptSchema.safeParse(prompt);
   if (!promptResult.success) return { ok: false, reason: promptResult.error.issues[0].message, interpretation: null };
@@ -132,8 +136,11 @@ export function composeSceneTemplate(prompt: string, { id, plan: input, processi
         wallWindow: Boolean(direction && interpretation.setting === 'indoor'),
       });
     if (typeof composed === 'string') { lastProblem = composed; continue; }
+    // The planner's site plan arranges the core first, so the walkways below are routed around its drawing.
+    const core = { ...composed, geometryVersion: 3 as const, profile, ...(plot && { plot }), ...(direction && { direction }) };
+    const arranged = site ? applySitePlan(core, template, site).layout : core;
     // Outdoor scenes get open land around the composed core; walkways are then routed from the new spawn.
-    const extended = extendOutdoorLayout({ ...composed, geometryVersion: 3, profile, ...(plot && { plot }), ...(direction && { direction }) });
+    const extended = extendOutdoorLayout(arranged);
     if (waterfront && extended.water && extended.approaches && plot) {
       const land = groundBounds(extended);
       const shore = extended.water.maxX === extended.bounds.maxX ? land.maxX : land.minX;
