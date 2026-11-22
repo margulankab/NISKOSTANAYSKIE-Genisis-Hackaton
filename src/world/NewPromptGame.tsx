@@ -1,3 +1,6 @@
+import { composeSceneTemplate } from './compose-scene-template';
+import { withMemoryStory, mentionsPerson } from './compose-memory-story';
+import { enterWorld } from '../chrome/immersive';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { SoundtrackChoice } from '../media/world-soundtrack';
 import { WorldSoundtrack } from '../scene/WorldSoundtrack';
@@ -74,6 +77,16 @@ export function NewPromptGame() {
     }
   }
 
+  function buildPrivately() {
+    clear();
+    const composed = composeSceneTemplate(prompt, { id: crypto.randomUUID() });
+    const built = mentionsPerson(prompt) ? withMemoryStory(composed) : composed;
+    if (!built.ok) { setFailure(built.reason); return; }
+    const world = song ? { ...built.world, song } : built.world;
+    setResult(world);
+    setSoundtrack(promptSoundtrack(world));
+  }
+
   const scene = result?.scene;
   const features = result ? [...new Set(result.layout.placements.map(({ recipe }) => recipes[recipe].label))] : [];
   const gaps = scene?.coverage.filter(item => item.status !== 'placed'
@@ -104,7 +117,7 @@ export function NewPromptGame() {
         <p className="field-hint">Google may use fictional submissions to improve its services. <a href="https://aistudio.google.com/docs/terms#data-use-unpaid" target="_blank" rel="noreferrer">Gemini terms</a></p>
         <SongOfTheDay value={song} onChange={value => { clear(); setSong(value); }} />
         <div className="prompt-actions">
-          <button type="submit" disabled={pending}>Build memory</button>
+          <button type="button" disabled={pending} onClick={buildPrivately}>Build privately</button>
           <button type="submit" disabled={pending}>Build world</button>
         </div>
       </form>
@@ -121,7 +134,7 @@ export function NewPromptGame() {
       {result && soundtrack && (
         <div className="prompt-result">
           <h2>{result.title}</h2>
-          <p role="status">Planned with Gemini</p>
+          <p role="status">{scene?.processing === 'gemini' ? 'Planned with Gemini' : 'Built privately'}</p>
           {result.layout.plot && <p>{result.layout.plot.opening}</p>}
           <p><strong>In the scene</strong> {features.join(', ')}</p>
           {scene && gaps.length > 0 && (
@@ -142,7 +155,10 @@ export function NewPromptGame() {
             onChange={choice => setSoundtrack({ ...choice, muted: soundtrack.muted })}
             mute={{ value: soundtrack.muted, onChange: muted => setSoundtrack({ ...soundtrack, muted }) }} />
           <div className="prompt-actions">
-            <button type="button" onClick={() => setPlaying(result)}>Enter world</button>
+            <button type="button" onClick={() => {
+              enterWorld({ title: result.title, words: result.prompt, lines: ['Opening the world'], from: input.current });
+              setPlaying(result);
+            }}>Enter world</button>
             <button type="button" onClick={() => { clear(); input.current?.focus(); }}>Revise prompt</button>
           </div>
         </div>

@@ -1,0 +1,176 @@
+{
+  "version": "local",
+  "prompt": "At dusk I hit my first home run. Dad watched the ball clear the fence, then we celebrated together.",
+  "externalRequests": [],
+  "pageErrors": [],
+  "fixture": {
+    "prompt": "At dusk I hit my first home run. Dad watched the ball clear the fence, then we celebrated together.",
+    "plan": {
+      "intent": {
+        "settings": [
+          "ballfield"
+        ],
+        "features": [
+          {
+            "phrase": "clear",
+            "asset": null,
+            "setting": "ballfield",
+            "count": 1,
+            "color": null,
+            "origin": "requested"
+          },
+          {
+            "phrase": "fence",
+            "asset": "fence",
+            "setting": "ballfield",
+            "count": 1,
+            "color": null,
+            "origin": "requested"
+          }
+        ],
+        "relations": [],
+        "exclusions": [],
+        "timeOfDay": "dusk",
+        "weather": "clear",
+        "mood": "nostalgic"
+      },
+      "template": {
+        "version": 1,
+        "catalogVersion": 3,
+        "spawn": 0,
+        "zones": [
+          {
+            "family": "ballfield",
+            "surface": "grass",
+            "role": "entry",
+            "size": "large"
+          }
+        ],
+        "connections": [],
+        "groups": [
+          {
+            "asset": "fence",
+            "zone": 0,
+            "count": 1,
+            "feature": 1,
+            "purpose": "discovery"
+          },
+          {
+            "asset": "baseball-diamond",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "landmark"
+          },
+          {
+            "asset": "scoreboard",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "dugout",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "discovery"
+          },
+          {
+            "asset": "pine",
+            "zone": 0,
+            "count": 3,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "bench",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          }
+        ],
+        "discoveries": [
+          0,
+          3
+        ],
+        "ending": 1,
+        "coverage": [
+          {
+            "feature": 0,
+            "status": "missing",
+            "reason": "No compatible model or free catalog slot."
+          },
+          {
+            "feature": 1,
+            "status": "placed",
+            "reason": ""
+          }
+        ]
+      }
+    },
+    "plot": {
+      "version": 1,
+      "companion": "Dad",
+      "opening": "Walk to the plate as the last light crosses the field.",
+      "closing": "The ball is gone past the fence. Dad is still smiling.",
+      "moments": [
+        {
+          "anchor": "ending",
+          "title": "The first home run",
+          "actionLabel": "Step up to bat",
+          "description": "The field goes quiet before the swing. The ball clears the fence and Dad raises both arms.",
+          "evidence": "At dusk I hit my first home run. Dad watched the ball clear the fence, then we celebrated together.",
+          "mood": "joyful",
+          "ambience": "quiet",
+          "pace": "steady",
+          "framing": "wide",
+          "input": "press",
+          "actions": [
+            {
+              "kind": "throw",
+              "actor": "offscreen",
+              "object": "ball"
+            },
+            {
+              "kind": "strike",
+              "actor": "player",
+              "object": "ball",
+              "outcome": "over-fence"
+            },
+            {
+              "kind": "react",
+              "actor": "companion",
+              "object": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "direction": {
+      "version": 1,
+      "palette": {
+        "horizon": "#cea692",
+        "sky": "#565980",
+        "light": "#ffd38c",
+        "surface": "#65764b",
+        "accent": "#a86568"
+      },
+      "bed": "birds",
+      "track": "lantern-market",
+      "mix": "hushed",
+      "reasons": {
+        "palette": "Warm tones hold the quiet of the visit.",
+        "time": "Evening leaves time to linger.",
+        "weather": "Clear air keeps the view open.",
+        "audio": "A soft track leaves room for the breeze."
+      }
+    }
+  },
+  "renderer": {
+    "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36 Edg/158.0.0.0",
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Laptop GPU (0x00002D59) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+  },
+  "result": "Pitch, strike and reaction reached Memory complete."
+}

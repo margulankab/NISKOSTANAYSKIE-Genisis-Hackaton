@@ -28,7 +28,7 @@ for (const [prompt, required, narrow] of [
   });
 }
 
-test('AT-27: both prompt actions use Gemini and quota failures preserve the draft', async ({ page }) => {
+test('AT-27: private building avoids the gateway and Gemini quota failures preserve the draft', async ({ page }) => {
   const plan = plotResponse('water park')!;
   let status = 200;
   let requests = 0;
@@ -45,17 +45,18 @@ test('AT-27: both prompt actions use Gemini and quota failures preserve the draf
   await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByText('Planned with Gemini')).toBeVisible();
   await expect(page.getByText(/In the scene.*Pool basin/)).toBeVisible();
-  await page.getByRole('button', { name: 'Build memory' }).click();
-  await expect(page.getByText('Planned with Gemini')).toBeVisible();
+  await page.getByRole('button', { name: 'Build privately' }).click();
+  await expect(page.getByText('Built privately')).toBeVisible();
+  expect(requests).toBe(1);
   status = 429;
-  await page.getByRole('button', { name: 'Build memory' }).click();
+  await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByRole('alert')).toContainText('quota');
   await expect(page.getByRole('button', { name: 'Enter world' })).toHaveCount(0);
   await expect(description).toHaveValue('water park');
   status = 200;
   await page.getByRole('button', { name: 'Try again' }).click();
   await expect(page.getByText('Planned with Gemini')).toBeVisible();
-  expect(requests).toBe(4);
+  expect(requests).toBe(3);
 });
 
 test('edits cancel late plans and the main navigation confirms unsaved exits', async ({ page }) => {

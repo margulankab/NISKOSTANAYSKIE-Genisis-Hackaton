@@ -1,3 +1,5 @@
+import { districtPoint } from './world-intent-schema';
+import type { District } from './world-intent-schema';
 import { blocked } from '../gameplay/controller';
 import type { Point } from '../gameplay/layout';
 import { catalogById } from './catalog';
@@ -30,7 +32,7 @@ export function signatureProblems(profile: WorldLayout['profile'], placements: r
 
 /** Fit the landmark, recreation fixtures, and contextual anchors around a clear circulation lane. */
 export function composeGrounds(prompt: string, template: SceneTemplate, interpretation: Interpretation, seed: number,
-  attempt: number, ride = false): WorldLayout | string {
+  attempt: number, ride = false, districts: readonly (District | undefined)[] = []): WorldLayout | string {
   const { groups, discoveries, ending, zones, spawn } = template;
   const profile = zones[spawn].family;
   const recreation = profile === 'water-park';
@@ -95,6 +97,14 @@ export function composeGrounds(prompt: string, template: SceneTemplate, interpre
       const relation = interpretation.relations.find(rel => rel.subject === index && rel.status === 'applied');
       const target = relation?.object === null || relation?.object === undefined ? undefined : first.get(relation.object);
       let spot = n === 0 ? fixed.get(group.asset) : undefined;
+      const district = districts[index];
+      if (!spot && district && !target) {
+        const center = districtPoint(district, bounds);
+        for (let sample = 0; sample < 36 && !spot; sample++) {
+          const candidate = { x: center.x + (rand() - .5) * 5, z: center.z + (rand() - .5) * 4 };
+          if (free(candidate, radius)) spot = candidate;
+        }
+      }
       if (!spot && index === ending && n === 0) spot = { x: x(-1.65 + rand() * .55), z: -7.45 };
       if (!spot && recreation && waterAttractions.has(group.asset)) spot = specialAttractions[attractionIndex++];
       if (!spot && discoveries.includes(index) && n === 0 && !target) {

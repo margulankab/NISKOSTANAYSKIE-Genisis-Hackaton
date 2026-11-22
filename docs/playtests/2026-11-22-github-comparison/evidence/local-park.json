@@ -1,0 +1,337 @@
+{
+  "version": "local",
+  "prompt": "An autumn park at dusk with a bench, a lamp and a pond.",
+  "externalRequests": [],
+  "pageErrors": [],
+  "fixture": {
+    "prompt": "An autumn park at dusk with a bench, a lamp and a pond.",
+    "plan": {
+      "intent": {
+        "settings": [
+          "park"
+        ],
+        "features": [
+          {
+            "phrase": "bench",
+            "asset": "bench",
+            "setting": "park",
+            "count": 1,
+            "color": null,
+            "origin": "requested"
+          },
+          {
+            "phrase": "lamp",
+            "asset": "lamp",
+            "setting": "park",
+            "count": 1,
+            "color": null,
+            "origin": "requested"
+          }
+        ],
+        "relations": [],
+        "exclusions": [],
+        "timeOfDay": "dusk",
+        "weather": "clear",
+        "mood": "nostalgic"
+      },
+      "template": {
+        "version": 1,
+        "catalogVersion": 3,
+        "spawn": 0,
+        "zones": [
+          {
+            "family": "park",
+            "surface": "grass",
+            "role": "entry",
+            "size": "large"
+          }
+        ],
+        "connections": [],
+        "groups": [
+          {
+            "asset": "bench",
+            "zone": 0,
+            "count": 1,
+            "feature": 0,
+            "purpose": "discovery"
+          },
+          {
+            "asset": "lamp",
+            "zone": 0,
+            "count": 1,
+            "feature": 1,
+            "purpose": "discovery"
+          },
+          {
+            "asset": "gazebo",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "landmark"
+          },
+          {
+            "asset": "bench",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "flower-bed",
+            "zone": 0,
+            "count": 3,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "tree",
+            "zone": 0,
+            "count": 4,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "pine",
+            "zone": 0,
+            "count": 3,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "park-gate",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "planter",
+            "zone": 0,
+            "count": 2,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "trail-sign",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          }
+        ],
+        "discoveries": [
+          0,
+          1
+        ],
+        "ending": 2,
+        "coverage": [
+          {
+            "feature": 0,
+            "status": "placed",
+            "reason": ""
+          },
+          {
+            "feature": 1,
+            "status": "placed",
+            "reason": ""
+          }
+        ]
+      }
+    },
+    "plot": {
+      "version": 1,
+      "companion": null,
+      "opening": "Follow the route into the scene.",
+      "closing": "The visit settles into a quiet moment.",
+      "moments": [
+        {
+          "anchor": "ending",
+          "title": "A moment to look around",
+          "actionLabel": "Take in the view",
+          "description": "The view opens from a different angle. Stay for a moment before leaving.",
+          "evidence": "An autumn park at dusk with a bench, a lamp and a pond.",
+          "mood": "calm",
+          "ambience": "breeze",
+          "pace": "steady",
+          "framing": "follow",
+          "input": "press",
+          "actions": [
+            {
+              "kind": "look",
+              "actor": "player",
+              "object": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "direction": {
+      "version": 1,
+      "palette": {
+        "horizon": "#cea692",
+        "sky": "#565980",
+        "light": "#ffd38c",
+        "surface": "#65764b",
+        "accent": "#a86568"
+      },
+      "bed": "breeze",
+      "track": "warm-tape",
+      "mix": "hushed",
+      "reasons": {
+        "palette": "Warm tones hold the quiet of the visit.",
+        "time": "Evening leaves time to linger.",
+        "weather": "Clear air keeps the view open.",
+        "audio": "A soft track leaves room for the breeze."
+      }
+    }
+  },
+  "build": "AUTUMN PARK AT DUSK\n\nPlanned with Gemini\n\nFollow the route into the scene.\n\nIn the scene Gazebo, Bench, Street lamp, Park entrance, Flower bed, Tree, Pine, Raised planter, Trail sign\n\nWHY THIS SCENE?\nColor and light\nHorizon #cea692\nSky #565980\nKey light #ffd38c\nSurfaces #65764b\nAccents #a86568\nWarm tones hold the quiet of the visit.\nTime of day · dusk\nYou specified this time of day.\nWeather · clear\nClear air keeps the view open.\nSound · Warm Tape\nA soft track leaves room for the breeze. Breeze with a hushed mix.\nWorld interpretation\nSoundtrack\nSilence\nCoastal Light\nLantern Market\nStill Rooms\nWarm Tape\nNight Drive\n\nA soft track leaves room for the breeze.\n\nMemory Worlds. Cleared for in-game playback, portable export, and demo use.\n\nPREVIEW SOUNDTRACK\nMute soundtrack\nUpload an authorized soundtrack\nENTER WORLD\nREVISE PROMPT",
+  "renderer": {
+    "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36 Edg/158.0.0.0",
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Laptop GPU (0x00002D59) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+  },
+  "spawn": {
+    "x": 1.9,
+    "z": 15.6
+  },
+  "walkTargets": {
+    "spawn": {
+      "x": 1.9,
+      "z": 15.6
+    },
+    "bounds": {
+      "minX": -17.4,
+      "maxX": 17.4,
+      "minZ": -16.4,
+      "maxZ": 19.7
+    },
+    "solids": [
+      {
+        "shape": "circle",
+        "x": 1.36,
+        "z": -7.45,
+        "radius": 1.45
+      },
+      {
+        "shape": "box",
+        "x": 3.45,
+        "z": 2.85,
+        "halfX": 0.6,
+        "halfZ": 0.2
+      },
+      {
+        "shape": "box",
+        "x": 0.1,
+        "z": -2,
+        "halfX": 0.09,
+        "halfZ": 0.08999999999999997
+      },
+      {
+        "shape": "circle",
+        "x": 1.02,
+        "z": 4.65,
+        "radius": 0.07
+      },
+      {
+        "shape": "circle",
+        "x": 2.78,
+        "z": 4.65,
+        "radius": 0.07
+      },
+      {
+        "shape": "box",
+        "x": 5.85,
+        "z": 0.67,
+        "halfX": 0.6,
+        "halfZ": 0.2
+      },
+      {
+        "shape": "circle",
+        "x": 4.8,
+        "z": -6.28,
+        "radius": 0.13
+      },
+      {
+        "shape": "circle",
+        "x": 7.06,
+        "z": 3.8,
+        "radius": 0.13
+      },
+      {
+        "shape": "circle",
+        "x": 5.17,
+        "z": -8.52,
+        "radius": 0.13
+      },
+      {
+        "shape": "circle",
+        "x": -6.05,
+        "z": -2.08,
+        "radius": 0.13
+      },
+      {
+        "shape": "circle",
+        "x": 5.66,
+        "z": -6.85,
+        "radius": 0.24
+      },
+      {
+        "shape": "circle",
+        "x": -5.54,
+        "z": -0.48,
+        "radius": 0.24
+      },
+      {
+        "shape": "circle",
+        "x": 6.11,
+        "z": -0.4,
+        "radius": 0.24
+      },
+      {
+        "shape": "circle",
+        "x": -0.92,
+        "z": 3.64,
+        "radius": 0.43
+      },
+      {
+        "shape": "circle",
+        "x": -8.26,
+        "z": -3.3,
+        "radius": 0.43
+      },
+      {
+        "shape": "circle",
+        "x": -4.6,
+        "z": 0.68,
+        "radius": 0.14
+      }
+    ],
+    "checkSight": true,
+    "artifacts": [
+      {
+        "x": 3.45,
+        "z": 3.72
+      },
+      {
+        "x": 0.1,
+        "z": -1.38
+      }
+    ],
+    "landmark": {
+      "x": 1.36,
+      "z": -5.58
+    },
+    "playerRadius": 0.3,
+    "reach": 1.7
+  },
+  "defaultView": "third-person follow",
+  "fullscreen": false,
+  "playingScore": {
+    "paused": false,
+    "time": 0.33645,
+    "duration": 11.52,
+    "muted": false,
+    "volume": 0.8,
+    "bytes": 368684
+  }
+}

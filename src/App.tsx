@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState, useSyncExternalStore } from 'react';
+import { currentPath, installHashLinks, subscribeToRoute } from './chrome/route';
 import { Archive, SavedMemory } from './data/Archive';
 import { createInMemoryStore } from './data/repository';
 import { fixtures, loadFixture } from './fixtures/memories';
@@ -8,8 +9,11 @@ import { NewGameMenu } from './menus/NewGameMenu';
 import { SettingsMenu } from './menus/SettingsMenu';
 import { TitleMenu } from './menus/TitleMenu';
 import { installVolumeSetting } from './menus/settings';
-import { StatusBar } from './chrome/StatusBar';
+import { Library } from './library/Library';
+import { MusicButton } from './music/MusicApps';
 import { ViewSwitch } from './chrome/ViewSwitch';
+import { WorldWarp } from './chrome/WorldWarp';
+import { useT } from './i18n/i18n';
 import { NewPromptGame } from './world/NewPromptGame';
 import { SavedGame } from './world/SavedGame';
 import { MemoryViewer } from './scene/MemoryViewer';
@@ -23,9 +27,11 @@ type FixtureState =
 
 const store = createInMemoryStore();
 installVolumeSetting();
+installHashLinks();
 
 export function App() {
-  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  const t = useT();
+  const path = useSyncExternalStore(subscribeToRoute, currentPath);
   const memoryPath = path.match(/^\/memory\/([^/]+)$/);
   const playPath = path.match(/^\/play\/([^/]+)$/);
   const examplePath = path.match(/^\/examples\/([a-z-]+)$/);
@@ -38,39 +44,41 @@ export function App() {
     '/archive': () => <Archive />,
     '/load': () => <LoadGameMenu />,
     '/settings': () => <SettingsMenu />,
+    '/library': () => <Library />,
     '/world-preview': () => <WorldPreview />,
   };
 
   return (
     <main className="shell">
-      <StatusBar />
       <header className="masthead">
-        <span className="wordmark">Memory_Worlds<b>.exe</b></span>
+        <a className="wordmark" href="/" aria-label={t('Main menu')}>Memory<b>.worlds</b></a>
         <nav className="site-nav" aria-label="Main">
-          <a href="/" aria-current={path === '/' ? 'page' : undefined}>Main menu</a>
-          <a href="/examples" aria-current={path === '/examples' ? 'page' : undefined}>Examples</a>
-          <a href="/world-preview" aria-current={path === '/world-preview' ? 'page' : undefined}>World preview</a>
-          <a href="/create" aria-current={path === '/create' ? 'page' : undefined}>Create a memory</a>
-          <a href="/archive" aria-current={path === '/archive' ? 'page' : undefined}>Archive</a>
+          <a href="/library" aria-current={path === '/library' ? 'page' : undefined}>{t('Library')}</a>
+          <a href="/new" aria-current={path.startsWith('/new') ? 'page' : undefined}>{t('New game')}</a>
+          <a href="/settings" aria-current={path === '/settings' ? 'page' : undefined}>{t('Settings')}</a>
         </nav>
-        <ViewSwitch />
+        <div className="masthead-tools"><MusicButton /><ViewSwitch /></div>
       </header>
+      <Fragment key={path}>
       {memoryPath ? <SavedMemory key={memoryPath[1]} id={memoryPath[1]} />
         : playPath ? <SavedGame key={playPath[1]} id={playPath[1]} />
         : examplePath ? <FixtureLibrary slug={examplePath[1]} />
         : (pages[path] ?? pages['/'])()}
+      </Fragment>
+      <WorldWarp />
     </main>
   );
 }
 
 function FixtureLibrary({ slug }: { slug?: string }) {
+  const t = useT();
   const [selected, setSelected] = useState(() => fixtures.find(item => item.slug === slug) ?? fixtures[0]);
 
   return (
     <div className="example-library">
       <nav aria-label="Test memories" className="memory-index">
-        <h1>Fixture library</h1>
-        <p className="collection">Fictional test memories</p>
+        <h1>{t('Example days')}</h1>
+        <p className="collection">{t('Five fictional days to walk through')}</p>
         <ul className="example-contact-sheet">
           {fixtures.map((fixture) => (
             <li key={fixture.slug}>
@@ -84,7 +92,7 @@ function FixtureLibrary({ slug }: { slug?: string }) {
           ))}
         </ul>
       </nav>
-      <p><a href={`/examples/${selected.slug}`}>Link to this example</a></p>
+      <p className="example-links"><a href={`/examples/${selected.slug}`}>{t('Link to this example')}</a> <a href="/create">{t('Create a memory')}</a></p>
       <FixturePanel key={selected.slug} fixture={selected} />
     </div>
   );

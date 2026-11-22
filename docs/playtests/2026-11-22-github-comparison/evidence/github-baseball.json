@@ -1,0 +1,14 @@
+{
+  "version": "github",
+  "prompt": "At dusk I hit my first home run. Dad watched the ball clear the fence, then we celebrated together.",
+  "externalRequests": [],
+  "pageErrors": [
+    "Transition was aborted because of invalid state. ViewTransition opt-in disabled",
+    "Transition was aborted because of invalid state. ViewTransition opt-in disabled"
+  ],
+  "renderer": {
+    "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36 Edg/158.0.0.0",
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Laptop GPU (0x00002D59) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+  },
+  "result": "GAZEBO\n\nDUSK I HIT MY FIRST HOME RUN\n⛶\nFULL SCREEN\nPAUSE\n\nTake a walk around the gazebo. Stop at the house and picket fence before meeting the groundskeeper.\n\nFIND THE MARKED HOUSE.\n\nQUESTS\nFind the house\nFind the picket fence\nTalk to Groundskeeper\n\nGROUNDSKEEPER\n\nDusk I Hit My First Home Run\nDusk I Hit My First Home Run\n\n▸ 1 CLICK TO CONTINUE\n\n☰\nMENU\n⚙\n18 m\nINTERACT\nWASD to walk, drag or ← → to turn, tap Shift for shift lock, hold Shift to run, E or Space to interact, V to change view, Esc to pause\nSHIFT LOCK\nTHIRD PERSON\nRESET POSITION\n\n0 OF 2 DISCOVERIES FOUND\n\nSoundtrack\nSilence\nCoastal Light\nLantern Market\nStill Rooms\nWarm Tape\nNight Drive\n\nMatched cues: nostalgic, park, gentle.\n\nMemory Worlds. Cleared for in-game playback, portable export, and demo use.\n\nPAUSE SOUNDTRACK\nMute soundtrack\nUpload an authorized soundtrack\n1\nHouse\nFIND IT IN THE WORLD\n2\nPicket fence\nFIND IT IN THE WORLD\nHOW THIS WORLD WAS BUILT"
+}

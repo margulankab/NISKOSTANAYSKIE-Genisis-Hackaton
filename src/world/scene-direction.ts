@@ -4,9 +4,10 @@ import { Color, SRGBColorSpace } from 'three';
 const color = z.string().regex(/^#[0-9a-f]{6}$/i);
 const reason = z.string().trim().min(3).max(140);
 export const sceneBeds = ['quiet', 'breeze', 'rain', 'birds', 'station', 'room', 'crowd', 'waterfront', 'pool'] as const;
-export const sceneTracks = ['silence', 'coastal-light', 'lantern-market', 'still-rooms', 'warm-tape', 'night-drive'] as const;
+export const sceneTracks = ['silence', 'coastal-light', 'lantern-market', 'still-rooms', 'warm-tape', 'night-drive', 'glasshouse-dawn', 'platform-lights', 'courtyard-waltz', 'after-rain'] as const;
 export const sceneDirectionSchema = z.strictObject({
   version: z.literal(1),
+  gatheringAnchor: z.enum(['arrival', 'activity', 'ending']).optional(),
   palette: z.strictObject({ horizon: color, sky: color, light: color, surface: color, accent: color }),
   bed: z.enum(sceneBeds),
   track: z.enum(sceneTracks),

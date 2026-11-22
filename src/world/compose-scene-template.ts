@@ -114,6 +114,7 @@ export function composeSceneTemplate(prompt: string, { id, plan: input, processi
   try { plan = validateScenePlan(prompt, proposed); }
   catch (error) { return { ok: false, reason: (error as Error).message, interpretation: null }; }
   const { intent, template } = plan;
+  const districts = template.groups.map(group => group.feature === null ? undefined : intent.features[group.feature]?.district);
   const interpretation = interpret(prompt, plan);
   const seed = seedFromPrompt(JSON.stringify([prompt, SCENE_CATALOG_VERSION, template]));
   const profile = template.zones[template.spawn].family;
@@ -123,12 +124,12 @@ export function composeSceneTemplate(prompt: string, { id, plan: input, processi
   let lastProblem = '';
   for (let attempt = 1; attempt <= 4; attempt++) {
     const composed = intent.settings.length === 1 && (profile === 'ballfield' || profile === 'water-park' || profile === 'park' && !waterfront)
-      ? composeGrounds(prompt, template, interpretation, seed, attempt, ride)
+      ? composeGrounds(prompt, template, interpretation, seed, attempt, ride, districts)
       : composeLayout(prompt, interpretation, seed, attempt, {
         ending: template.ending, discoveries: template.discoveries,
         size: template.zones[template.spawn].size,
         surfaces: template.groups.map(group => template.zones[group.zone].surface),
-        waterfront,
+        districts, waterfront,
         wallWindow: Boolean(direction && interpretation.setting === 'indoor'),
       });
     if (typeof composed === 'string') { lastProblem = composed; continue; }

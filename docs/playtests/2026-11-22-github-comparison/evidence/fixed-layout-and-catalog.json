@@ -1,0 +1,1618 @@
+{
+  "github": {
+    "externalRequests": [],
+    "pageErrors": [],
+    "world": {
+      "kind": "prompt-world",
+      "id": "1b7b572a-2ace-40af-b8c5-8f43a4bd2f80",
+      "schemaVersion": 2,
+      "versions": {
+        "parser": 1,
+        "layout": 3,
+        "catalog": 3
+      },
+      "seed": 2057780863,
+      "title": "Autumn Park at Dusk with a Bench",
+      "prompt": "An autumn park at dusk with a bench, a lamp and a pond.",
+      "interpretation": {
+        "terms": [
+          {
+            "text": "bench",
+            "span": {
+              "start": 30,
+              "end": 35
+            },
+            "kind": "object",
+            "recipe": "bench",
+            "zone": null,
+            "status": "rendered",
+            "note": null,
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "lamp",
+            "span": {
+              "start": 39,
+              "end": 43
+            },
+            "kind": "object",
+            "recipe": "lamp",
+            "zone": null,
+            "status": "rendered",
+            "note": null,
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "Gazebo",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "gazebo",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "Bench",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "bench",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "Flower bed",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "flower-bed",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 3,
+            "color": null
+          },
+          {
+            "text": "Tree",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "tree",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 4,
+            "color": null
+          },
+          {
+            "text": "Pine",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "pine",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 3,
+            "color": null
+          },
+          {
+            "text": "Park entrance",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "park-gate",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "Raised planter",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "planter",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 2,
+            "color": null
+          },
+          {
+            "text": "Trail sign",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "trail-sign",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "park",
+            "span": {
+              "start": 10,
+              "end": 14
+            },
+            "kind": "zone",
+            "recipe": null,
+            "zone": "grass",
+            "status": "rendered",
+            "note": null,
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "pond",
+            "span": {
+              "start": 50,
+              "end": 54
+            },
+            "kind": "zone",
+            "recipe": null,
+            "zone": "water",
+            "status": "approximated",
+            "note": "shown as a shoreline",
+            "count": 1,
+            "color": null
+          }
+        ],
+        "relations": [],
+        "timeOfDay": "dusk",
+        "weather": "clear",
+        "setting": "outdoor"
+      },
+      "layout": {
+        "geometryVersion": 3,
+        "profile": "park",
+        "paths": [
+          [
+            {
+              "x": 1.9000000000000021,
+              "z": 15.700000000000003
+            },
+            {
+              "x": 2.3000000000000043,
+              "z": 15.700000000000003
+            },
+            {
+              "x": 2.3000000000000043,
+              "z": 4.300000000000004
+            }
+          ],
+          [
+            {
+              "x": 2.3000000000000043,
+              "z": 4.300000000000004
+            },
+            {
+              "x": 1.3000000000000043,
+              "z": 4.300000000000004
+            },
+            {
+              "x": 1.3000000000000043,
+              "z": 4.100000000000005
+            },
+            {
+              "x": 0.9000000000000021,
+              "z": 4.100000000000005
+            },
+            {
+              "x": 0.9000000000000021,
+              "z": -0.29999999999999716
+            }
+          ],
+          [
+            {
+              "x": 0.9000000000000021,
+              "z": -0.29999999999999716
+            },
+            {
+              "x": 1.1000000000000014,
+              "z": -0.29999999999999716
+            },
+            {
+              "x": 1.1000000000000014,
+              "z": -4.299999999999997
+            }
+          ]
+        ],
+        "approaches": [
+          {
+            "x": 3.45,
+            "z": 3.72
+          },
+          {
+            "x": 0.1,
+            "z": -1.38
+          },
+          {
+            "x": 1.36,
+            "z": -5.58
+          }
+        ],
+        "bounds": {
+          "minX": -17.4,
+          "maxX": 17.4,
+          "minZ": -16.4,
+          "maxZ": 19.7
+        },
+        "spawn": {
+          "x": 1.9,
+          "z": 15.6
+        },
+        "playerRadius": 0.3,
+        "reach": 1.7,
+        "water": null,
+        "indoor": null,
+        "placements": [
+          {
+            "id": "gazebo-1",
+            "recipe": "gazebo",
+            "x": 1.36,
+            "z": -7.45,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 2
+          },
+          {
+            "id": "bench-1",
+            "recipe": "bench",
+            "x": 3.45,
+            "z": 2.85,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 0
+          },
+          {
+            "id": "lamp-1",
+            "recipe": "lamp",
+            "x": 0.1,
+            "z": -2,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 1
+          },
+          {
+            "id": "park-gate-1",
+            "recipe": "park-gate",
+            "x": 1.9,
+            "z": 4.65,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 7
+          },
+          {
+            "id": "bench-2",
+            "recipe": "bench",
+            "x": 5.85,
+            "z": 0.67,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 3
+          },
+          {
+            "id": "flower-bed-1",
+            "recipe": "flower-bed",
+            "x": 7.86,
+            "z": 1.45,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 4
+          },
+          {
+            "id": "flower-bed-2",
+            "recipe": "flower-bed",
+            "x": 5.74,
+            "z": 3.3,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 4
+          },
+          {
+            "id": "flower-bed-3",
+            "recipe": "flower-bed",
+            "x": -4.1,
+            "z": -7.64,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 4
+          },
+          {
+            "id": "tree-1",
+            "recipe": "tree",
+            "x": 4.8,
+            "z": -6.28,
+            "y": 0,
+            "rotation": 2.3119477892760187,
+            "scale": 1,
+            "color": null,
+            "term": 5
+          },
+          {
+            "id": "tree-2",
+            "recipe": "tree",
+            "x": 7.06,
+            "z": 3.8,
+            "y": 0,
+            "rotation": 1.0180301091168076,
+            "scale": 1,
+            "color": null,
+            "term": 5
+          },
+          {
+            "id": "tree-3",
+            "recipe": "tree",
+            "x": 5.17,
+            "z": -8.52,
+            "y": 0,
+            "rotation": 0.5643481132574379,
+            "scale": 1,
+            "color": null,
+            "term": 5
+          },
+          {
+            "id": "tree-4",
+            "recipe": "tree",
+            "x": -6.05,
+            "z": -2.08,
+            "y": 0,
+            "rotation": -0.8853440685197711,
+            "scale": 1,
+            "color": null,
+            "term": 5
+          },
+          {
+            "id": "pine-1",
+            "recipe": "pine",
+            "x": 5.66,
+            "z": -6.85,
+            "y": 0,
+            "rotation": -1.0669531556777656,
+            "scale": 1,
+            "color": null,
+            "term": 6
+          },
+          {
+            "id": "pine-2",
+            "recipe": "pine",
+            "x": -5.54,
+            "z": -0.48,
+            "y": 0,
+            "rotation": -0.24095482775010169,
+            "scale": 1,
+            "color": null,
+            "term": 6
+          },
+          {
+            "id": "pine-3",
+            "recipe": "pine",
+            "x": 6.11,
+            "z": -0.4,
+            "y": 0,
+            "rotation": 0.07211863528937101,
+            "scale": 1,
+            "color": null,
+            "term": 6
+          },
+          {
+            "id": "planter-1",
+            "recipe": "planter",
+            "x": -0.92,
+            "z": 3.64,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 8
+          },
+          {
+            "id": "planter-2",
+            "recipe": "planter",
+            "x": -8.26,
+            "z": -3.3,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 8
+          },
+          {
+            "id": "trail-sign-1",
+            "recipe": "trail-sign",
+            "x": -4.6,
+            "z": 0.68,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 9
+          }
+        ],
+        "solids": [],
+        "discoveries": [
+          {
+            "placementId": "bench-1",
+            "excerpt": {
+              "start": 28,
+              "end": 35
+            }
+          },
+          {
+            "placementId": "lamp-1",
+            "excerpt": {
+              "start": 37,
+              "end": 43
+            }
+          }
+        ],
+        "landmark": {
+          "placementId": "gazebo-1"
+        }
+      },
+      "soundtrack": null,
+      "scene": {
+        "processing": "private",
+        "plan": {
+          "intent": {
+            "settings": [
+              "park"
+            ],
+            "features": [
+              {
+                "phrase": "bench",
+                "asset": "bench",
+                "setting": "park",
+                "count": 1,
+                "color": null,
+                "origin": "requested"
+              },
+              {
+                "phrase": "lamp",
+                "asset": "lamp",
+                "setting": "park",
+                "count": 1,
+                "color": null,
+                "origin": "requested"
+              }
+            ],
+            "relations": [],
+            "exclusions": [],
+            "timeOfDay": "dusk",
+            "weather": "clear",
+            "mood": "nostalgic"
+          },
+          "template": {
+            "version": 1,
+            "catalogVersion": 3,
+            "zones": [
+              {
+                "family": "park",
+                "surface": "grass",
+                "role": "entry",
+                "size": "large"
+              }
+            ],
+            "connections": [],
+            "groups": [
+              {
+                "asset": "bench",
+                "zone": 0,
+                "count": 1,
+                "feature": 0,
+                "purpose": "discovery"
+              },
+              {
+                "asset": "lamp",
+                "zone": 0,
+                "count": 1,
+                "feature": 1,
+                "purpose": "discovery"
+              },
+              {
+                "asset": "gazebo",
+                "zone": 0,
+                "count": 1,
+                "feature": null,
+                "purpose": "landmark"
+              },
+              {
+                "asset": "bench",
+                "zone": 0,
+                "count": 1,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "flower-bed",
+                "zone": 0,
+                "count": 3,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "tree",
+                "zone": 0,
+                "count": 4,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "pine",
+                "zone": 0,
+                "count": 3,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "park-gate",
+                "zone": 0,
+                "count": 1,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "planter",
+                "zone": 0,
+                "count": 2,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "trail-sign",
+                "zone": 0,
+                "count": 1,
+                "feature": null,
+                "purpose": "context"
+              }
+            ],
+            "spawn": 0,
+            "discoveries": [
+              0,
+              1
+            ],
+            "ending": 2,
+            "coverage": [
+              {
+                "feature": 0,
+                "status": "placed",
+                "reason": ""
+              },
+              {
+                "feature": 1,
+                "status": "placed",
+                "reason": ""
+              }
+            ]
+          }
+        },
+        "coverage": [
+          {
+            "feature": 0,
+            "status": "placed",
+            "reason": ""
+          },
+          {
+            "feature": 1,
+            "status": "placed",
+            "reason": ""
+          }
+        ]
+      }
+    },
+    "tracks": [
+      {
+        "id": "coastal-light",
+        "title": "Coastal Light",
+        "bytes": 435244,
+        "sha256": "db8bc2d9350b12ae0fbea00a622c7da3a60c39d2f74430f70a0fabe3718bc378"
+      },
+      {
+        "id": "lantern-market",
+        "title": "Lantern Market",
+        "bytes": 245804,
+        "sha256": "dd1003ed3ff87953fd2caa0ec5df2c52a4d3a6d1c4991981416d920ebbb03df6"
+      },
+      {
+        "id": "still-rooms",
+        "title": "Still Rooms",
+        "bytes": 563244,
+        "sha256": "78be4a393b819e729b6c3cf167083f08889c43c29294d286552d792742986e69"
+      },
+      {
+        "id": "warm-tape",
+        "title": "Warm Tape",
+        "bytes": 368684,
+        "sha256": "a6f30e3055a50a215b9cda0851a046b794b91deb25afd19facb685564594af79"
+      },
+      {
+        "id": "night-drive",
+        "title": "Night Drive",
+        "bytes": 204844,
+        "sha256": "c64d850fa49d2b0c8d20062246f54dc2d037050d3f73f2190f4030593692dfde"
+      }
+    ],
+    "renderTargets": {
+      "spawn": {
+        "x": 1.9,
+        "z": 15.6
+      },
+      "bounds": {
+        "minX": -17.4,
+        "maxX": 17.4,
+        "minZ": -16.4,
+        "maxZ": 19.7
+      },
+      "solids": [
+        {
+          "shape": "circle",
+          "x": 1.36,
+          "z": -7.45,
+          "radius": 1.45
+        },
+        {
+          "shape": "box",
+          "x": 3.45,
+          "z": 2.85,
+          "halfX": 0.6,
+          "halfZ": 0.2
+        },
+        {
+          "shape": "box",
+          "x": 0.1,
+          "z": -2,
+          "halfX": 0.09,
+          "halfZ": 0.08999999999999997
+        },
+        {
+          "shape": "circle",
+          "x": 1.02,
+          "z": 4.65,
+          "radius": 0.07
+        },
+        {
+          "shape": "circle",
+          "x": 2.78,
+          "z": 4.65,
+          "radius": 0.07
+        },
+        {
+          "shape": "box",
+          "x": 5.85,
+          "z": 0.67,
+          "halfX": 0.6,
+          "halfZ": 0.2
+        },
+        {
+          "shape": "circle",
+          "x": 4.8,
+          "z": -6.28,
+          "radius": 0.13
+        },
+        {
+          "shape": "circle",
+          "x": 7.06,
+          "z": 3.8,
+          "radius": 0.13
+        },
+        {
+          "shape": "circle",
+          "x": 5.17,
+          "z": -8.52,
+          "radius": 0.13
+        },
+        {
+          "shape": "circle",
+          "x": -6.05,
+          "z": -2.08,
+          "radius": 0.13
+        },
+        {
+          "shape": "circle",
+          "x": 5.66,
+          "z": -6.85,
+          "radius": 0.24
+        },
+        {
+          "shape": "circle",
+          "x": -5.54,
+          "z": -0.48,
+          "radius": 0.24
+        },
+        {
+          "shape": "circle",
+          "x": 6.11,
+          "z": -0.4,
+          "radius": 0.24
+        },
+        {
+          "shape": "circle",
+          "x": -0.92,
+          "z": 3.64,
+          "radius": 0.43
+        },
+        {
+          "shape": "circle",
+          "x": -8.26,
+          "z": -3.3,
+          "radius": 0.43
+        },
+        {
+          "shape": "circle",
+          "x": -4.6,
+          "z": 0.68,
+          "radius": 0.14
+        }
+      ],
+      "checkSight": true,
+      "artifacts": [
+        {
+          "x": 3.45,
+          "z": 3.72
+        },
+        {
+          "x": 0.1,
+          "z": -1.38
+        }
+      ],
+      "landmark": {
+        "x": 1.36,
+        "z": -5.58
+      },
+      "playerRadius": 0.3,
+      "reach": 1.7
+    }
+  },
+  "local": {
+    "externalRequests": [],
+    "pageErrors": [],
+    "world": {
+      "kind": "prompt-world",
+      "id": "1b7b572a-2ace-40af-b8c5-8f43a4bd2f80",
+      "schemaVersion": 2,
+      "versions": {
+        "parser": 1,
+        "layout": 3,
+        "catalog": 3
+      },
+      "seed": 2057780863,
+      "title": "Autumn Park at Dusk with a Bench",
+      "prompt": "An autumn park at dusk with a bench, a lamp and a pond.",
+      "interpretation": {
+        "terms": [
+          {
+            "text": "bench",
+            "span": {
+              "start": 30,
+              "end": 35
+            },
+            "kind": "object",
+            "recipe": "bench",
+            "zone": null,
+            "status": "rendered",
+            "note": null,
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "lamp",
+            "span": {
+              "start": 39,
+              "end": 43
+            },
+            "kind": "object",
+            "recipe": "lamp",
+            "zone": null,
+            "status": "rendered",
+            "note": null,
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "Gazebo",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "gazebo",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "Bench",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "bench",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "Flower bed",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "flower-bed",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 3,
+            "color": null
+          },
+          {
+            "text": "Tree",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "tree",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 4,
+            "color": null
+          },
+          {
+            "text": "Pine",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "pine",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 3,
+            "color": null
+          },
+          {
+            "text": "Park entrance",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "park-gate",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "Raised planter",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "planter",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 2,
+            "color": null
+          },
+          {
+            "text": "Trail sign",
+            "span": {
+              "start": 0,
+              "end": 22
+            },
+            "kind": "object",
+            "recipe": "trail-sign",
+            "zone": null,
+            "status": "rendered",
+            "note": "Setting detail",
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "park",
+            "span": {
+              "start": 10,
+              "end": 14
+            },
+            "kind": "zone",
+            "recipe": null,
+            "zone": "grass",
+            "status": "rendered",
+            "note": null,
+            "count": 1,
+            "color": null
+          },
+          {
+            "text": "pond",
+            "span": {
+              "start": 50,
+              "end": 54
+            },
+            "kind": "zone",
+            "recipe": null,
+            "zone": "water",
+            "status": "approximated",
+            "note": "shown as a shoreline",
+            "count": 1,
+            "color": null
+          }
+        ],
+        "relations": [],
+        "timeOfDay": "dusk",
+        "weather": "clear",
+        "setting": "outdoor"
+      },
+      "layout": {
+        "geometryVersion": 3,
+        "profile": "park",
+        "paths": [
+          [
+            {
+              "x": 1.9000000000000021,
+              "z": 15.700000000000003
+            },
+            {
+              "x": 2.3000000000000043,
+              "z": 15.700000000000003
+            },
+            {
+              "x": 2.3000000000000043,
+              "z": 4.300000000000004
+            }
+          ],
+          [
+            {
+              "x": 2.3000000000000043,
+              "z": 4.300000000000004
+            },
+            {
+              "x": 1.3000000000000043,
+              "z": 4.300000000000004
+            },
+            {
+              "x": 1.3000000000000043,
+              "z": 4.100000000000005
+            },
+            {
+              "x": 0.9000000000000021,
+              "z": 4.100000000000005
+            },
+            {
+              "x": 0.9000000000000021,
+              "z": -0.29999999999999716
+            }
+          ],
+          [
+            {
+              "x": 0.9000000000000021,
+              "z": -0.29999999999999716
+            },
+            {
+              "x": 1.1000000000000014,
+              "z": -0.29999999999999716
+            },
+            {
+              "x": 1.1000000000000014,
+              "z": -4.299999999999997
+            }
+          ]
+        ],
+        "approaches": [
+          {
+            "x": 3.45,
+            "z": 3.72
+          },
+          {
+            "x": 0.1,
+            "z": -1.38
+          },
+          {
+            "x": 1.36,
+            "z": -5.58
+          }
+        ],
+        "bounds": {
+          "minX": -17.4,
+          "maxX": 17.4,
+          "minZ": -16.4,
+          "maxZ": 19.7
+        },
+        "spawn": {
+          "x": 1.9,
+          "z": 15.6
+        },
+        "playerRadius": 0.3,
+        "reach": 1.7,
+        "water": null,
+        "indoor": null,
+        "placements": [
+          {
+            "id": "gazebo-1",
+            "recipe": "gazebo",
+            "x": 1.36,
+            "z": -7.45,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 2
+          },
+          {
+            "id": "bench-1",
+            "recipe": "bench",
+            "x": 3.45,
+            "z": 2.85,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 0
+          },
+          {
+            "id": "lamp-1",
+            "recipe": "lamp",
+            "x": 0.1,
+            "z": -2,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 1
+          },
+          {
+            "id": "park-gate-1",
+            "recipe": "park-gate",
+            "x": 1.9,
+            "z": 4.65,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 7
+          },
+          {
+            "id": "bench-2",
+            "recipe": "bench",
+            "x": 5.85,
+            "z": 0.67,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 3
+          },
+          {
+            "id": "flower-bed-1",
+            "recipe": "flower-bed",
+            "x": 7.86,
+            "z": 1.45,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 4
+          },
+          {
+            "id": "flower-bed-2",
+            "recipe": "flower-bed",
+            "x": 5.74,
+            "z": 3.3,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 4
+          },
+          {
+            "id": "flower-bed-3",
+            "recipe": "flower-bed",
+            "x": -4.1,
+            "z": -7.64,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 4
+          },
+          {
+            "id": "tree-1",
+            "recipe": "tree",
+            "x": 4.8,
+            "z": -6.28,
+            "y": 0,
+            "rotation": 2.3119477892760187,
+            "scale": 1,
+            "color": null,
+            "term": 5
+          },
+          {
+            "id": "tree-2",
+            "recipe": "tree",
+            "x": 7.06,
+            "z": 3.8,
+            "y": 0,
+            "rotation": 1.0180301091168076,
+            "scale": 1,
+            "color": null,
+            "term": 5
+          },
+          {
+            "id": "tree-3",
+            "recipe": "tree",
+            "x": 5.17,
+            "z": -8.52,
+            "y": 0,
+            "rotation": 0.5643481132574379,
+            "scale": 1,
+            "color": null,
+            "term": 5
+          },
+          {
+            "id": "tree-4",
+            "recipe": "tree",
+            "x": -6.05,
+            "z": -2.08,
+            "y": 0,
+            "rotation": -0.8853440685197711,
+            "scale": 1,
+            "color": null,
+            "term": 5
+          },
+          {
+            "id": "pine-1",
+            "recipe": "pine",
+            "x": 5.66,
+            "z": -6.85,
+            "y": 0,
+            "rotation": -1.0669531556777656,
+            "scale": 1,
+            "color": null,
+            "term": 6
+          },
+          {
+            "id": "pine-2",
+            "recipe": "pine",
+            "x": -5.54,
+            "z": -0.48,
+            "y": 0,
+            "rotation": -0.24095482775010169,
+            "scale": 1,
+            "color": null,
+            "term": 6
+          },
+          {
+            "id": "pine-3",
+            "recipe": "pine",
+            "x": 6.11,
+            "z": -0.4,
+            "y": 0,
+            "rotation": 0.07211863528937101,
+            "scale": 1,
+            "color": null,
+            "term": 6
+          },
+          {
+            "id": "planter-1",
+            "recipe": "planter",
+            "x": -0.92,
+            "z": 3.64,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 8
+          },
+          {
+            "id": "planter-2",
+            "recipe": "planter",
+            "x": -8.26,
+            "z": -3.3,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 8
+          },
+          {
+            "id": "trail-sign-1",
+            "recipe": "trail-sign",
+            "x": -4.6,
+            "z": 0.68,
+            "y": 0,
+            "rotation": 0,
+            "scale": 1,
+            "color": null,
+            "term": 9
+          }
+        ],
+        "solids": [],
+        "discoveries": [
+          {
+            "placementId": "bench-1",
+            "excerpt": {
+              "start": 28,
+              "end": 35
+            }
+          },
+          {
+            "placementId": "lamp-1",
+            "excerpt": {
+              "start": 37,
+              "end": 43
+            }
+          }
+        ],
+        "landmark": {
+          "placementId": "gazebo-1"
+        }
+      },
+      "soundtrack": null,
+      "scene": {
+        "processing": "private",
+        "plan": {
+          "intent": {
+            "settings": [
+              "park"
+            ],
+            "features": [
+              {
+                "phrase": "bench",
+                "asset": "bench",
+                "setting": "park",
+                "count": 1,
+                "color": null,
+                "origin": "requested"
+              },
+              {
+                "phrase": "lamp",
+                "asset": "lamp",
+                "setting": "park",
+                "count": 1,
+                "color": null,
+                "origin": "requested"
+              }
+            ],
+            "relations": [],
+            "exclusions": [],
+            "timeOfDay": "dusk",
+            "weather": "clear",
+            "mood": "nostalgic"
+          },
+          "template": {
+            "version": 1,
+            "catalogVersion": 3,
+            "zones": [
+              {
+                "family": "park",
+                "surface": "grass",
+                "role": "entry",
+                "size": "large"
+              }
+            ],
+            "connections": [],
+            "groups": [
+              {
+                "asset": "bench",
+                "zone": 0,
+                "count": 1,
+                "feature": 0,
+                "purpose": "discovery"
+              },
+              {
+                "asset": "lamp",
+                "zone": 0,
+                "count": 1,
+                "feature": 1,
+                "purpose": "discovery"
+              },
+              {
+                "asset": "gazebo",
+                "zone": 0,
+                "count": 1,
+                "feature": null,
+                "purpose": "landmark"
+              },
+              {
+                "asset": "bench",
+                "zone": 0,
+                "count": 1,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "flower-bed",
+                "zone": 0,
+                "count": 3,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "tree",
+                "zone": 0,
+                "count": 4,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "pine",
+                "zone": 0,
+                "count": 3,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "park-gate",
+                "zone": 0,
+                "count": 1,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "planter",
+                "zone": 0,
+                "count": 2,
+                "feature": null,
+                "purpose": "context"
+              },
+              {
+                "asset": "trail-sign",
+                "zone": 0,
+                "count": 1,
+                "feature": null,
+                "purpose": "context"
+              }
+            ],
+            "spawn": 0,
+            "discoveries": [
+              0,
+              1
+            ],
+            "ending": 2,
+            "coverage": [
+              {
+                "feature": 0,
+                "status": "placed",
+                "reason": ""
+              },
+              {
+                "feature": 1,
+                "status": "placed",
+                "reason": ""
+              }
+            ]
+          }
+        },
+        "coverage": [
+          {
+            "feature": 0,
+            "status": "placed",
+            "reason": ""
+          },
+          {
+            "feature": 1,
+            "status": "placed",
+            "reason": ""
+          }
+        ]
+      }
+    },
+    "tracks": [
+      {
+        "id": "coastal-light",
+        "title": "Coastal Light",
+        "bytes": 435244,
+        "sha256": "db8bc2d9350b12ae0fbea00a622c7da3a60c39d2f74430f70a0fabe3718bc378"
+      },
+      {
+        "id": "lantern-market",
+        "title": "Lantern Market",
+        "bytes": 245804,
+        "sha256": "dd1003ed3ff87953fd2caa0ec5df2c52a4d3a6d1c4991981416d920ebbb03df6"
+      },
+      {
+        "id": "still-rooms",
+        "title": "Still Rooms",
+        "bytes": 563244,
+        "sha256": "78be4a393b819e729b6c3cf167083f08889c43c29294d286552d792742986e69"
+      },
+      {
+        "id": "warm-tape",
+        "title": "Warm Tape",
+        "bytes": 368684,
+        "sha256": "a6f30e3055a50a215b9cda0851a046b794b91deb25afd19facb685564594af79"
+      },
+      {
+        "id": "night-drive",
+        "title": "Night Drive",
+        "bytes": 204844,
+        "sha256": "c64d850fa49d2b0c8d20062246f54dc2d037050d3f73f2190f4030593692dfde"
+      }
+    ],
+    "renderTargets": {
+      "spawn": {
+        "x": 1.9,
+        "z": 15.6
+      },
+      "bounds": {
+        "minX": -17.4,
+        "maxX": 17.4,
+        "minZ": -16.4,
+        "maxZ": 19.7
+      },
+      "solids": [
+        {
+          "shape": "circle",
+          "x": 1.36,
+          "z": -7.45,
+          "radius": 1.45
+        },
+        {
+          "shape": "box",
+          "x": 3.45,
+          "z": 2.85,
+          "halfX": 0.6,
+          "halfZ": 0.2
+        },
+        {
+          "shape": "box",
+          "x": 0.1,
+          "z": -2,
+          "halfX": 0.09,
+          "halfZ": 0.08999999999999997
+        },
+        {
+          "shape": "circle",
+          "x": 1.02,
+          "z": 4.65,
+          "radius": 0.07
+        },
+        {
+          "shape": "circle",
+          "x": 2.78,
+          "z": 4.65,
+          "radius": 0.07
+        },
+        {
+          "shape": "box",
+          "x": 5.85,
+          "z": 0.67,
+          "halfX": 0.6,
+          "halfZ": 0.2
+        },
+        {
+          "shape": "circle",
+          "x": 4.8,
+          "z": -6.28,
+          "radius": 0.13
+        },
+        {
+          "shape": "circle",
+          "x": 7.06,
+          "z": 3.8,
+          "radius": 0.13
+        },
+        {
+          "shape": "circle",
+          "x": 5.17,
+          "z": -8.52,
+          "radius": 0.13
+        },
+        {
+          "shape": "circle",
+          "x": -6.05,
+          "z": -2.08,
+          "radius": 0.13
+        },
+        {
+          "shape": "circle",
+          "x": 5.66,
+          "z": -6.85,
+          "radius": 0.24
+        },
+        {
+          "shape": "circle",
+          "x": -5.54,
+          "z": -0.48,
+          "radius": 0.24
+        },
+        {
+          "shape": "circle",
+          "x": 6.11,
+          "z": -0.4,
+          "radius": 0.24
+        },
+        {
+          "shape": "circle",
+          "x": -0.92,
+          "z": 3.64,
+          "radius": 0.43
+        },
+        {
+          "shape": "circle",
+          "x": -8.26,
+          "z": -3.3,
+          "radius": 0.43
+        },
+        {
+          "shape": "circle",
+          "x": -4.6,
+          "z": 0.68,
+          "radius": 0.14
+        }
+      ],
+      "checkSight": true,
+      "artifacts": [
+        {
+          "x": 3.45,
+          "z": 3.72
+        },
+        {
+          "x": 0.1,
+          "z": -1.38
+        }
+      ],
+      "landmark": {
+        "x": 1.36,
+        "z": -5.58
+      },
+      "playerRadius": 0.3,
+      "reach": 1.7
+    }
+  }
+}

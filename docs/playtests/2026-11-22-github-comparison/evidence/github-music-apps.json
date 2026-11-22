@@ -1,0 +1,12 @@
+{
+  "externalRequests": [],
+  "pageErrors": [
+    "Transition was aborted because of invalid state. ViewTransition opt-in disabled"
+  ],
+  "apps": [
+    "Spotify",
+    "SoundCloud",
+    "Apple Music",
+    "YouTube Music"
+  ]
+}

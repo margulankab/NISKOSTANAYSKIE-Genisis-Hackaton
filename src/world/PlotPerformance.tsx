@@ -32,8 +32,8 @@ const duration: Record<Action['kind'], number> = {
 };
 const paceScale = { linger: 1.28, steady: 1, quick: .76 };
 
-export function PlotPerformance({ moment, companion, dog, slide, directed, point, height, field, playing, paused, reduced, frame, meter, subtitle, audio, finish }: {
-  moment: PlotMoment; companion: boolean; point: Point; height: number; field: boolean;
+export function PlotPerformance({ moment, companion, side, dog, slide, directed, point, height, field, playing, paused, reduced, frame, meter, subtitle, audio, finish }: {
+  moment: PlotMoment; companion: boolean; side: number; point: Point; height: number; field: boolean;
   dog?: boolean; slide?: Placement; directed?: boolean;
   playing: boolean; paused: boolean; reduced: boolean;
   frame: RefObject<PlotFrame>; meter: RefObject<HTMLDivElement | null>; audio: RefObject<AudioContext | null>;
@@ -166,13 +166,13 @@ export function PlotPerformance({ moment, companion, dog, slide, directed, point
     if (visitor.current && dog && action.kind === 'comfort') {
       const step = Math.min(1, motion * 1.68);
       const settling = Math.max(0, (motion - .58) / .42);
-      visitor.current.position.set(2.65 - step * 1.95, 0, -.05 - step * .38);
-      visitor.current.rotation.y = 1.42 - settling * .88;
+      visitor.current.position.set(side * (2.65 - step * 1.95), 0, -.05 - step * .38);
+      visitor.current.rotation.y = side * (1.42 - settling * .88);
       dogMotion.current = { pace: step < 1 ? 1 : 0, settled: settling };
     } else if (visitor.current && (talking || approaching) && action.kind !== 'slide') {
       const step = state.index ? 1 : Math.min(1, motion * 1.6);
-      visitor.current.position.set(1.95 - step * .94, 0, -.92 - step * .22);
-      visitor.current.rotation.y = 2.32;
+      visitor.current.position.set(side * (1.95 - step * .94), 0, -.92 - step * .22);
+      visitor.current.rotation.y = side * 2.32;
       pose.current.walking = step < 1 ? 1 : 0;
     }
     if (visitor.current && action.kind === 'react' && !reduced) visitor.current.position.y = Math.sin(motion * Math.PI) * .095;
@@ -199,7 +199,7 @@ export function PlotPerformance({ moment, companion, dog, slide, directed, point
 
   return <group position={[point.x, height, point.z]}>
     {companion && (!dog || comforting) && <group ref={visitor}
-      position={[dog ? 2.65 : talking || approaching ? 1.95 : field ? 1.38 : 1.18, 0, -.8]} rotation={[0, dog ? 1.42 : -.9, 0]}>
+      position={[side * (dog ? 2.65 : talking || approaching ? 1.95 : field ? 1.38 : 1.18), 0, -.8]} rotation={[0, side * (dog ? 1.42 : -.9), 0]}>
       {dog ? <PlotDog motion={dogMotion} reduced={reduced} /> : <PlotActor pose={pose} companion reduced={reduced} directed={directed} />}
     </group>}
     {(mourning || comforting) && <group position={[0, 0, .22]}>

@@ -1,0 +1,216 @@
+{
+  "prompt": "In a room after rain, a blue sofa faces the window. My sister sits beside the table and I feel relieved.",
+  "mode": "synthetic integration fixture",
+  "status": 503,
+  "data": {
+    "plan": {
+      "intent": {
+        "settings": [
+          "interior"
+        ],
+        "features": [
+          {
+            "phrase": "sofa",
+            "asset": "sofa",
+            "setting": "interior",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "rear-right"
+          },
+          {
+            "phrase": "faces",
+            "asset": null,
+            "setting": "interior",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "entry-left"
+          },
+          {
+            "phrase": "window",
+            "asset": "window",
+            "setting": "interior",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "rear-right"
+          },
+          {
+            "phrase": "sits",
+            "asset": null,
+            "setting": "interior",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "entry-left"
+          },
+          {
+            "phrase": "table",
+            "asset": "table",
+            "setting": "interior",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "rear-right"
+          }
+        ],
+        "relations": [
+          {
+            "phrase": "beside",
+            "kind": "beside",
+            "subject": 3,
+            "object": 4
+          }
+        ],
+        "exclusions": [],
+        "timeOfDay": "day",
+        "weather": "rain",
+        "mood": "nostalgic"
+      },
+      "template": {
+        "version": 1,
+        "catalogVersion": 3,
+        "spawn": 0,
+        "zones": [
+          {
+            "family": "interior",
+            "surface": "floor",
+            "role": "entry",
+            "size": "large"
+          }
+        ],
+        "connections": [],
+        "groups": [
+          {
+            "asset": "sofa",
+            "zone": 0,
+            "count": 1,
+            "feature": 0,
+            "purpose": "discovery"
+          },
+          {
+            "asset": "window",
+            "zone": 0,
+            "count": 1,
+            "feature": 2,
+            "purpose": "landmark"
+          },
+          {
+            "asset": "table",
+            "zone": 0,
+            "count": 1,
+            "feature": 4,
+            "purpose": "discovery"
+          },
+          {
+            "asset": "cupboard",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "chair",
+            "zone": 0,
+            "count": 2,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "floor-lamp",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "rug",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          }
+        ],
+        "discoveries": [
+          0,
+          2
+        ],
+        "ending": 1,
+        "coverage": [
+          {
+            "feature": 0,
+            "status": "placed",
+            "reason": ""
+          },
+          {
+            "feature": 1,
+            "status": "missing",
+            "reason": "No compatible model or free catalog slot."
+          },
+          {
+            "feature": 2,
+            "status": "placed",
+            "reason": ""
+          },
+          {
+            "feature": 3,
+            "status": "missing",
+            "reason": "No compatible model or free catalog slot."
+          },
+          {
+            "feature": 4,
+            "status": "placed",
+            "reason": ""
+          }
+        ]
+      }
+    },
+    "plot": {
+      "version": 1,
+      "companion": null,
+      "opening": "Follow the route into the scene.",
+      "closing": "The visit settles into a quiet moment.",
+      "moments": [
+        {
+          "anchor": "ending",
+          "title": "A moment to look around",
+          "actionLabel": "Take in the view",
+          "description": "The view opens from a different angle. Stay for a moment before leaving.",
+          "evidence": "In a room after rain, a blue sofa faces the window. My sister sits beside the table and I feel relieved.",
+          "mood": "calm",
+          "ambience": "breeze",
+          "pace": "steady",
+          "framing": "follow",
+          "input": "press",
+          "actions": [
+            {
+              "kind": "look",
+              "actor": "player",
+              "object": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "direction": {
+      "version": 1,
+      "palette": {
+        "horizon": "#cea692",
+        "sky": "#565980",
+        "light": "#ffd38c",
+        "surface": "#a78668",
+        "accent": "#a86568"
+      },
+      "bed": "breeze",
+      "track": "after-rain",
+      "mix": "hushed",
+      "reasons": {
+        "palette": "Warm tones hold the quiet of the visit.",
+        "time": "Evening leaves time to linger.",
+        "weather": "Clear air keeps the view open.",
+        "audio": "A soft track leaves room for the breeze."
+      }
+    }
+  }
+}

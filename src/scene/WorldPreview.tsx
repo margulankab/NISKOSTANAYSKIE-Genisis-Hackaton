@@ -1,5 +1,6 @@
 import { OrbitControls } from '@react-three/drei';
 import { useStageDpr } from '../chrome/use-pixel';
+import { InkFromSettings } from './InkLook';
 import { Canvas, useThree } from '@react-three/fiber';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { ComponentRef } from 'react';
@@ -69,6 +70,7 @@ function ExamplePreview({ exampleId, override, onChange, muted, onMutedChange }:
               <WorldScenery placements={example.layout.placements} atmosphere={example.atmosphere} activeAudio={activeAudio}
                 music={choice.record.kind === 'silent' ? undefined : choice.record.music} />
               <PreviewCamera view={view} setReady={setCameraReady} />
+              <InkFromSettings />
             </Canvas>
           </StageBoundary>
         )}

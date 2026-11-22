@@ -6,7 +6,7 @@ import type { SceneDirection } from '../src/world/scene-direction';
 export async function startPromptGame(page: Page, prompt: string, direction?: SceneDirection) {
   await mockPromptPlots(page, direction);
   await page.goto('/');
-  await page.getByRole('link', { name: 'New Game' }).click();
+  await page.getByRole('link', { name: 'New Game', exact: true }).click();
   await page.getByRole('link', { name: /From a prompt/ }).click();
   await page.getByLabel('Describe the world').fill(prompt);
   await page.getByLabel(/Send this fictional prompt/).check();

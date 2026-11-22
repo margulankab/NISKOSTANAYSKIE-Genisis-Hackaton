@@ -69,7 +69,7 @@ test('Gemini moments can be completed in the static preview, and invalid respons
   });
   await openPrompt(page, fictionalMarket);
   await page.getByRole('checkbox', { name: /Send this fictional prompt/ }).check();
-  await page.getByRole('button', { name: 'Build memory' }).click();
+  await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByText('Planned with Gemini')).toBeVisible();
   await page.getByRole('button', { name: 'Enter world' }).click();
   await expect(page.locator('.static-note')).toContainText('the 3D world is unavailable');
@@ -81,7 +81,7 @@ test('Gemini moments can be completed in the static preview, and invalid respons
   valid = false;
   await openPrompt(page, fictionalMarket);
   await page.getByRole('checkbox', { name: /Send this fictional prompt/ }).check();
-  await page.getByRole('button', { name: 'Build memory' }).click();
+  await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByRole('alert')).toContainText('invalid plot');
   await expect(page.getByLabel('Describe the world')).toHaveValue(fictionalMarket);
   await expect(page.getByRole('button', { name: 'Enter world' })).toHaveCount(0);

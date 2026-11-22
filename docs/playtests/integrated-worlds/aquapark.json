@@ -1,0 +1,254 @@
+{
+  "prompt": "I was a kid, and it was my first time in aquapark. I was with a mom, and we tried the biggest slide there. It was the best day",
+  "mode": "prior live Gemini response replay",
+  "data": {
+    "plan": {
+      "intent": {
+        "settings": [
+          "water-park"
+        ],
+        "features": [
+          {
+            "phrase": "kid",
+            "asset": null,
+            "setting": "water-park",
+            "count": 1,
+            "color": null,
+            "origin": "requested"
+          },
+          {
+            "phrase": "time",
+            "asset": null,
+            "setting": "water-park",
+            "count": 1,
+            "color": null,
+            "origin": "requested"
+          },
+          {
+            "phrase": "mom",
+            "asset": null,
+            "setting": "water-park",
+            "count": 1,
+            "color": null,
+            "origin": "requested"
+          },
+          {
+            "phrase": "slide",
+            "asset": "tube-slide",
+            "setting": "water-park",
+            "count": 1,
+            "color": "blue",
+            "origin": "requested"
+          }
+        ],
+        "relations": [],
+        "exclusions": [],
+        "timeOfDay": "day",
+        "weather": "clear",
+        "mood": "joyful"
+      },
+      "template": {
+        "version": 1,
+        "catalogVersion": 3,
+        "zones": [
+          {
+            "family": "water-park",
+            "surface": "deck",
+            "role": "entry",
+            "size": "large"
+          },
+          {
+            "family": "water-park",
+            "surface": "deck",
+            "role": "destination",
+            "size": "medium"
+          },
+          {
+            "family": "water-park",
+            "surface": "pool",
+            "role": "display",
+            "size": "medium"
+          }
+        ],
+        "connections": [
+          {
+            "from": 0,
+            "to": 1,
+            "kind": "path"
+          },
+          {
+            "from": 0,
+            "to": 2,
+            "kind": "path"
+          }
+        ],
+        "groups": [
+          {
+            "asset": "tube-slide",
+            "zone": 1,
+            "count": 1,
+            "feature": 3,
+            "purpose": "discovery"
+          },
+          {
+            "asset": "cabana",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "landmark"
+          },
+          {
+            "asset": "pool-basin",
+            "zone": 2,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "splash-pad",
+            "zone": 1,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "lifeguard-chair",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "entry-arch",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "life-ring",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "discovery"
+          },
+          {
+            "asset": "shade-umbrella",
+            "zone": 0,
+            "count": 2,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "palm",
+            "zone": 0,
+            "count": 4,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "pool-ladder",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          }
+        ],
+        "spawn": 0,
+        "discoveries": [
+          6,
+          0
+        ],
+        "ending": 1,
+        "coverage": [
+          {
+            "feature": 0,
+            "status": "missing",
+            "reason": "No compatible model or free catalog slot."
+          },
+          {
+            "feature": 1,
+            "status": "missing",
+            "reason": "No compatible model or free catalog slot."
+          },
+          {
+            "feature": 2,
+            "status": "missing",
+            "reason": "No compatible model or free catalog slot."
+          },
+          {
+            "feature": 3,
+            "status": "placed",
+            "reason": ""
+          }
+        ]
+      }
+    },
+    "plot": {
+      "version": 1,
+      "opening": "The sun glints off the chlorinated blue water on this unforgettable summer day.",
+      "closing": "Splashing into the pool below, everything feels perfect.",
+      "companion": "mom",
+      "moments": [
+        {
+          "anchor": "arrival",
+          "title": "Stepping into the Aqua Park",
+          "actionLabel": "Look up",
+          "description": "Standing at the base of the massive slide, looking up at the heights.",
+          "evidence": "I was a kid, and it was my first time in aquapark.",
+          "mood": "joyful",
+          "ambience": "quiet",
+          "pace": "linger",
+          "framing": "wide",
+          "input": "press",
+          "actions": [
+            {
+              "kind": "look",
+              "actor": "player",
+              "object": "none"
+            }
+          ]
+        },
+        {
+          "anchor": "activity",
+          "title": "Taking the plunge",
+          "actionLabel": "Slide down",
+          "description": "Racing down the tunnel slide with mom close behind.",
+          "anchorFeature": 3,
+          "evidence": "we tried the biggest slide there",
+          "mood": "joyful",
+          "ambience": "birds",
+          "pace": "quick",
+          "framing": "follow",
+          "input": "press",
+          "actions": [
+            {
+              "kind": "approach",
+              "actor": "player",
+              "object": "none"
+            }
+          ]
+        },
+        {
+          "anchor": "ending",
+          "title": "The best day",
+          "actionLabel": "React",
+          "description": "Coming to a rest in the pool after the exhilarating slide.",
+          "evidence": "It was the best day",
+          "mood": "relieved",
+          "ambience": "quiet",
+          "pace": "steady",
+          "framing": "close",
+          "input": "press",
+          "actions": [
+            {
+              "kind": "react",
+              "actor": "player",
+              "object": "none"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

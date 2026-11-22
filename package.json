@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run tests",
+    "test": "vitest run --dir tests",
     "test:browser": "playwright test",
     "build": "tsc --noEmit && vite build"
   },

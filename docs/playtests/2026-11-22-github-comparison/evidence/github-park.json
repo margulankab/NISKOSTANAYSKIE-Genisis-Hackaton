@@ -1,0 +1,187 @@
+{
+  "version": "github",
+  "prompt": "An autumn park at dusk with a bench, a lamp and a pond.",
+  "externalRequests": [],
+  "pageErrors": [
+    "Transition was aborted because of invalid state. ViewTransition opt-in disabled",
+    "Transition was aborted because of invalid state. ViewTransition opt-in disabled",
+    "Transition was aborted because of invalid state. ViewTransition opt-in disabled",
+    "Transition was aborted because of invalid state. ViewTransition opt-in disabled"
+  ],
+  "build": "AUTUMN PARK AT DUSK WITH A BENCH\n\nBuilt privately\n\nIn the scene Gazebo, Bench, Street lamp, Park entrance, Flower bed, Tree, Pine, Raised planter, Trail sign\n\nWorld interpretation\nSoundtrack\nSilence\nCoastal Light\nLantern Market\nStill Rooms\nWarm Tape\nNight Drive\n\nMatched cues: nostalgic, park, gentle.\n\nMemory Worlds. Cleared for in-game playback, portable export, and demo use.\n\nPREVIEW SOUNDTRACK\nMute soundtrack\nUpload an authorized soundtrack\nENTER WORLD\nREVISE PROMPT",
+  "renderer": {
+    "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36 Edg/158.0.0.0",
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Laptop GPU (0x00002D59) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+  },
+  "spawn": {
+    "x": 1.9,
+    "z": 15.6
+  },
+  "walkTargets": {
+    "spawn": {
+      "x": 1.9,
+      "z": 15.6
+    },
+    "bounds": {
+      "minX": -17.4,
+      "maxX": 17.4,
+      "minZ": -16.4,
+      "maxZ": 19.7
+    },
+    "solids": [
+      {
+        "shape": "circle",
+        "x": 1.36,
+        "z": -7.45,
+        "radius": 1.45
+      },
+      {
+        "shape": "box",
+        "x": 3.45,
+        "z": 2.85,
+        "halfX": 0.6,
+        "halfZ": 0.2
+      },
+      {
+        "shape": "box",
+        "x": 0.1,
+        "z": -2,
+        "halfX": 0.09,
+        "halfZ": 0.08999999999999997
+      },
+      {
+        "shape": "circle",
+        "x": 1.02,
+        "z": 4.65,
+        "radius": 0.07
+      },
+      {
+        "shape": "circle",
+        "x": 2.78,
+        "z": 4.65,
+        "radius": 0.07
+      },
+      {
+        "shape": "box",
+        "x": 5.85,
+        "z": 0.67,
+        "halfX": 0.6,
+        "halfZ": 0.2
+      },
+      {
+        "shape": "circle",
+        "x": 4.8,
+        "z": -6.28,
+        "radius": 0.13
+      },
+      {
+        "shape": "circle",
+        "x": 7.06,
+        "z": 3.8,
+        "radius": 0.13
+      },
+      {
+        "shape": "circle",
+        "x": 5.17,
+        "z": -8.52,
+        "radius": 0.13
+      },
+      {
+        "shape": "circle",
+        "x": -6.05,
+        "z": -2.08,
+        "radius": 0.13
+      },
+      {
+        "shape": "circle",
+        "x": 5.66,
+        "z": -6.85,
+        "radius": 0.24
+      },
+      {
+        "shape": "circle",
+        "x": -5.54,
+        "z": -0.48,
+        "radius": 0.24
+      },
+      {
+        "shape": "circle",
+        "x": 6.11,
+        "z": -0.4,
+        "radius": 0.24
+      },
+      {
+        "shape": "circle",
+        "x": -0.92,
+        "z": 3.64,
+        "radius": 0.43
+      },
+      {
+        "shape": "circle",
+        "x": -8.26,
+        "z": -3.3,
+        "radius": 0.43
+      },
+      {
+        "shape": "circle",
+        "x": -4.6,
+        "z": 0.68,
+        "radius": 0.14
+      }
+    ],
+    "checkSight": true,
+    "artifacts": [
+      {
+        "x": 3.45,
+        "z": 3.72
+      },
+      {
+        "x": 0.1,
+        "z": -1.38
+      }
+    ],
+    "landmark": {
+      "x": 1.36,
+      "z": -5.58
+    },
+    "playerRadius": 0.3,
+    "reach": 1.7
+  },
+  "defaultView": "first",
+  "fullscreen": true,
+  "playingScore": {
+    "paused": false,
+    "time": 1.687805,
+    "duration": 11.52,
+    "muted": false,
+    "volume": 0.8,
+    "bytes": 368684
+  },
+  "pausedScore": {
+    "paused": true,
+    "time": 1.885253,
+    "duration": 11.52,
+    "muted": false,
+    "volume": 0.8,
+    "bytes": 368684
+  },
+  "pausedAudioContexts": [],
+  "resumedScore": {
+    "paused": false,
+    "time": 1.986912,
+    "duration": 11.52,
+    "muted": false,
+    "volume": 0.8,
+    "bytes": 368684
+  },
+  "progression": "2 of 2 discoveries, World complete",
+  "positionBeforeSave": {
+    "x": 0.9,
+    "z": -4.28
+  },
+  "restored": {
+    "x": 0.9,
+    "z": -4.28
+  },
+  "errors": 0
+}

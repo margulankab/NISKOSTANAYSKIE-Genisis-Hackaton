@@ -32,6 +32,25 @@ describe('Gemini plot composition', () => {
     }
   });
 
+  it('places a park bench in the directed district and preserves the walkable route', () => {
+    const source = 'In a park with a bench and flowers.';
+    const response = plotResponse(source)!;
+    const bench = response.plan.intent.features.find(feature => feature.asset === 'bench')!;
+    function place(district: 'entry-left' | 'rear-right') {
+      bench.district = district;
+      const built = composeSceneTemplate(source, { id, ...response, processing: 'gemini' });
+      if (!built.ok) throw new Error(built.reason);
+      const placement = built.world.layout.placements.find(p => p.recipe === 'bench')!;
+      const cells = reachableCells(toWalkLayout(built.world.layout));
+      expect(cells.length).toBeGreaterThan(0);
+      return placement;
+    }
+    const entry = place('entry-left'), rear = place('rear-right');
+    expect(entry.x).toBeLessThan(rear.x);
+    expect(entry.z).toBeGreaterThan(rear.z);
+    expect(place('entry-left')).toEqual(entry);
+  });
+
   it('shares the ballfield and throw while distinguishing a home run from catch practice', () => {
     const hit = assemble(homeRun).layout, caught = assemble(catchGame).layout;
     expect([hit.profile, caught.profile]).toEqual(['ballfield', 'ballfield']);

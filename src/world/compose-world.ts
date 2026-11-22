@@ -1,3 +1,5 @@
+import { districtPoint } from './world-intent-schema';
+import type { District } from './world-intent-schema';
 import { placementHeight, recipes } from './recipes';
 import { blocked } from '../gameplay/controller';
 import type { RecipeId } from './recipes';
@@ -75,13 +77,19 @@ export function clauseAround(prompt: string, start: number, end: number) {
 }
 
 const titleStops = new Set('a an and as at by for from in into of on or the to with'.split(' '));
-export function titleFromPrompt(prompt: string, fallback: string) {
-  const clause = clauseAround(prompt, 0, 1);
-  const words = (prompt.slice(clause.start, clause.end).match(/[\p{L}\p{N}]+/gu) ?? []);
-  while (words.length && titleStops.has((words[0] ?? "").toLowerCase())) words.shift();
-  const picked = words.slice(0, 6);
-  while (picked.length && titleStops.has(picked[picked.length - 1].toLowerCase())) picked.pop();
-  const title = picked.length >= 3 ? picked : [fallback, 'Memory', 'World'];
+/**
+ * A 3–7 word title from the first phrase of the prompt. It ends on a described object
+ * ("Carousel Beside a Lighthouse") rather than a dangling word ("…Lighthouse Above").
+ */
+export function titleFromPrompt(prompt: string, fallback: string, termStarts: readonly number[] = []) {
+  const end = prompt.search(/[.!?;,\n]/);
+  const words = [...prompt.slice(0, end < 0 ? prompt.length : end).matchAll(/[\p{L}\p{N}]+/gu)];
+  while (words.length && titleStops.has(words[0][0].toLowerCase())) words.shift();
+  const picked = words.slice(0, 7);
+  const lastTerm = picked.map((w) => termStarts.includes(w.index)).lastIndexOf(true);
+  if (lastTerm >= 2) picked.splice(lastTerm + 1);
+  while (picked.length && titleStops.has(picked[picked.length - 1][0].toLowerCase())) picked.pop();
+  const title = picked.length >= 3 ? picked.map((w) => w[0]) : [fallback, 'Memory', 'World'];
   return title.map((w, i) => i > 0 && titleStops.has(w.toLowerCase()) ? w.toLowerCase() : w[0].toUpperCase() + w.slice(1)).join(' ');
 }
 
@@ -98,6 +106,7 @@ interface Draft {
 }
 
 export interface TemplatePlacement {
+  districts?: readonly (District | undefined)[];
   waterfront?: boolean;
   wallWindow?: boolean;
   ending: number;
@@ -194,6 +203,10 @@ export function composeLayout(prompt: string, interpretation: Interpretation, se
       } else if (aquatic && draft.water) {
         x = shoreX + draft.waterSide * (0.8 + rand() * 1.2);
         z = region.minZ + 1 + rand() * (Math.min(region.maxZ, 3) - region.minZ - 1);
+      } else if (term !== null && plan?.districts?.[term] && tries < 36) {
+        const center = districtPoint(plan.districts[term]!, region);
+        x = center.x + (rand() - .5) * 4;
+        z = center.z + (rand() - .5) * 4;
       } else {
         x = region.minX + 0.8 + rand() * (region.maxX - region.minX - 1.6);
         const maxZ = back ? Math.min(region.maxZ, 0) : Math.min(region.maxZ, draft.spawn.z - 1.2);
@@ -454,7 +467,7 @@ export function composeWorld(prompt: string, { id, seed = seedFromPrompt(prompt)
       schemaVersion: WORLD_SCHEMA_VERSION,
       versions: { parser: PARSER_VERSION, layout: LAYOUT_VERSION, catalog: RECIPE_CATALOG_VERSION },
       seed,
-      title: titleFromPrompt(prompt, fallback),
+      title: titleFromPrompt(prompt, fallback, interpretation.terms.map((t) => t.span.start)),
       prompt,
       interpretation: { ...interpretation, terms: reportedTerms, relations: reportedRelations },
       layout,

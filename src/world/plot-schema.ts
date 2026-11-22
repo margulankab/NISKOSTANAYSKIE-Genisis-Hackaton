@@ -17,6 +17,7 @@ const action = z.strictObject({
 });
 const moment = z.strictObject({
   anchor: z.enum(plotAnchors), title: text(65), actionLabel: text(48), description: text(200),
+  companionSide: z.enum(['left', 'right']).optional(),
   anchorFeature: z.int().min(0).max(23).optional(),
   evidence: z.string().max(200),
   mood: z.enum(plotMoods), ambience: z.enum(plotAmbience),

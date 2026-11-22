@@ -27,7 +27,7 @@ test('ties are stable, repeats have no extra weight, and unavailable or unsuitab
   expect(selectWorldSoundtrack({ setting: ['city'] }, []).record.kind).toBe('silent');
   expect(selectWorldSoundtrack({ setting: ['spaceship'] }).record.kind).toBe('silent');
   expect(selectWorldSoundtrack({ setting: ['market'] }, ['coastal-light']).record.kind).toBe('silent');
-  expect(new Set(soundtrackCatalog.map(({ id }) => id)).size).toBe(5);
+  expect(new Set(soundtrackCatalog.map(({ id }) => id)).size).toBe(9);
 });
 
 test('a described song steers the choice toward the matching new compositions', () => {

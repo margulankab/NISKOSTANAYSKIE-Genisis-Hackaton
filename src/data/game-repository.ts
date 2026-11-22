@@ -12,6 +12,11 @@ export interface GameSummary {
   title: string;
   savedAt: string | null;
   status: string;
+  /** For library cards: how the world looks (prompt worlds only). */
+  timeOfDay?: string;
+  weather?: string;
+  /** For library cards: the day's date (day memories only). */
+  date?: string;
 }
 
 type StoredWorld = PromptWorld | { world: PromptWorld; soundtrack: SoundtrackChoice };
@@ -73,14 +78,18 @@ export const localGames: GameRepository = {
       if (parsed.success) byKey.set(keys[index], parsed.data);
     });
     const games: GameSummary[] = worlds.map((stored) => {
-      const { id, title } = worldOf(stored);
+      const { id, title, interpretation } = worldOf(stored);
       const checkpoint = byKey.get(id);
-      return { id, kind: 'prompt-world', title, savedAt: checkpoint?.savedAt ?? null, status: checkpoint ? statusOf(checkpoint) : 'Progress unreadable' };
+      return {
+        id, kind: 'prompt-world', title, savedAt: checkpoint?.savedAt ?? null,
+        status: checkpoint ? statusOf(checkpoint) : 'Progress unreadable',
+        timeOfDay: interpretation?.timeOfDay, weather: interpretation?.weather,
+      };
     });
     for (const { id, title, date } of await localMemories.list()) {
       const checkpoint = byKey.get(dayCheckpointKey(id));
       games.push({
-        id, kind: 'day', title, savedAt: checkpoint?.savedAt ?? null,
+        id, kind: 'day', title, savedAt: checkpoint?.savedAt ?? null, date,
         status: `Day memory · ${date}${checkpoint ? ' · ' + statusOf(checkpoint) : ''}`,
       });
     }

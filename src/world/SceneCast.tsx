@@ -50,7 +50,9 @@ const guestColors = ['#b46055', '#656799', '#c19558', '#436e70', '#836055', '#81
 export function SceneGuests({ layout, reduced, paused }: { layout: WorldLayout; reduced: boolean; paused: boolean }) {
   const actors = useRef<Group>(null);
   const conversation = layout.plot?.moments.find(moment => moment.actions.some(action => action.kind === 'talk'));
-  const venue = conversation ? momentPoint(layout, conversation) : layout.approaches?.[1] ?? layout.spawn;
+  const anchor = layout.direction?.gatheringAnchor;
+  const plannedVenue = anchor && layout.approaches?.[{ arrival: 0, activity: 1, ending: 2 }[anchor]];
+  const venue = plannedVenue || (conversation ? momentPoint(layout, conversation) : layout.approaches?.[1] ?? layout.spawn);
   const stageArea = layout.indoor?.area ?? layout.bounds;
   const width = Math.max(.6, Math.min(6.6, stageArea.maxX - stageArea.minX - 1.7));
   const centerX = Math.max(stageArea.minX + width / 2 + .3, Math.min(stageArea.maxX - width / 2 - .3, venue.x));

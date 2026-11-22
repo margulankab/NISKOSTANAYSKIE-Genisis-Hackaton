@@ -1,0 +1,299 @@
+{
+  "prompt": "At dawn in a quiet park, my friend waits near the gazebo. Benches stand beside the flowers and a lamp lights the entrance.",
+  "mode": "synthetic integration fixture",
+  "status": 503,
+  "data": {
+    "plan": {
+      "intent": {
+        "settings": [
+          "park"
+        ],
+        "features": [
+          {
+            "phrase": "waits",
+            "asset": null,
+            "setting": "park",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "rear-right"
+          },
+          {
+            "phrase": "gazebo",
+            "asset": "gazebo",
+            "setting": "park",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "entry-left"
+          },
+          {
+            "phrase": "Benches",
+            "asset": "bench",
+            "setting": "park",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "rear-right"
+          },
+          {
+            "phrase": "stand",
+            "asset": "stall",
+            "setting": "park",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "entry-left"
+          },
+          {
+            "phrase": "flowers",
+            "asset": "flower",
+            "setting": "park",
+            "count": 3,
+            "color": null,
+            "origin": "requested",
+            "district": "rear-right"
+          },
+          {
+            "phrase": "lamp",
+            "asset": "lamp",
+            "setting": "park",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "entry-left"
+          },
+          {
+            "phrase": "lights",
+            "asset": null,
+            "setting": "park",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "rear-right"
+          },
+          {
+            "phrase": "entrance",
+            "asset": null,
+            "setting": "park",
+            "count": 1,
+            "color": null,
+            "origin": "requested",
+            "district": "entry-left"
+          }
+        ],
+        "relations": [
+          {
+            "phrase": "near",
+            "kind": "beside",
+            "subject": 0,
+            "object": 1
+          },
+          {
+            "phrase": "beside",
+            "kind": "beside",
+            "subject": 3,
+            "object": 4
+          }
+        ],
+        "exclusions": [],
+        "timeOfDay": "dawn",
+        "weather": "clear",
+        "mood": "calm"
+      },
+      "template": {
+        "version": 1,
+        "catalogVersion": 3,
+        "spawn": 0,
+        "zones": [
+          {
+            "family": "park",
+            "surface": "grass",
+            "role": "entry",
+            "size": "large"
+          }
+        ],
+        "connections": [],
+        "groups": [
+          {
+            "asset": "gazebo",
+            "zone": 0,
+            "count": 1,
+            "feature": 1,
+            "purpose": "landmark"
+          },
+          {
+            "asset": "bench",
+            "zone": 0,
+            "count": 1,
+            "feature": 2,
+            "purpose": "discovery"
+          },
+          {
+            "asset": "stall",
+            "zone": 0,
+            "count": 1,
+            "feature": 3,
+            "purpose": "discovery"
+          },
+          {
+            "asset": "flower",
+            "zone": 0,
+            "count": 3,
+            "feature": 4,
+            "purpose": "context"
+          },
+          {
+            "asset": "lamp",
+            "zone": 0,
+            "count": 1,
+            "feature": 5,
+            "purpose": "context"
+          },
+          {
+            "asset": "bench",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "flower-bed",
+            "zone": 0,
+            "count": 3,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "tree",
+            "zone": 0,
+            "count": 4,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "pine",
+            "zone": 0,
+            "count": 3,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "park-gate",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "planter",
+            "zone": 0,
+            "count": 2,
+            "feature": null,
+            "purpose": "context"
+          },
+          {
+            "asset": "trail-sign",
+            "zone": 0,
+            "count": 1,
+            "feature": null,
+            "purpose": "context"
+          }
+        ],
+        "discoveries": [
+          1,
+          2
+        ],
+        "ending": 0,
+        "coverage": [
+          {
+            "feature": 0,
+            "status": "missing",
+            "reason": "No compatible model or free catalog slot."
+          },
+          {
+            "feature": 1,
+            "status": "placed",
+            "reason": ""
+          },
+          {
+            "feature": 2,
+            "status": "placed",
+            "reason": ""
+          },
+          {
+            "feature": 3,
+            "status": "placed",
+            "reason": ""
+          },
+          {
+            "feature": 4,
+            "status": "placed",
+            "reason": ""
+          },
+          {
+            "feature": 5,
+            "status": "placed",
+            "reason": ""
+          },
+          {
+            "feature": 6,
+            "status": "missing",
+            "reason": "No compatible model or free catalog slot."
+          },
+          {
+            "feature": 7,
+            "status": "missing",
+            "reason": "No compatible model or free catalog slot."
+          }
+        ]
+      }
+    },
+    "plot": {
+      "version": 1,
+      "companion": null,
+      "opening": "Follow the route into the scene.",
+      "closing": "The visit settles into a quiet moment.",
+      "moments": [
+        {
+          "anchor": "ending",
+          "title": "A moment to look around",
+          "actionLabel": "Take in the view",
+          "description": "The view opens from a different angle. Stay for a moment before leaving.",
+          "evidence": "At dawn in a quiet park, my friend waits near the gazebo. Benches stand beside the flowers and a lamp lights the entrance.",
+          "mood": "calm",
+          "ambience": "breeze",
+          "pace": "steady",
+          "framing": "follow",
+          "input": "press",
+          "actions": [
+            {
+              "kind": "look",
+              "actor": "player",
+              "object": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "direction": {
+      "version": 1,
+      "palette": {
+        "horizon": "#cea692",
+        "sky": "#565980",
+        "light": "#ffd38c",
+        "surface": "#65764b",
+        "accent": "#a86568"
+      },
+      "bed": "breeze",
+      "track": "glasshouse-dawn",
+      "mix": "hushed",
+      "reasons": {
+        "palette": "Warm tones hold the quiet of the visit.",
+        "time": "Evening leaves time to linger.",
+        "weather": "Clear air keeps the view open.",
+        "audio": "A soft track leaves room for the breeze."
+      }
+    }
+  }
+}

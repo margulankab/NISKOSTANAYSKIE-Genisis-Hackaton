@@ -1,9 +1,13 @@
+import type { ReactNode } from 'react';
+import { RevealBurst } from './RevealBurst';
+import { useView, toggleView, useTuning } from '../chrome/use-view';
+import { InkFromSettings } from '../scene/InkLook';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import type { RefObject } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Color, SRGBColorSpace } from 'three';
 import type { Group } from 'three';
-import { canReach, stepPlayer, targetAt } from '../gameplay/controller';
+import { blocked, canReach, stepPlayer, targetAt } from '../gameplay/controller';
 import type { Input, Target } from '../gameplay/controller';
 import type { Point, WalkLayout } from '../gameplay/layout';
 import { ContextMonitor, Preview, StageBoundary } from '../scene/MemoryStage';
@@ -21,7 +25,8 @@ import { placementHeight, placementSolids, recipes, sceneryPlacement } from './r
 import { routeTo } from './route';
 import { StoryCharacter } from './StoryCharacter';
 import { WorldPhotoFrame } from './WorldPhotoFrame';
-import { useStageDpr } from '../chrome/use-pixel';
+import { AdaptiveResolution, useRenderScale } from '../chrome/AdaptiveResolution';
+import { usePixel } from '../chrome/use-pixel';
 import { placementById, toWalkLayout } from './world-schema';
 import type { PromptWorld } from './world-schema';
 import type { PlotVisit } from './PlotVisit';
@@ -108,6 +113,7 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
 }) {
   const compassText = useRef('');
   const reducedMotion = useSyncExternalStore(subscribeToReducedMotion, prefersReducedMotion);
+  const view = useView();
   const camera = useThree(({ camera: c }) => c);
   const lastKey = useRef('');
   const conversationBlend = useRef(0);
@@ -124,6 +130,9 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
   const slide = world.layout.placements.find(p => p.recipe === 'tube-slide');
   const moment = visit?.current ?? (visit?.ended ? visit.plot.moments.at(-1) : undefined);
   const point = moment && momentPoint(world.layout, moment);
+  const preferredSide = moment?.companionSide === 'left' ? -1 : 1;
+  const companionSide = point && [preferredSide, -preferredSide].find(side =>
+    [1.2, 2].every(offset => !blocked({ x: point.x + offset * side, z: point.z - .8 }, layout))) || preferredSide;
   const mood = moment?.mood ?? visit?.plot.moments.at(-1)?.mood;
   const field = world.layout.profile === 'ballfield';
   const scenery = useMemo(() => geometryVersion ? world.layout.placements.flatMap((placement) => {
@@ -220,6 +229,11 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
     const ahead = visit ? .7 : CAMERA.ahead * (1 - blend);
     camera.lookAt(focusX - ahead * sin, directedYaw !== undefined ? y + 1.74
       : flight ? focusY + (flight.y - focusY) * .41 : visit ? focusY : .6 + .16 * blend, focusZ - ahead * cos);
+    if (view === 'first' && !visit?.playing) {
+      if (player) player.visible = false;
+      camera.position.set(next.x, baseY + 1.55, next.z);
+      camera.lookAt(next.x - inputSin * 5, baseY + 1.55 + (pitch - orbitDefault.pitch) * 5, next.z - inputCos * 5);
+    }
     const target: Target | null = visit ? !visit.ended && point && canReach(next, point, layout) ? { kind: 'ending', ready: true } : null
       : targetAt(next, layout, revealedCount.current, discoveryIds.map(id => revealed.has(id)));
     const key = target ? target.kind + ('index' in target ? target.index : target.ready) : '';
@@ -289,7 +303,7 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
           <meshStandardMaterial color="#3e6f87" roughness={0.35} transparent opacity={0.92} />
         </mesh>
       )}
-      {geometryVersion === 3 && <GroundsDressing layout={world.layout} tint={audio?.detailColor ?? palette?.accent} excluded={world.scene?.plan.intent.exclusions ?? NO_EXCLUSIONS} />}
+      {geometryVersion === 3 && world.interpretation.setting !== 'indoor' && <GroundsDressing layout={world.layout} tint={audio?.detailColor ?? palette?.accent} excluded={world.scene?.plan.intent.exclusions ?? NO_EXCLUSIONS} />}
       {models.length > 0 && <OriginalModels placements={models} tint={audio?.detailColor ?? palette?.accent} />}
       {visit?.plot.gathering && <SceneGuests layout={world.layout} reduced={reducedMotion} paused={paused} />}
       {geometryVersion === 3 && audio?.photoUrl && <WorldPhotoFrame url={audio.photoUrl} from={layout.artifacts[0]}
@@ -328,7 +342,7 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
           <ringGeometry args={[.44, .53, 28]} /><meshBasicMaterial color="#ffe1a3" />
         </mesh>}
         <PlotPerformance key={Math.min(visit.completed, visit.plot.moments.length - 1)} point={point} height={groundHeight(world.layout, point.x, point.z)}
-          dog={visit.plot.companionKind === 'dog'} slide={slide} directed={Boolean(direction)}
+          side={companionSide} dog={visit.plot.companionKind === 'dog'} slide={slide} directed={Boolean(direction)}
           moment={moment} companion={Boolean(visit.plot.companion)} field={field} playing={visit.playing} paused={paused}
           reduced={reducedMotion} frame={plotFrame} meter={meter} subtitle={subtitle} audio={sound} finish={() => visit.finish(visit.completed)} />
       </>}
@@ -422,7 +436,7 @@ function Room({ area, door, whole, palette, weather }: {
 
 /** Walkable view of a prompt world. Movement and targeting come from A's controller. */
 export function WorldStage({ world, revealed, ended, position, paused, onReveal, onFinish, onUnavailable,
-  audio, areaLabel = 'Prompt world', artifactLabels, conversationOpen = false, visit }: {
+  audio, areaLabel = 'Prompt world', artifactLabels, conversationOpen = false, visit, overlay, burstId }: {
   world: StageWorld;
   audio?: StageAudio;
   areaLabel?: string;
@@ -436,6 +450,8 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
   onFinish: () => void;
   onUnavailable: () => void;
   visit?: PlotVisit;
+  overlay?: ReactNode;
+  burstId?: string;
 }) {
   const [layout] = useState(() => {
     const walk = toWalkLayout(world.layout);
@@ -524,6 +540,10 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
       const key = event.key.toLowerCase();
       if (running.current !== event.shiftKey) { running.current = event.shiftKey; sync(); }
       if (key === 'e' && !event.repeat) { interactRef.current(); return; }
+      if (key === 'v' && !event.repeat) { toggleView(); return; }
+      if ((key === 'arrowleft' || key === 'arrowright') && readSettings().view === 'first') {
+        event.preventDefault(); orbit.current.yaw += key === 'arrowleft' ? .12 : -.12; return;
+      }
       if (key === 'c') { orbit.current = { ...orbitDefault }; return; }
       if (key === 'q' || key === 'r') { orbit.current.yaw += key === 'q' ? -.24 : .24; return; }
       if (!KEYS[key]) return;
@@ -546,7 +566,10 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
     };
   }, [paused, release, sync, direction, unlockSound]);
 
-  const dpr = useStageDpr();
+  const view = useView();
+  const tuning = useTuning();
+  const reducedMotion = useSyncExternalStore(subscribeToReducedMotion, prefersReducedMotion);
+  const { dpr, adapt, scale } = useRenderScale(usePixel());
   const [supported] = useState(webglAvailable);
   const [lost, setLost] = useState(false);
   const loseContext = useCallback(() => { setLost(true); onUnavailable(); }, [onUnavailable]);
@@ -574,7 +597,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
   return (
     <section className="memory-stage" aria-label={areaLabel}>
       <StageBoundary fallback={unavailable} onFail={onUnavailable}>
-        <div className="stage-viewport walk-viewport" ref={(element) => { hud.current = element; }} data-player=""
+        <div className="stage-viewport walk-viewport" ref={(element) => { hud.current = element; }} data-player="" data-view={view}
           data-walk-targets={JSON.stringify(layout)} data-moment-point={point && JSON.stringify(point)}
           data-scene-bed={bed}
           onPointerDown={event => {
@@ -585,17 +608,23 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
           }} onPointerMove={event => {
             const previous = drag.current;
             if (!previous || previous.id !== event.pointerId || paused) return;
-            orbit.current.yaw -= (event.clientX - previous.x) * .007;
+            orbit.current.yaw -= (event.clientX - previous.x) * .007 * tuning.sensitivity;
             orbit.current.pitch = Math.min(.85, Math.max(.12, orbit.current.pitch + (event.clientY - previous.y) * .006));
             drag.current = { id: previous.id, x: event.clientX, y: event.clientY };
           }} onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }}
           onLostPointerCapture={() => { drag.current = null; }}>
-          <Canvas camera={{ position: [position.current.x, CAMERA.y, position.current.z + CAMERA.z], fov: 50 }} dpr={dpr} fallback={<Preview />}>
+          <Canvas camera={{ position: [position.current.x, CAMERA.y, position.current.z + CAMERA.z], fov: view === 'first' ? tuning.fov : 50 }} dpr={dpr} fallback={<Preview />}>
             <ContextMonitor onLost={loseContext} />
             <WorldScene world={world} layout={layout} revealed={revealed} ended={ended} position={position} input={input}
               playerGroup={playerGroup} hud={hud} compass={compass} onTarget={setTarget} paused={paused}
               conversationOpen={conversationOpen} audio={audio} visit={visit} orbit={orbit} plotFrame={plotFrame} meter={meter} subtitle={subtitle} sound={sound} />
+            {adapt && <AdaptiveResolution scale={scale} onScale={adapt} />}
+            {burstId && !reducedMotion && world.layout.discoveries.map((item, index) => item.placementId === burstId &&
+              <RevealBurst key={burstId} at={layout.artifacts[index]} color={direction?.palette.light ?? '#ffe9ac'} />)}
+            <InkFromSettings />
           </Canvas>
+          {overlay}
+          {view === 'first' && !visit?.playing && <span className="walk-reticle" aria-hidden="true" />}
           {direction && <p ref={subtitle} className="plot-subtitle" aria-live="polite" hidden />}
           <p className="walk-prompt" role="status">{visit
             ? visit.ended ? 'The memory is complete.' : visit.playing ? visit.current.title
@@ -620,6 +649,7 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
         </div>
         <div className="stage-toolbar">
           <span>WASD or arrows to walk · Shift to run · E to act · drag or Q / R to orbit · Esc to pause</span>
+          <button type="button" disabled={paused} onClick={toggleView}>{view === 'first' ? 'First person' : 'Third person'} · V</button>
           <button type="button" disabled={paused} onClick={() => { orbit.current = { ...orbitDefault }; }}>Recenter camera</button>
           <button type="button" disabled={paused || visit?.playing} onClick={() => { position.current = layout.spawn; orbit.current = { ...orbitDefault }; }}>Reset position</button>
           {direction && <button type="button" className="scene-sound-toggle" aria-pressed={silenced} disabled={paused}

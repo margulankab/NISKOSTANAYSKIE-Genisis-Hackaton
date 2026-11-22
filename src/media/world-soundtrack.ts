@@ -61,6 +61,22 @@ const compositions = {
     notes: [69, 72, 76, 72, 69, 72, 76, 79, 67, 71, 74, 71, 65, 69, 72, 76],
     bass: [45, 45, 43, 41], amplitude: 0.26, percussion: 0.22,
   },
+  'glasshouse-dawn': {
+    title: 'Glasshouse Dawn', tags: { mood: ['curious'], setting: ['garden'], energy: ['gentle'] },
+    beatSeconds: 0.62, notes: [74, 81, 78, 76, 73, 78, 81, 85, 74, 81, 78, 76, 73, 78, 81, 85], bass: [50, 54, 47, 52], amplitude: 0.13, percussion: 0.02,
+  },
+  'platform-lights': {
+    title: 'Platform Lights', tags: { mood: ['tense'], setting: ['station'], energy: ['gentle'] },
+    beatSeconds: 0.55, notes: [62, 69, 65, 64, 62, 67, 64, 60, 62, 69, 65, 64, 62, 67, 64, 60], bass: [38, 41, 36, 43], amplitude: 0.2, percussion: 0.12,
+  },
+  'courtyard-waltz': {
+    title: 'Courtyard Waltz', tags: { mood: ['joyful'], setting: ['courtyard'], energy: ['bright'] },
+    beatSeconds: 0.46, notes: [67, 71, 74, 79, 74, 71, 69, 72, 76, 81, 76, 72, 67, 71, 74, 79, 74, 71, 69, 72, 76, 81, 76, 72], bass: [43, 47, 45, 48], amplitude: 0.22, percussion: 0.09,
+  },
+  'after-rain': {
+    title: 'After Rain', tags: { mood: ['relieved'], setting: ['rain'], energy: ['gentle'] },
+    beatSeconds: 0.96, notes: [64, 71, 74, 69, 66, 73, 76, 71, 64, 71, 74, 69, 66, 73, 76, 71], bass: [40, 43, 42, 47], amplitude: 0.15, percussion: 0.0,
+  },
 } satisfies Record<string, Composition>;
 
 export type CatalogTrackId = keyof typeof compositions;
@@ -119,7 +135,7 @@ function renderComposition({ notes, bass, beatSeconds, amplitude, percussion }: 
   const beatSamples = Math.round(beatSeconds * sampleRate);
   const pcm = new Int16Array(beatSamples * notes.length);
   for (let beat = 0; beat < notes.length; beat++) {
-    const bassNote = bass[Math.floor(beat / 4)];
+    const bassNote = bass[Math.floor(beat / 4) % bass.length];
     for (let offset = 0; offset < beatSamples; offset++) {
       const time = offset / sampleRate;
       const progress = offset / beatSamples;

@@ -1,3 +1,4 @@
+import { SkyDome } from './SkyDome';
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Color } from 'three';
@@ -106,6 +107,7 @@ export function WorldScenery({ placements, atmosphere, activeAudio, music, reduc
   return (
     <>
       <color attach="background" args={[horizon ?? sky]} />
+      {!horizon && <SkyDome atmosphere={atmosphere} horizon={sky} lightFrom={[-7, 10, 6]} />}
       <fog attach="fog" args={[horizon ?? sky, ...fog]} />
       <ambientLight ref={ambientLight} intensity={ambientMotion ? ambient : ambient * ambientScale} />
       <directionalLight ref={keyLight} position={shoreSide && (atmosphere === 'dusk' || atmosphere === 'dawn') ? [shoreSide * 12, 3, -5]

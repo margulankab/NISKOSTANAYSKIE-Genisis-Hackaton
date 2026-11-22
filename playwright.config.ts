@@ -8,6 +8,9 @@ export default defineConfig({
   testDir: './e2e',
   use: {
     baseURL,
+    storageState: { cookies: [], origins: [{ origin: baseURL, localStorage: [{
+      name: 'memory-worlds-settings', value: JSON.stringify({ volume: 0.8, reducedMotion: 'system', fullscreen: false }),
+    }] }] },
     channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
   },
   webServer: {
