@@ -13,7 +13,7 @@ const atmospheres = {
   dusk: { sky: '#5d4a5f', light: '#ffb27a', ambient: 0.6, key: 1.4, fog: [19, 44] },
   rain: { sky: '#8292a5', light: '#dbe3ef', ambient: 0.85, key: 1.45, fog: [14, 32] },
   snow: { sky: '#e3e7ea', light: '#eef4ff', ambient: 1.05, key: 1.65, fog: [12, 31] },
-  daylight: { sky: '#a7b8b1', light: '#fff0ce', ambient: 1.1, key: 2.2, fog: [26, 56] },
+  daylight: { sky: '#bcd6c6', light: '#fff4dc', ambient: 1.15, key: 2.2, fog: [26, 58] },
   fog: { sky: '#748d8d', light: '#e1eed9', ambient: 1.2, key: 1.6, fog: [11, 30] },
   night: { sky: '#34374c', light: '#dedafb', ambient: 0.85, key: 1.55, fog: [14, 38] },
 } as const;

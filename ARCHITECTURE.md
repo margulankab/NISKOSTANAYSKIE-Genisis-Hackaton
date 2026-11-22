@@ -1,5 +1,28 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## First-person worlds, ink look and the web build — 2026-11-22
+
+Implemented on `claude/keen-bell-fkqitv` after merging `main` and `B_development` (B's 3–7-word titles that end on a described object, empty states and the pause hint; the GENESIS interface kept where both changed a screen). Settings gained `view` (`first` | `third`, default `first`) and `ink` (default on). The pixel filter now defaults to off, because the ink look reads best at full resolution.
+
+**First person** ([`WorldStage`](src/world/WorldStage.tsx)). The camera sits at a 1.55 m eye height with a 68° lens and a small reticle. A `Look` ref holds yaw and pitch.
+- **Looking:** drag on the world (mouse or finger), or hold ← / →, to turn. Pitch is limited to ±0.62 rad.
+- **Moving:** W/A/S/D and the touch pad move relative to yaw. At yaw 0 this is the old axis mapping, so routes, saves and the walking tests are unchanged. `stepPlayer` and collisions are untouched.
+- **Head bob:** a 3.5 cm bob plays only while the position changes, and never with reduced motion, so a world at rest is still.
+- **Conversation:** the head turns toward the character and the camera tilts slightly down.
+- **Compass:** shows the goal's bearing relative to where you look.
+- **Switching:** V or the toolbar button switches to the earlier over-the-shoulder camera, and the choice is saved.
+
+**Ink look** ([`InkLook`](src/scene/InkLook.tsx)), used in walkable worlds, the examples and World preview. It is our own shader and geometry, in the spirit of hand-inked, flat-coloured adventure games.
+1. Each frame, lit `MeshStandardMaterial`s are swapped for `MeshToonMaterial` twins with a three-band ramp. The twins copy colour, emissive and opacity from the originals each frame, so the music pulse and reveal states still animate.
+2. The scene renders into a half-float target with a depth texture.
+3. A screen pass draws dark-teal ink where depth jumps (silhouettes) or colour changes (inner lines). It thins far lines, hatches the darkest band with diagonal strokes, and lifts colours toward a printed pastel. It then applies the usual tone mapping and sRGB output.
+
+Line width scales with resolution. Nothing in the pass depends on time or noise, so screenshots at rest are identical. A per-pixel paper grain was tried and removed: it made every frame incompressible, and PNG captures took twice as long.
+
+**Adaptive resolution** ([`AdaptiveResolution`](src/chrome/AdaptiveResolution.tsx)). The stage owns its render scale and passes it to `<Canvas dpr>`. An earlier version changed the scale through R3F's `setDpr`, and the canvas prop reset it on every stage re-render. In the first ~3 s of a world, two frame-rate measurements may lower the scale, in quarter steps, to as low as 0.5 when the frame rate is under 30 fps. The scale then stays fixed for the visit, and the device's choice is remembered in `localStorage`. With the pixel filter on, the scale is a fixed 0.5. In this container's software GPU, the same prompt-world test runs in 39 s, against 2.8 min without it.
+
+**Web build and hosting.** `npm run build:web` sets `VITE_ROUTER=hash` (`.env.web`) and uses relative asset paths (`--base ./`), writing `dist-web/`. In that build, [`route.ts`](src/chrome/route.ts) keeps the route in a plain hash name: `#examples`, `#new--prompt`, `#play--<id>`, and `#options` for Settings, because some hosts reserve `#settings` and pass only plain names. Link clicks become hash navigation after the game's unsaved-progress check has run. The page remounts per route, as a full page load would. Normal builds, `npm run dev` and the tests still use path routes. [`.github/workflows/pages.yml`](.github/workflows/pages.yml) runs the unit tests and deploys `dist-web/` to GitHub Pages on pushes to `main`, once an admin sets Pages → Source → GitHub Actions.
+
 ## Language, entering a world, music on entry and sky detail — 2026-11-21
 
 Implemented on `claude/keen-bell-fkqitv` after `b72d30c`. Settings gained three defaulted fields, so earlier saved settings still parse: `lang` (`en` | `ru`, default `en`), `autoplay` (default on) and `fullscreen` (default on).

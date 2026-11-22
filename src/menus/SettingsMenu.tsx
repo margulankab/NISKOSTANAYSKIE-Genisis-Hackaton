@@ -47,6 +47,20 @@ export function SettingsMenu() {
           </label>
         </fieldset>
         <fieldset>
+          <legend>{t('Camera')}</legend>
+          {(['first', 'third'] as const).map((value) => (
+            <label key={value} className="permission">
+              <input type="radio" name="view" value={value} checked={settings.view === value}
+                onChange={() => update({ ...settings, view: value })} />
+              {t(value === 'first' ? 'First person' : 'Third person')}
+            </label>
+          ))}
+          <label className="permission">
+            <input type="checkbox" checked={settings.ink} onChange={(event) => update({ ...settings, ink: event.target.checked })} />
+            {t('Ink outlines and toon shading on 3D worlds')}
+          </label>
+        </fieldset>
+        <fieldset>
           <legend>{t('Reduced motion')}</legend>
           {(['system', 'on', 'off'] as const).map((value) => (
             <label key={value} className="permission">

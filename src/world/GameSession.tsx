@@ -17,10 +17,11 @@ import { SongCard } from '../music/SongOfTheDay';
 import { songCues } from '../music/song';
 import { atmosphereFor, setWorldAtmosphere } from '../menus/settings';
 import { useT } from '../i18n/i18n';
+import { navigate } from '../chrome/route';
 import { useImmersiveSession, FullscreenButton } from '../chrome/ImmersiveControls';
 
 /** One play session of a prompt world: walking, discoveries, ending, pause menu and saving. */
-export function GameSession({ world, initial, initialSoundtrack, autoStart = false, repository = localGames, leave = () => window.location.assign('/') }: {
+export function GameSession({ world, initial, initialSoundtrack, autoStart = false, repository = localGames, leave = () => navigate('/') }: {
   world: PromptWorld;
   /** Restored checkpoint state, or null to start at spawn. */
   initial: GameState | null;

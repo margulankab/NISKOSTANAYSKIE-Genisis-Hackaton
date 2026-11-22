@@ -19,6 +19,10 @@ Outdoor worlds are about four times larger than before: the walk starts on the a
 
 **Song of the day.** In **From a prompt** and **Create a memory**, paste a link from Spotify, Apple Music, YouTube Music, Yandex Music, SoundCloud, Deezer, TIDAL, Bandcamp or VK. You can add the artist, song, style and year, or press **Tap the beat** while the song plays in your music app. The world picks its cleared in-game score from those details, and lanterns pulse at the song's tempo. **Open in …** takes you back to your app. The link is stored without its sharing code, and nothing is sent to the music service.
 
+**First person and the ink look.** Worlds open through the walker's eyes. Drag on the world, or hold ← / →, to look around, and walk with WASD. Press **V** (or the toolbar button) for the over-the-shoulder camera. Worlds are drawn with toon shading, ink outlines and hatching. Both can be changed in **Settings → Camera**. On slower devices, the first seconds of a world measure the frame rate and lower the render resolution if needed.
+
+**Play online.** `npm run build:web` writes a static copy to `dist-web/` that works from any static host or sub-folder, using routes such as `#examples` and `#new--prompt`. The included GitHub Pages workflow publishes it on every push to `main`, once a repository admin sets **Settings → Pages → Source** to **GitHub Actions**.
+
 **Entering a world.** **Enter world** carries your words into a short transition and switches to full screen. The world's soundtrack then starts by itself. Press **Exit full screen** or Esc to return to the window; Esc in full screen also pauses the game. Turn either behaviour off in **Settings → Entering a world**. Songs from music apps are only linked: the game plays its cleared score, an authorized upload or your day's own audio.
 
 **Language.** Switch between English and Russian with **EN / RU** in the header or in **Settings**. Russian descriptions such as «Ночной парк у пруда» also set the time of day and weather.

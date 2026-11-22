@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState, useSyncExternalStore } from 'react';
+import { currentPath, installHashLinks, subscribeToRoute } from './chrome/route';
 import { Archive, SavedMemory } from './data/Archive';
 import { createInMemoryStore } from './data/repository';
 import { fixtures, loadFixture } from './fixtures/memories';
@@ -25,10 +26,11 @@ type FixtureState =
 
 const store = createInMemoryStore();
 installVolumeSetting();
+installHashLinks();
 
 export function App() {
   const t = useT();
-  const path = window.location.pathname.replace(/\/$/, '') || '/';
+  const path = useSyncExternalStore(subscribeToRoute, currentPath);
   const memoryPath = path.match(/^\/memory\/([^/]+)$/);
   const playPath = path.match(/^\/play\/([^/]+)$/);
   const examplePath = path.match(/^\/examples\/([a-z-]+)$/);
@@ -58,10 +60,12 @@ export function App() {
         </nav>
         <ViewSwitch />
       </header>
+      <Fragment key={path}>
       {memoryPath ? <SavedMemory key={memoryPath[1]} id={memoryPath[1]} />
         : playPath ? <SavedGame key={playPath[1]} id={playPath[1]} />
         : examplePath ? <FixtureLibrary slug={examplePath[1]} />
         : (pages[path] ?? pages['/'])()}
+      </Fragment>
       <WorldWarp />
     </main>
   );

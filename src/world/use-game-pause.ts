@@ -1,3 +1,4 @@
+import { navigate } from '../chrome/route';
 import { useEffect, useRef, useState } from 'react';
 import type { GameState } from './checkpoint';
 import type { SaveStatus } from './PauseMenu';
@@ -10,7 +11,7 @@ function reasonOf(error: unknown) {
   return error instanceof Error && error.message ? error.message : 'storage is unavailable';
 }
 
-const mainMenu = () => window.location.assign('/');
+const mainMenu = () => navigate('/');
 
 export function useGamePause({
   initial, selection = '', progress, persist, leave = mainMenu,
@@ -30,7 +31,7 @@ export function useGamePause({
   const destination = useRef<string | null>(null);
 
   function leaveVisit() {
-    if (destination.current) window.location.assign(destination.current);
+    if (destination.current) navigate(destination.current);
     else leave();
   }
 

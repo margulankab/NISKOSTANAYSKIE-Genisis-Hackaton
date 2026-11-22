@@ -757,3 +757,20 @@ button:disabled, .pb[aria-disabled="true"] { opacity: .45; cursor: not-allowed; 
 .button-link { font-family: var(--pxf); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; text-decoration: none; padding: 10px 14px; background: var(--acc); color: var(--on-acc); clip-path: var(--notch); }
 .back-link { display: inline-block; margin-top: 14px; }
 .pause-hint { margin: 6px 0 0; color: var(--mut); font-size: 12px; }
+
+/* First person: a small ink reticle and drag-to-look cursor. */
+.walk-viewport[data-view="first"] canvas { cursor: grab; }
+.walk-viewport[data-view="first"] canvas:active { cursor: grabbing; }
+.walk-reticle {
+  position: absolute; left: 50%; top: 50%; z-index: 2; width: 14px; height: 14px; margin: -7px 0 0 -7px; pointer-events: none;
+  border: 2px solid rgba(255, 252, 240, .85); border-radius: 50%; box-shadow: 0 0 0 1px rgba(29, 49, 52, .55);
+}
+.stage-toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* The ink look draws its own lines: keep the CRT layer to a faint vignette over it. */
+.stage-viewport::after {
+  background:
+    radial-gradient(ellipse at center, transparent 62%, rgba(0, 0, 0, .2) 100%);
+}
+/* Inside a world the ink drawing is the texture: no page-wide scanlines on top of it. */
+[data-immersive="on"] body::after { display: none; }

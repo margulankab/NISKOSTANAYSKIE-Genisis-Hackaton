@@ -17,15 +17,19 @@ const settingsSchema = z.strictObject({
   reducedMotion: z.enum(['system', 'on', 'off']),
   // Added later: defaults keep settings saved by earlier versions valid.
   theme: z.enum(['auto', ...atmosphereIds]).default('auto'),
-  pixel: z.boolean().default(true),
+  pixel: z.boolean().default(false),
   lang: z.enum(['en', 'ru']).default('en'),
   /** Start the world's cleared soundtrack when the player enters a world. */
   autoplay: z.boolean().default(true),
   /** Switch the page to full screen when the player enters a world. */
   fullscreen: z.boolean().default(true),
+  /** Camera in walkable worlds: through the walker's eyes, or behind them. */
+  view: z.enum(['first', 'third']).default('first'),
+  /** Toon bands, ink outlines, hatching and paper grain on 3D worlds. */
+  ink: z.boolean().default(true),
 });
 export type Settings = z.infer<typeof settingsSchema>;
-const defaults: Settings = { volume: 0.8, reducedMotion: 'system', theme: 'auto', pixel: true, lang: 'en', autoplay: true, fullscreen: true };
+const defaults: Settings = { volume: 0.8, reducedMotion: 'system', theme: 'auto', pixel: false, lang: 'en', autoplay: true, fullscreen: true, view: 'first', ink: true };
 const listeners = new Set<() => void>();
 
 export function readSettings(): Settings {

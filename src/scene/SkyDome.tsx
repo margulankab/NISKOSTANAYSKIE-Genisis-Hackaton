@@ -7,7 +7,7 @@ const skies = {
   dusk: { zenith: '#2a2140', body: '#ff9a62', bodySize: 6.5, stars: 90 },
   rain: { zenith: '#5d6c7f', body: null, bodySize: 0, stars: 0 },
   snow: { zenith: '#b9c4cf', body: null, bodySize: 0, stars: 0 },
-  daylight: { zenith: '#6f9fc4', body: '#fff4d6', bodySize: 4, stars: 0 },
+  daylight: { zenith: '#86c3b6', body: '#fff8e2', bodySize: 4, stars: 0 },
   fog: { zenith: '#5c7272', body: null, bodySize: 0, stars: 0 },
   night: { zenith: '#0d1024', body: '#efeadb', bodySize: 3.2, stars: 260 },
 } as const;

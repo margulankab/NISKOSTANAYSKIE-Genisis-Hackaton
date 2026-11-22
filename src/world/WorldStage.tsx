@@ -21,8 +21,11 @@ import { placementHeight, placementSolids, recipes, sceneryPlacement } from './r
 import { routeTo } from './route';
 import { StoryCharacter } from './StoryCharacter';
 import { WorldPhotoFrame } from './WorldPhotoFrame';
-import { useStageDpr } from '../chrome/use-pixel';
 import { useT } from '../i18n/i18n';
+import { toggleView, useInk, useView } from '../chrome/use-view';
+import { InkLook } from '../scene/InkLook';
+import { AdaptiveResolution, useRenderScale } from '../chrome/AdaptiveResolution';
+import { usePixel } from '../chrome/use-pixel';
 import { placementById, toWalkLayout } from './world-schema';
 import type { PromptWorld } from './world-schema';
 
@@ -31,6 +34,9 @@ type StageAudio = { activeAudio: HTMLAudioElement | null; music?: MemoryScene['m
 const NO_EXCLUSIONS: readonly RecipeId[] = [];
 
 const CAMERA = { y: 5.2, z: 6.4, ahead: 2 };
+/** First person: eye height, look limits and drag sensitivity. */
+const EYE = { y: 1.55, maxPitch: 0.62, dragYaw: 0.0055, dragPitch: 0.0042, turnSpeed: 2.1, bob: 0.035 };
+export interface Look { yaw: number; pitch: number; turn: number }
 const KEYS: Record<string, Point> = {
   w: { x: 0, z: -1 }, arrowup: { x: 0, z: -1 }, s: { x: 0, z: 1 }, arrowdown: { x: 0, z: 1 },
   a: { x: -1, z: 0 }, arrowleft: { x: -1, z: 0 }, d: { x: 1, z: 0 }, arrowright: { x: 1, z: 0 },
@@ -41,7 +47,7 @@ const sky = {
   dusk: { background: '#5d4a5f', light: '#ffb27a', ambient: 0.6, sun: 1.4 },
   night: { background: '#151c2b', light: '#9db4e0', ambient: 0.35, sun: 0.55 },
 } as const;
-const grounds = { grass: '#5f7a4b', sand: '#b8a57f', paved: '#7f766e', floor: '#7b5f45' };
+const grounds = { grass: '#7f9f68', sand: '#d1bb8e', paved: '#9a8f84', floor: '#8d6b4c' };
 
 export function describeTarget(target: Target | null, world: StageWorld, revealed: ReadonlySet<string>, labels?: readonly [string, string]) {
   const name = (id: string) => labelFor(world, id).toLowerCase();
@@ -69,7 +75,9 @@ export function labelFor(world: StageWorld, placementId: string) {
 }
 
 function WorldScene({ world, layout, revealed, ended, position, input, playerGroup, hud, compass, onTarget, paused,
-  conversationOpen, audio }: {
+  conversationOpen, audio, view, look }: {
+  view: 'first' | 'third';
+  look: RefObject<Look>;
   world: StageWorld;
   audio?: StageAudio;
   layout: WalkLayout;
@@ -117,39 +125,70 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
   const ready = revealed.size >= 2;
   const discoveryIds = world.layout.discoveries.map(({ placementId }) => placementId);
 
+  const firstPerson = view === 'first';
+  const stride = useRef(0);
   useEffect(() => {
     const { x, z } = position.current;
-    camera.position.set(x, CAMERA.y, z + CAMERA.z);
-    camera.lookAt(x, 0.6, z - CAMERA.ahead);
-  }, [camera, position]);
+    camera.rotation.order = 'YXZ';
+    if (firstPerson) {
+      camera.position.set(x, EYE.y, z);
+      camera.rotation.set(look.current.pitch, look.current.yaw, 0);
+    } else {
+      camera.position.set(x, CAMERA.y, z + CAMERA.z);
+      camera.lookAt(x, 0.6, z - CAMERA.ahead);
+    }
+  }, [camera, position, firstPerson, look]);
 
   useFrame((_, dt) => {
-    const next = paused ? position.current : stepPlayer(position.current, input.current, dt, layout);
+    const view = look.current;
+    if (firstPerson && !paused && view.turn) view.yaw += view.turn * EYE.turnSpeed * Math.min(dt, 0.1);
+    // In first person, WASD move relative to where the walker looks (yaw 0 looks toward -z).
+    const raw = input.current;
+    const sin = Math.sin(view.yaw), cos = Math.cos(view.yaw);
+    const moving = firstPerson ? { x: cos * raw.x + sin * raw.z, z: -sin * raw.x + cos * raw.z, run: raw.run } : raw;
+    const before = position.current;
+    const next = paused ? before : stepPlayer(before, moving, dt, layout);
     position.current = next;
     playerGroup.current?.position.set(next.x, 0, next.z);
+    if (playerGroup.current) playerGroup.current.visible = !firstPerson;
     const k = reducedMotion ? 1 : 1 - Math.exp(-dt * 6);
     conversationBlend.current += (Number(conversationOpen) - conversationBlend.current) * k;
     const blend = conversationBlend.current;
-    const focusX = next.x + (layout.landmark.x - next.x) * blend;
-    const focusZ = next.z + (layout.landmark.z - next.z) * blend;
-    const wantedY = CAMERA.y + (1.9 - CAMERA.y) * blend;
-    const wantedZ = CAMERA.z + (3.4 - CAMERA.z) * blend;
-    let clearance = 1;
-    for (let t = .15; t < 1 && cameraBlockers.length; t += .06) {
-      const sampleY = .85 + (wantedY - .85) * t;
-      const sampleZ = focusZ + wantedZ * t;
-      if (cameraBlockers.some(({ solid, height }) => sampleY < height + .18 &&
-        (solid.shape === 'circle' ? Math.hypot(focusX - solid.x, sampleZ - solid.z) < solid.radius + .12
-          : Math.abs(focusX - solid.x) < solid.halfX + .12 && Math.abs(sampleZ - solid.z) < solid.halfZ + .12))) {
-        clearance = Math.max(.17, t - .08);
-        break;
+    if (firstPerson) {
+      const walked = Math.hypot(next.x - before.x, next.z - before.z);
+      stride.current = walked > 0 && !reducedMotion ? stride.current + walked * 3.1 : 0;
+      // During a conversation the walker turns to face the character.
+      if (blend > 0.001) {
+        const toward = Math.atan2(-(layout.landmark.x - next.x), -(layout.landmark.z - next.z));
+        let delta = toward - view.yaw;
+        delta = Math.atan2(Math.sin(delta), Math.cos(delta));
+        view.yaw += delta * k * Number(conversationOpen);
+        view.pitch += (-0.08 - view.pitch) * k * Number(conversationOpen);
       }
+      camera.position.set(next.x, EYE.y + Math.abs(Math.sin(stride.current)) * EYE.bob, next.z);
+      camera.rotation.set(view.pitch, view.yaw, 0);
+    } else {
+      const focusX = next.x + (layout.landmark.x - next.x) * blend;
+      const focusZ = next.z + (layout.landmark.z - next.z) * blend;
+      const wantedY = CAMERA.y + (1.9 - CAMERA.y) * blend;
+      const wantedZ = CAMERA.z + (3.4 - CAMERA.z) * blend;
+      let clearance = 1;
+      for (let t = .15; t < 1 && cameraBlockers.length; t += .06) {
+        const sampleY = .85 + (wantedY - .85) * t;
+        const sampleZ = focusZ + wantedZ * t;
+        if (cameraBlockers.some(({ solid, height }) => sampleY < height + .18 &&
+          (solid.shape === 'circle' ? Math.hypot(focusX - solid.x, sampleZ - solid.z) < solid.radius + .12
+            : Math.abs(focusX - solid.x) < solid.halfX + .12 && Math.abs(sampleZ - solid.z) < solid.halfZ + .12))) {
+          clearance = Math.max(.17, t - .08);
+          break;
+        }
+      }
+      const cameraK = clearance < 1 ? 1 : k;
+      camera.position.x += (focusX - camera.position.x) * cameraK;
+      camera.position.y += (.85 + (wantedY - .85) * clearance - camera.position.y) * cameraK;
+      camera.position.z += (focusZ + wantedZ * clearance - camera.position.z) * cameraK;
+      camera.lookAt(camera.position.x, 0.6 + 0.16 * blend, focusZ - CAMERA.ahead * (1 - blend));
     }
-    const cameraK = clearance < 1 ? 1 : k;
-    camera.position.x += (focusX - camera.position.x) * cameraK;
-    camera.position.y += (.85 + (wantedY - .85) * clearance - camera.position.y) * cameraK;
-    camera.position.z += (focusZ + wantedZ * clearance - camera.position.z) * cameraK;
-    camera.lookAt(camera.position.x, 0.6 + 0.16 * blend, focusZ - CAMERA.ahead * (1 - blend));
     const target = targetAt(next, layout, revealedCount.current, discoveryIds.map(id => revealed.has(id)));
     const key = target ? target.kind + ('index' in target ? target.index : target.ready) : '';
     if (key !== lastKey.current) {
@@ -164,7 +203,7 @@ function WorldScene({ world, layout, revealed, ended, position, input, playerGro
       const goal = conversationOpen || ended ? null : nextIndex >= 0 ? layout.artifacts[nextIndex] : layout.landmark;
       const distance = goal ? Math.hypot(goal.x - next.x, goal.z - next.z) : 0;
       const text = goal && distance > layout.reach + 1.2
-        ? `${Math.round(Math.atan2(goal.x - next.x, next.z - goal.z) * 180 / Math.PI / 5) * 5}|${Math.round(distance)}` : '';
+        ? `${Math.round((Math.atan2(goal.x - next.x, next.z - goal.z) + (firstPerson ? view.yaw : 0)) * 180 / Math.PI / 5) * 5}|${Math.round(distance)}` : '';
       if (text !== compassText.current) {
         compassText.current = text;
         box.hidden = !text;
@@ -313,6 +352,18 @@ function Room({ area, door, whole }: { area: WalkLayout['bounds']; door: { x: nu
   );
 }
 
+/** Switch lens with the view: wider and closer in first person. */
+function FieldOfView({ view }: { view: 'first' | 'third' }) {
+  const camera = useThree(({ camera: c }) => c);
+  useEffect(() => {
+    if (!('fov' in camera)) return;
+    camera.fov = view === 'first' ? 68 : 50;
+    camera.near = view === 'first' ? 0.05 : 0.1;
+    camera.updateProjectionMatrix();
+  }, [camera, view]);
+  return null;
+}
+
 /** Walkable view of a prompt world. Movement and targeting come from A's controller. */
 export function WorldStage({ world, revealed, ended, position, paused, onReveal, onFinish, onUnavailable,
   audio, areaLabel = 'Prompt world', artifactLabels, conversationOpen = false }: {
@@ -343,13 +394,20 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
   const compass = useRef<HTMLDivElement | null>(null);
   const running = useRef(false);
   const [target, setTarget] = useState<Target | null>(null);
+  const view = useView();
+  const ink = useInk();
+  const look = useRef<Look>({ yaw: 0, pitch: -0.12, turn: 0 });
+  const turning = useRef(new Set<string>());
+  const drag = useRef<{ id: number; x: number; y: number } | null>(null);
 
   const sync = useCallback(() => {
     let x = 0, z = 0;
     for (const d of held.current.values()) { x += d.x; z += d.z; }
     input.current = { x: Math.sign(x), z: Math.sign(z), run: running.current };
   }, []);
-  const release = useCallback(() => { held.current.clear(); running.current = false; sync(); }, [sync]);
+  const release = useCallback(() => {
+    held.current.clear(); turning.current.clear(); look.current.turn = 0; running.current = false; drag.current = null; sync();
+  }, [sync]);
 
   const interact = useCallback(() => {
     const t = targetAt(position.current, layout, revealed.size, world.layout.discoveries.map(({ placementId }) => revealed.has(placementId)));
@@ -359,6 +417,27 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
   }, [world, paused, onFinish, onReveal, position, layout, revealed]);
   const interactRef = useRef(interact);
   interactRef.current = interact;
+  const viewRef = useRef(view);
+  viewRef.current = view;
+
+  // Drag on the world (mouse or finger) to look around in first person.
+  const lookHandlers = view === 'first' && !paused ? {
+    onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.target !== event.currentTarget.querySelector('canvas')) return;
+      drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    },
+    onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => {
+      const from = drag.current;
+      if (!from || from.id !== event.pointerId) return;
+      const view = look.current;
+      view.yaw -= (event.clientX - from.x) * EYE.dragYaw;
+      view.pitch = Math.max(-EYE.maxPitch, Math.min(EYE.maxPitch, view.pitch - (event.clientY - from.y) * EYE.dragPitch));
+      drag.current = { ...from, x: event.clientX, y: event.clientY };
+    },
+    onPointerUp: () => { drag.current = null; },
+    onPointerCancel: () => { drag.current = null; },
+  } : {};
 
   useEffect(() => {
     if (paused) { release(); return; }
@@ -369,12 +448,26 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
       const key = event.key.toLowerCase();
       if (running.current !== event.shiftKey) { running.current = event.shiftKey; sync(); }
       if (key === 'e' && !event.repeat) { interactRef.current(); return; }
+      if (key === 'v' && !event.repeat) { toggleView(); return; }
+      // First person: the left and right arrows turn the head; A and D still step sideways.
+      if (viewRef.current === 'first' && (key === 'arrowleft' || key === 'arrowright')) {
+        event.preventDefault();
+        turning.current.add(key);
+        look.current.turn = (turning.current.has('arrowleft') ? 1 : 0) - (turning.current.has('arrowright') ? 1 : 0);
+        return;
+      }
       if (!KEYS[key]) return;
       event.preventDefault();
       held.current.set('key:' + key, KEYS[key]);
       sync();
     };
-    const up = (event: KeyboardEvent) => { running.current = event.shiftKey; held.current.delete('key:' + event.key.toLowerCase()); sync(); };
+    const up = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      running.current = event.shiftKey;
+      held.current.delete('key:' + key);
+      if (turning.current.delete(key)) look.current.turn = (turning.current.has('arrowleft') ? 1 : 0) - (turning.current.has('arrowright') ? 1 : 0);
+      sync();
+    };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('blur', release);
@@ -388,7 +481,8 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
     };
   }, [paused, release, sync]);
 
-  const dpr = useStageDpr();
+  const pixel = usePixel();
+  const { dpr, adapt, scale } = useRenderScale(pixel);
   const [supported] = useState(webglAvailable);
   const [lost, setLost] = useState(false);
   const loseContext = useCallback(() => { setLost(true); onUnavailable(); }, [onUnavailable]);
@@ -412,13 +506,19 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
     <section className="memory-stage" aria-label={areaLabel}>
       <StageBoundary fallback={unavailable} onFail={onUnavailable}>
         <div className="stage-viewport walk-viewport" ref={(element) => { hud.current = element; }} data-player=""
-          data-walk-targets={JSON.stringify(layout)}>
-          <Canvas camera={{ position: [position.current.x, CAMERA.y, position.current.z + CAMERA.z], fov: 50 }} dpr={dpr} fallback={<Preview />}>
+          data-walk-targets={JSON.stringify(layout)} data-view={view} {...lookHandlers}>
+          <Canvas camera={view === 'first'
+            ? { position: [position.current.x, EYE.y, position.current.z], fov: 68, near: 0.05 }
+            : { position: [position.current.x, CAMERA.y, position.current.z + CAMERA.z], fov: 50 }} dpr={dpr} fallback={<Preview />}>
             <ContextMonitor onLost={loseContext} />
             <WorldScene world={world} layout={layout} revealed={revealed} ended={ended} position={position} input={input}
               playerGroup={playerGroup} hud={hud} compass={compass} onTarget={setTarget} paused={paused}
-              conversationOpen={conversationOpen} audio={audio} />
+              conversationOpen={conversationOpen} audio={audio} view={view} look={look} />
+            {ink && <InkLook />}
+            <FieldOfView view={view} />
+            {adapt && <AdaptiveResolution scale={scale} onScale={adapt} />}
           </Canvas>
+          {view === 'first' && <span className="walk-reticle" aria-hidden="true" />}
           <p className="walk-prompt" role="status">{conversationOpen
             ? (ended ? 'The memory is complete.' : 'Choose how to reply.')
             : describeTarget(target, world, revealed, artifactLabels)}</p>
@@ -432,8 +532,15 @@ export function WorldStage({ world, revealed, ended, position, paused, onReveal,
           <button type="button" className="walk-interact" disabled={!canInteract || paused} onClick={interact}>{t('Interact')}</button>
         </div>
         <div className="stage-toolbar">
-          <span>{t('WASD or arrow keys to walk, Shift to run, E to interact, Esc to pause')}</span>
-          <button type="button" disabled={paused} onClick={() => { position.current = layout.spawn; }}>{t('Reset position')}</button>
+          <span>{t(view === 'first'
+            ? 'WASD to walk, drag or ← → to look, Shift to run, E to interact, V to change view, Esc to pause'
+            : 'WASD or arrow keys to walk, Shift to run, E to interact, Esc to pause')}</span>
+          <span className="stage-toolbar-actions">
+            <button type="button" className="view-toggle" aria-pressed={view === 'first'} onClick={toggleView}>
+              {t(view === 'first' ? 'First person' : 'Third person')}
+            </button>
+            <button type="button" disabled={paused} onClick={() => { position.current = layout.spawn; look.current.yaw = 0; look.current.pitch = -0.12; }}>{t('Reset position')}</button>
+          </span>
         </div>
       </StageBoundary>
     </section>

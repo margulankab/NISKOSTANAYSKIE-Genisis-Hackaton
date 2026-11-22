@@ -11,6 +11,9 @@ import type { Point, WalkLayout } from '../gameplay/layout';
 import { ArtifactModel, artifactNames } from './ArtifactModel';
 import { EnvironmentBackdrop } from './EnvironmentBackdrop';
 import { ContextMonitor, Preview, SoundtrackMotion, StageBoundary } from './MemoryStage';
+import { InkFromSettings } from './InkLook';
+import { AdaptiveResolution, useRenderScale } from '../chrome/AdaptiveResolution';
+import { usePixel } from '../chrome/use-pixel';
 import { prefersReducedMotion, subscribeToReducedMotion } from './reduced-motion';
 import type { SceneStyle } from './scene-style';
 
@@ -192,6 +195,8 @@ export function WalkStage({ manifest, style, revealed, activeAudio, onReveal, on
   onFinish: () => void;
   onUnavailable: () => void;
 }) {
+  const pixel = usePixel();
+  const { dpr, adapt, scale } = useRenderScale(pixel);
   const layout = useRef(createWalkLayout(style)).current;
   const localPosition = useRef<Point>(layout.spawn);
   const position = playerPosition ?? localPosition;
@@ -282,12 +287,14 @@ export function WalkStage({ manifest, style, revealed, activeAudio, onReveal, on
       <StageBoundary fallback={unavailable} onFail={onUnavailable}>
         <div className="stage-viewport walk-viewport" ref={(element) => { hud.current = element; }} data-player=""
           data-walk-targets={JSON.stringify({ spawn: layout.spawn, artifacts: layout.artifacts, landmark: layout.landmark, reach: layout.reach })}>
-          <Canvas camera={{ position: [0, CAMERA_OFFSET.y, layout.spawn.z + CAMERA_OFFSET.z], fov: 45 }} dpr={[1, 1.5]}
+          <Canvas camera={{ position: [0, CAMERA_OFFSET.y, layout.spawn.z + CAMERA_OFFSET.z], fov: 45 }} dpr={dpr}
             fallback={<Preview />}>
             <ContextMonitor onLost={loseContext} />
             <WalkWorld manifest={manifest} style={style} layout={layout} revealed={revealed} position={position}
               input={input} targetRef={targetRef} activeAudio={paused ? null : activeAudio} motionModels={motionModels}
               playerGroup={playerGroup} hud={hud} onTarget={setTarget} paused={paused} />
+            <InkFromSettings />
+            {adapt && <AdaptiveResolution scale={scale} onScale={adapt} />}
           </Canvas>
           <p className="walk-prompt" role="status">{promptFor(target, manifest, revealed)}</p>
           <div className="walk-pad" aria-label="Touch movement controls">
