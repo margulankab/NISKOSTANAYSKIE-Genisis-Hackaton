@@ -60,6 +60,28 @@ export function SettingsMenu() {
             {t('Ink outlines and toon shading on 3D worlds')}
           </label>
         </fieldset>
+        <fieldset className="customize">
+          <legend>{t('Customize')}</legend>
+          <label htmlFor="setting-fov">{t('Field of view: {value}°', { value: settings.fov })}</label>
+          <input id="setting-fov" type="range" min={55} max={95} step={1} value={settings.fov}
+            onChange={(event) => update({ ...settings, fov: Number(event.target.value) })} />
+          <label htmlFor="setting-sensitivity">{t('Look sensitivity: {value}×', { value: settings.sensitivity.toFixed(1) })}</label>
+          <input id="setting-sensitivity" type="range" min={0.4} max={2.5} step={0.1} value={settings.sensitivity}
+            onChange={(event) => update({ ...settings, sensitivity: Number(event.target.value) })} />
+          <label htmlFor="setting-text">{t('Text size: {value}%', { value: settings.textScale })}</label>
+          <input id="setting-text" type="range" min={90} max={130} step={5} value={settings.textScale}
+            onChange={(event) => update({ ...settings, textScale: Number(event.target.value) })} />
+          <p className="setting-label">{t('Ink lines')}</p>
+          <div className="choice-row" role="radiogroup" aria-label={t('Ink lines')}>
+            {(['fine', 'medium', 'bold'] as const).map((value) => (
+              <label key={value} className="permission">
+                <input type="radio" name="ink-weight" value={value} checked={settings.inkWeight === value} disabled={!settings.ink}
+                  onChange={() => update({ ...settings, inkWeight: value })} />
+                {t(value === 'fine' ? 'Fine' : value === 'medium' ? 'Medium' : 'Bold')}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <fieldset>
           <legend>{t('Reduced motion')}</legend>
           {(['system', 'on', 'off'] as const).map((value) => (

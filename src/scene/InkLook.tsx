@@ -5,7 +5,7 @@ import {
   OrthographicCamera, PlaneGeometry, RedFormat, Scene, ShaderMaterial, UnsignedByteType, Vector2, WebGLRenderTarget,
 } from 'three';
 import type { Material, Object3D } from 'three';
-import { useInk } from '../chrome/use-view';
+import { useInk, useTuning } from '../chrome/use-view';
 
 /**
  * "Ink" look: flat toon bands plus a screen pass that inks silhouettes and colour edges
@@ -94,7 +94,9 @@ const fragmentShader = /* glsl */`
   }
 `;
 
-export function InkLook({ ink = '#1d3134', fade = [18, 60] }: {
+export function InkLook({ ink = '#1d3134', fade = [18, 60], weight = 'medium' }: {
+  /** Outline weight from Settings. */
+  weight?: 'fine' | 'medium' | 'bold';
   /** Line colour: a dark teal ink rather than black. */
   ink?: string;
   /** Lines fade to a lighter weight between these distances, like aerial perspective. */
@@ -132,9 +134,10 @@ export function InkLook({ ink = '#1d3134', fade = [18, 60] }: {
     const buffer = gl.getDrawingBufferSize(new Vector2());
     target.setSize(buffer.x, buffer.y);
     // Lines about 1.6 px wide on a 1,000 px view, scaling with resolution so they read as pen strokes.
-    const width = Math.max(1, Math.min(2.6, buffer.x / 640));
+    const scale = weight === 'fine' ? 0.65 : weight === 'bold' ? 1.6 : 1;
+    const width = Math.max(1, Math.min(4, (buffer.x / 640) * scale));
     pass.material.uniforms.texel.value.set(width / buffer.x, width / buffer.y);
-  }, [gl, size, dpr, target, pass]);
+  }, [gl, size, dpr, target, pass, weight]);
 
   // Put the original materials back when the look is switched off or the world closes.
   useEffect(() => () => {
@@ -183,5 +186,6 @@ export function InkLook({ ink = '#1d3134', fade = [18, 60] }: {
 
 /** The ink look when Settings has it on (the default). */
 export function InkFromSettings() {
-  return useInk() ? <InkLook /> : null;
+  const { inkWeight } = useTuning();
+  return useInk() ? <InkLook weight={inkWeight} /> : null;
 }

@@ -19,6 +19,12 @@ Outdoor worlds are about four times larger than before: the walk starts on the a
 
 **Song of the day.** In **From a prompt** and **Create a memory**, paste a link from Spotify, Apple Music, YouTube Music, Yandex Music, SoundCloud, Deezer, TIDAL, Bandcamp or VK. You can add the artist, song, style and year, or press **Tap the beat** while the song plays in your music app. The world picks its cleared in-game score from those details, and lanterns pulse at the song's tempo. **Open in …** takes you back to your app. The link is stored without its sharing code, and nothing is sent to the music service.
 
+**Controls.** WASD to walk, and drag or ← / → to look. Tap **Shift** for shift lock, where the mouse turns the camera (click to capture the cursor). Hold **Shift** while walking to run. **E** or **Space** interacts, **V** switches between first and third person, and **Esc** pauses. In full screen the world stays fixed and only the side panel scrolls. **Settings → Customize** sets the field of view, look sensitivity, ink line weight and text size.
+
+**Memory library.** **Library** in the header shows every world and day saved in this browser next to the five example days, with filters. Archive (import and export) and Create a memory are on the same page.
+
+**One-file version.** `npm run build:single` writes `dist-web/memory-worlds.html`, the whole game in one file that opens from disk or any web host.
+
 **First person and the ink look.** Worlds open through the walker's eyes. Drag on the world, or hold ← / →, to look around, and walk with WASD. Press **V** (or the toolbar button) for the over-the-shoulder camera. Worlds are drawn with toon shading, ink outlines and hatching. Both can be changed in **Settings → Camera**. On slower devices, the first seconds of a world measure the frame rate and lower the render resolution if needed.
 
 **Play online.** `npm run build:web` writes a static copy to `dist-web/` that works from any static host or sub-folder, using routes such as `#examples` and `#new--prompt`. The included GitHub Pages workflow publishes it on every push to `main`, once a repository admin sets **Settings → Pages → Source** to **GitHub Actions**.

@@ -16,3 +16,18 @@ export function toggleView() {
 export function useInk() {
   return useSyncExternalStore(subscribeToSettings, inkOf, () => true);
 }
+
+const tuningOf = (() => {
+  let last = '';
+  let value = { sensitivity: 1, fov: 68, inkWeight: 'medium' as 'fine' | 'medium' | 'bold' };
+  return () => {
+    const { sensitivity, fov, inkWeight } = readSettings();
+    const key = `${sensitivity}|${fov}|${inkWeight}`;
+    if (key !== last) { last = key; value = { sensitivity, fov, inkWeight }; }
+    return value;
+  };
+})();
+/** Look speed, first-person lens and ink weight from Settings. */
+export function useTuning() {
+  return useSyncExternalStore(subscribeToSettings, tuningOf, tuningOf);
+}

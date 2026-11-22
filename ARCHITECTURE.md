@@ -1,5 +1,23 @@
 # Memory Worlds — active architecture (amended 2026-11-20)
 
+## Site, memory library, shift lock and the single-file release — 2026-11-22
+
+**Site.** The masthead is now the wordmark (a home link labelled "Main menu") and three links: Library, New game, Settings. The status bar, title ticker, cassette aside and "World preview" link were removed. Archive and Create a memory moved onto the Library page, and World preview is still reachable at `/world-preview`. The title screen has four actions (New Game, Continue, Load Game, Library) beside a fanned showcase of three memory cards.
+
+**Memory library** (`/library`, [`src/library`](src/library)). `useLibrary` merges `localGames.listGames()` with `localMemories.list()` (for day thumbnails) and adds the five example days. `GameSummary` gained optional `timeOfDay`, `weather` and `date` for cards. A filter group shows All, Worlds, Days or Examples. Each `MemoryCard` is a postcard: a photo or the day's thumbnail, or else `WorldArt`, a seeded SVG landscape (sky by time of day, inked hills, pines, hatching). Cards tilt toward the pointer with a moving glint and enter with a staggered rise.
+
+**Animations.** Title letters rise in sequence. Library cards rise in with a stagger. Page changes use view transitions: `@view-transition { navigation: auto }` for path routes, and `document.startViewTransition` in the hash build. Its update callback waits for the route change with a task, not an animation frame, because frames pause during a transition. Every animation is off with Settings → Reduced motion, or when the device asks for reduced motion.
+
+**Game controls.**
+- **Both views follow the look direction:** WASD moves relative to yaw in both views, and the third-person camera orbits behind the walker. At yaw 0 everything matches the earlier axes.
+- **Shift lock:** a quick tap of Shift (under 350 ms, with no movement key in between) toggles it, and holding Shift while walking still runs. In shift lock, mouse movement over the world turns the camera without dragging. A click captures the cursor with Pointer Lock, and Esc or another tap releases it. Single movements are capped at 80 px so the camera never snaps.
+- **Space:** interacts like E and never scrolls the page, unless a button has focus.
+- **Locked game screen:** in full screen the stage is fixed to the screen (left of a `--panel`-wide side column). The menu, title, soundtrack and discoveries scroll in the side column. On narrow screens, the stage takes the top 62% and the panel sits below it.
+
+**Customize.** Settings gained `fov` (55–95°), `sensitivity` (0.4–2.5×), `inkWeight` (fine, medium, bold) and `textScale` (90–130%, applied with CSS `zoom` to reading surfaces only, never the canvas). All are defaulted, so older saved settings still parse.
+
+**Single-file release.** `npm run build:single` runs the web build, then [`scripts/single-file.mjs`](scripts/single-file.mjs) inlines the stylesheet, fonts (as data URIs) and the module script into `dist-web/memory-worlds.html` (about 2 MB). The file opens straight from disk, and the same build is published as the team's claude.ai page.
+
 ## First-person worlds, ink look and the web build — 2026-11-22
 
 Implemented on `claude/keen-bell-fkqitv` after merging `main` and `B_development` (B's 3–7-word titles that end on a described object, empty states and the pause hint; the GENESIS interface kept where both changed a screen). Settings gained `view` (`first` | `third`, default `first`) and `ink` (default on). The pixel filter now defaults to off, because the ink look reads best at full resolution.

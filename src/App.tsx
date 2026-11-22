@@ -9,7 +9,7 @@ import { NewGameMenu } from './menus/NewGameMenu';
 import { SettingsMenu } from './menus/SettingsMenu';
 import { TitleMenu } from './menus/TitleMenu';
 import { installVolumeSetting } from './menus/settings';
-import { StatusBar } from './chrome/StatusBar';
+import { Library } from './library/Library';
 import { ViewSwitch } from './chrome/ViewSwitch';
 import { WorldWarp } from './chrome/WorldWarp';
 import { useT } from './i18n/i18n';
@@ -43,20 +43,18 @@ export function App() {
     '/archive': () => <Archive />,
     '/load': () => <LoadGameMenu />,
     '/settings': () => <SettingsMenu />,
+    '/library': () => <Library />,
     '/world-preview': () => <WorldPreview />,
   };
 
   return (
     <main className="shell">
-      <StatusBar />
       <header className="masthead">
-        <span className="wordmark">Memory_Worlds<b>.exe</b></span>
+        <a className="wordmark" href="/" aria-label={t('Main menu')}>Memory<b>.worlds</b></a>
         <nav className="site-nav" aria-label="Main">
-          <a href="/" aria-current={path === '/' ? 'page' : undefined}>{t('Main menu')}</a>
-          <a href="/examples" aria-current={path === '/examples' ? 'page' : undefined}>{t('Examples')}</a>
-          <a href="/world-preview" aria-current={path === '/world-preview' ? 'page' : undefined}>{t('World preview')}</a>
-          <a href="/create" aria-current={path === '/create' ? 'page' : undefined}>{t('Create a memory')}</a>
-          <a href="/archive" aria-current={path === '/archive' ? 'page' : undefined}>{t('Archive')}</a>
+          <a href="/library" aria-current={path === '/library' ? 'page' : undefined}>{t('Library')}</a>
+          <a href="/new" aria-current={path.startsWith('/new') ? 'page' : undefined}>{t('New game')}</a>
+          <a href="/settings" aria-current={path === '/settings' ? 'page' : undefined}>{t('Settings')}</a>
         </nav>
         <ViewSwitch />
       </header>
@@ -72,13 +70,14 @@ export function App() {
 }
 
 function FixtureLibrary({ slug }: { slug?: string }) {
+  const t = useT();
   const [selected, setSelected] = useState(() => fixtures.find(item => item.slug === slug) ?? fixtures[0]);
 
   return (
     <div className="example-library">
       <nav aria-label="Test memories" className="memory-index">
-        <h1>Fixture library</h1>
-        <p className="collection">Fictional test memories</p>
+        <h1>{t('Example days')}</h1>
+        <p className="collection">{t('Five fictional days to walk through')}</p>
         <ul className="example-contact-sheet">
           {fixtures.map((fixture) => (
             <li key={fixture.slug}>
@@ -92,7 +91,7 @@ function FixtureLibrary({ slug }: { slug?: string }) {
           ))}
         </ul>
       </nav>
-      <p><a href={`/examples/${selected.slug}`}>Link to this example</a></p>
+      <p className="example-links"><a href={`/examples/${selected.slug}`}>{t('Link to this example')}</a> <a href="/create">{t('Create a memory')}</a></p>
       <FixturePanel key={selected.slug} fixture={selected} />
     </div>
   );

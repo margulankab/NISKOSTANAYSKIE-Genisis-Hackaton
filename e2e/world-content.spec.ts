@@ -4,8 +4,8 @@ import { captureScene } from './scene-capture';
 import { settledShot } from './walk';
 
 test('world preview renders resolved geometry and responds to gesture-started catalog playback', async ({ page }, testInfo) => {
-  await page.goto('/');
-  await page.getByRole('link', { name: 'World preview' }).click();
+  // World preview is a direct page now; the main navigation keeps only Library, New game and Settings.
+  await page.goto('/world-preview');
   await expect(page).toHaveURL(/\/world-preview$/);
   await expect(page.getByRole('heading', { name: 'World preview' })).toBeVisible();
   const canvas = page.getByRole('region', { name: 'Foggy cove' }).locator('canvas');

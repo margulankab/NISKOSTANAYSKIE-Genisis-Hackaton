@@ -87,10 +87,10 @@ test('edits cancel late plans and the main navigation confirms unsaved exits', a
   await page.getByRole('button', { name: 'Build world' }).click();
   await expect(page.getByText('Built privately')).toBeVisible();
   await page.getByRole('button', { name: 'Enter world' }).click();
-  await page.getByRole('link', { name: 'Archive', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Library' }).click();
   await expect(page.getByRole('dialog', { name: 'Leave without saving?' })).toBeVisible();
   await page.getByRole('button', { name: 'Save and leave' }).click();
-  await expect(page).toHaveURL(/\/archive$/);
+  await expect(page).toHaveURL(/\/library$/);
 });
 
 test('five fictional jury examples have thumbnails and refreshable links', async ({ page }, info) => {

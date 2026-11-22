@@ -12,7 +12,8 @@
     "test": "vitest run tests",
     "test:browser": "playwright test",
     "build": "tsc --noEmit && vite build",
-    "build:web": "tsc --noEmit && vite build --base ./ --mode web --outDir dist-web"
+    "build:web": "tsc --noEmit && vite build --base ./ --mode web --outDir dist-web",
+    "build:single": "npm run build:web && node scripts/single-file.mjs"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "5.3.0",

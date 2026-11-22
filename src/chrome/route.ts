@@ -35,9 +35,20 @@ export function navigate(to: string) {
   const url = new URL(to, window.location.href);
   const path = url.hash && url.pathname === window.location.pathname ? pathFor(url.hash) : url.pathname;
   const hash = hashFor(path);
-  if (window.location.hash.replace(/^#/, '') === hash) window.dispatchEvent(new HashChangeEvent('hashchange'));
-  else window.location.hash = hash;
-  window.scrollTo({ top: 0 });
+  const go = () => {
+    if (window.location.hash.replace(/^#/, '') === hash) window.dispatchEvent(new HashChangeEvent('hashchange'));
+    else window.location.hash = hash;
+    window.scrollTo({ top: 0 });
+  };
+  // Same page-turn as the path build's cross-document transition, where the browser supports it.
+  const motion = document.documentElement.dataset.motion;
+  const reduced = motion === 'off' || (motion === 'system' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (!document.startViewTransition || reduced) { go(); return; }
+  document.startViewTransition(() => new Promise<void>((resolve) => {
+    // Animation frames pause during a transition, so wait for React's commit with a task instead.
+    window.addEventListener('hashchange', () => setTimeout(resolve, 30), { once: true });
+    go();
+  }));
 }
 
 /** In the web build, turn clicks on in-app links ("/examples") into hash navigation. */

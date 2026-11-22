@@ -231,6 +231,12 @@ export function WalkStage({ manifest, style, revealed, activeAudio, onReveal, on
     const down = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey || typingTarget(event.target)) return;
       const key = event.key.toLowerCase();
+      if (key === ' ' && !(event.target instanceof HTMLElement && event.target.closest('button, a, summary'))) {
+        // Space never scrolls the page while walking; it interacts like E.
+        event.preventDefault();
+        if (!event.repeat) interactRef.current();
+        return;
+      }
       if (key === 'e' && !event.repeat) { interactRef.current(); return; }
       const direction = MOVE_KEYS[key];
       if (!direction) return;

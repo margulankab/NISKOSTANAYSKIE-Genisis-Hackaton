@@ -58,3 +58,52 @@ test('dragging on the world looks around in first person', async ({ page }) => {
   await expect.poll(async () => (await canvas.screenshot()).equals(before)).toBe(false);
   expect(await playerAt(page)).toEqual(start);
 });
+
+test('a tap of Shift toggles shift lock, holding Shift runs, and Space never scrolls the page', async ({ page }) => {
+  await enter(page);
+  const viewport = page.locator('.walk-viewport');
+  await expect(viewport).toHaveAttribute('data-shift-lock', 'off');
+  // Space interacts instead of scrolling.
+  const scrolled = await page.evaluate(() => window.scrollY);
+  await page.keyboard.press(' ');
+  await page.keyboard.press(' ');
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrolled);
+
+  await page.keyboard.press('Shift');
+  await expect(viewport).toHaveAttribute('data-shift-lock', 'on');
+  await expect(page.getByRole('status').filter({ hasText: 'Shift lock on' })).toBeVisible();
+  // In shift lock the mouse turns the camera without a drag, and the walker stays put.
+  const start = await playerAt(page);
+  const canvas = viewport.locator('canvas');
+  const box = (await canvas.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  const before = await canvas.screenshot();
+  await page.mouse.move(box.x + box.width / 2 + 60, box.y + box.height / 2, { steps: 6 });
+  await expect.poll(async () => (await canvas.screenshot()).equals(before)).toBe(false);
+  expect(await playerAt(page)).toEqual(start);
+
+  // Holding Shift while walking runs and keeps shift lock as it is.
+  await page.keyboard.down('Shift');
+  await page.keyboard.down('w');
+  await page.waitForTimeout(500);
+  await page.keyboard.up('w');
+  await page.keyboard.up('Shift');
+  await expect(viewport).toHaveAttribute('data-shift-lock', 'on');
+  await page.keyboard.press('Shift');
+  await expect(viewport).toHaveAttribute('data-shift-lock', 'off');
+});
+
+test('the memory library shows saved worlds beside the five example days and filters them', async ({ page }) => {
+  await enter(page);
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'Save Game' }).click();
+  await expect(page.getByRole('dialog').getByRole('status')).toContainText('Game saved');
+  await page.goto('/library');
+  const shelf = page.getByRole('list', { name: 'Memories' });
+  await expect(shelf.getByRole('link')).toHaveCount(6);
+  await expect(shelf.getByRole('link').first()).toContainText('Sunny Park');
+  await page.getByRole('group', { name: 'Show' }).getByRole('button', { name: /Examples/ }).click();
+  await expect(shelf.getByRole('link')).toHaveCount(5);
+  await shelf.getByRole('link', { name: /The last light in the park/ }).click();
+  await expect(page).toHaveURL(/\/examples\/nostalgic-park$/);
+});
