@@ -1,5 +1,24 @@
 # Memory Worlds — current progress (amended 2026-11-20)
 
+## 2026-11-22 — Combined site, memory library, shift lock and the one-file release
+
+The site was minimised: the header is now the wordmark (home), Library, New game and Settings, and the status bar, ticker, cassette aside and World preview link were removed. The title screen shows a fanned memory showcase. The new `/library` page holds saved worlds and days and the five example days, plus Archive and Create a memory. Animations: title letters rise, library cards rise in sequence, and pages use view transitions. In the game, a tap of Shift toggles shift lock, holding Shift runs, and Space interacts without scrolling. In full screen the world is fixed and only the side panel scrolls. Settings gained Customize (field of view, look sensitivity, ink weight, text size). `npm run build:single` writes the whole game as one file, committed as `release/memory-worlds.html`. The claude.ai page (https://claude.ai/artifact/D1tFJaQ9gxwUxkErVw2a4v) was republished with this build. [Architecture](ARCHITECTURE.md#site-memory-library-shift-lock-and-the-single-file-release--2026-11-22).
+
+**Checks run (Linux container, Chromium headless with SwiftShader):**
+
+- `npm run typecheck` passed, and `npm test` passed **168** unit tests.
+- Full browser suite, `--workers=2`, **56 tests**: 47 passed on the first run.
+  - The 9 failures shared one cause: the walk helper clicked `link "New Game"`, which now also matched the header's "New game". With `exact: true`, all 9 passed on rerun (`--last-failed`).
+  - Four specs were updated for the new navigation: Library instead of the Archive header link, and a direct `/world-preview` visit.
+- New tests in `e2e/first-person.spec.ts`:
+  - shift lock toggles on a Shift tap, the mouse turns without dragging, and holding Shift while walking keeps the lock;
+  - Space leaves the scroll position unchanged;
+  - the library lists a saved world with the five examples, filters to Examples and opens one.
+- The one-file build opened from `file://`: library, New game → prompt → Enter world, the Russian night prompt, all four fonts loaded, and the soundtrack played. A first test of it exposed hash-mode view transitions timing out, because their callback waited for an animation frame. Fixed and rechecked.
+- Screenshots at 1366 px (title, library, the locked full-screen game), and the library at 390 px with no horizontal overflow.
+
+**Not verified here:** pointer lock and shift lock with a real mouse, phones in full screen, and the claude.ai page's frame permissions for pointer lock.
+
 ## 2026-11-22 — First-person worlds, ink look, merged branches and a playable web build
 
 Merged `main` (PR #5) and `B_development` (B's titles, empty states and pause hint) into `claude/keen-bell-fkqitv`. Where both branches changed the same screen, the GENESIS interface was kept. `claude/practical-carson-k6sox5` holds the superseded 2026-11-20 prototype and was not merged. Worlds now open in first person, with drag or ←/→ to look and V for third person. A toon-and-ink look is drawn over every 3D view. Render resolution adapts to the device. A static web build runs from any host. The fictional-days example library is unchanged. [Architecture](ARCHITECTURE.md#first-person-worlds-ink-look-and-the-web-build--2026-11-22).
